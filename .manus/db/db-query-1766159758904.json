@@ -1,0 +1,9 @@
+{
+  "query": "SHOW TABLES LIKE 'truth_nuggets';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user vFeRRecQMuAnf9u.1dfa7f702e8e --database PEcyhGVaPwzs648mdcWt8K --execute SHOW TABLES LIKE 'truth_nuggets';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 798
+}

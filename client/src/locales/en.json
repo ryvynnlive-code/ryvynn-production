@@ -1,0 +1,167 @@
+{
+  "common": {
+    "appName": "RYVYNN",
+    "tagline": "From our darkest hours to our brightest days",
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "dashboard": "Dashboard",
+    "pricing": "Pricing",
+    "manifesto": "Manifesto",
+    "about": "About",
+    "investors": "Investors",
+    "waitlist": "Waitlist",
+    "trust": "Trust",
+    "privacy": "Privacy",
+    "origin": "Origin",
+    "settings": "Settings",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "ageGate": {
+    "title": "Age Verification & Wellness Disclaimer",
+    "ageRequirement": "You must be 18 years or older to use RYVYNN.",
+    "wellnessNotice": "RYVYNN is a wellness AI, not a medical or mental-health provider.",
+    "wellnessDetails": "We do not diagnose, treat, or replace licensed counselors, therapists, or physicians.",
+    "crisisNotice": "If you are in crisis,",
+    "crisisAction": "please contact your local emergency services or call/text",
+    "crisisNumber": "988",
+    "crisisLocation": "in the United States.",
+    "acknowledgment": "By continuing, you acknowledge that you are 18+ and understand that RYVYNN provides wellness support, not medical treatment.",
+    "checkbox": "I am 18+ and I understand this is a wellness service, not medical care",
+    "enter": "Enter Your Sanctuary"
+  },
+  "crisisBanner": {
+    "text": "Need help now?",
+    "button": "Crisis Support"
+  },
+  "wellnessDisclaimer": {
+    "title": "Wellness Disclaimer",
+    "text": "RYVYNN is a wellness AI tool, not a medical or mental-health provider. We do not diagnose, treat, or replace licensed professionals. If you are in crisis, please contact your local emergency services or call/text 988 in the United States."
+  },
+  "home": {
+    "hero": {
+      "title": "RYVYNN",
+      "subtitle": "From our darkest hours to our brightest days"
+    },
+    "features": {
+      "title": "Your Sacred Space",
+      "lantern": {
+        "title": "Lantern",
+        "description": "Share anything anonymously. Receive wisdom from Lantern"
+      },
+      "journal": {
+        "title": "Journal",
+        "description": "Write privately. Get AI reflections and insights"
+      },
+      "rituals": {
+        "title": "Daily Rituals",
+        "description": "Start your day with wisdom, breathing, and grounding"
+      },
+      "feed": {
+        "title": "Miracle Feed",
+        "description": "Read stories of healing. Know you're not alone"
+      },
+      "tokens": {
+        "title": "Soul Tokens",
+        "description": "View your balance. Donate to help others in need"
+      },
+      "crisis": {
+        "title": "Crisis Support",
+        "description": "Immediate help when you need it most"
+      }
+    },
+    "zeroSurveillance": {
+      "title": "Zero-Surveillance Seal",
+      "subtitle": "Your privacy is sacred. Here's our proof:",
+      "noTracking": "Zero Tracking",
+      "noCookies": "No Cookies",
+      "ephemeral": "Ephemeral Storage",
+      "noSharing": "No Sharing"
+    },
+    "cta": {
+      "title": "Begin Your Journey",
+      "subtitle": "Join thousands finding their way from darkness to light"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "soulTokens": "Soul Tokens",
+    "streak": "Day Streak",
+    "todayProgress": "Today's Progress",
+    "features": {
+      "confess": "Confess (Lantern)",
+      "journal": "Journal",
+      "rituals": "Daily Rituals",
+      "feed": "Miracle Feed",
+      "tokens": "Soul Tokens",
+      "crisis": "Crisis Support",
+      "flame": "Pass the Flame"
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Tesla 3-6-9 sacred pricing. Choose the tier that resonates with your journey.",
+    "coreFree": "Core features are free forever.",
+    "premiumUnlock": "Premium tiers unlock deeper support.",
+    "tiers": {
+      "seeker": {
+        "name": "Seeker",
+        "price": "$3",
+        "period": "/month",
+        "description": "For those beginning their journey",
+        "cta": "Start Your Journey"
+      },
+      "traveler": {
+        "name": "Traveler",
+        "price": "$6",
+        "period": "/month",
+        "description": "For those deepening their practice",
+        "cta": "Deepen Your Practice",
+        "popular": "Most Popular"
+      },
+      "guardian": {
+        "name": "Guardian",
+        "price": "$9",
+        "period": "/month",
+        "description": "For those who light the way for others",
+        "cta": "Become a Guardian"
+      }
+    },
+    "free": {
+      "title": "Free Forever",
+      "description": "Core wellness features will always be free. Lantern (confessions), Daily Rituals, Crisis Support, and Miracle Feed are accessible to everyone—no credit card required.",
+      "impact": "Impact over income.",
+      "noPaywall": "We will never block mental health support behind a paywall.",
+      "cta": "Get Started Free"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "cancel": {
+        "q": "Can I cancel anytime?",
+        "a": "Yes. Cancel anytime from your account settings. No questions asked, no hidden fees."
+      },
+      "payment": {
+        "q": "What payment methods do you accept?",
+        "a": "We accept all major credit cards via Stripe. Your payment information is never stored on our servers."
+      },
+      "refund": {
+        "q": "Do you offer refunds?",
+        "a": "Yes. If you're not satisfied within the first 7 days, we'll refund you in full—no questions asked."
+      },
+      "tesla": {
+        "q": "Why 3-6-9?",
+        "a": "Inspired by Nikola Tesla's belief in the sacred power of 3, 6, and 9. These numbers represent energy, frequency, and vibration—the foundation of all creation."
+      },
+      "data": {
+        "q": "What happens to my data if I cancel?",
+        "a": "Your account remains active (free tier). If you delete your account, all data is permanently removed within 30 days."
+      }
+    }
+  },
+  "footer": {
+    "builtWithCare": "Built with care"
+  }
+}

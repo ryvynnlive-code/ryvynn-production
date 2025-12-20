@@ -1,0 +1,167 @@
+{
+  "common": {
+    "appName": "RYVYNN",
+    "tagline": "Das nossas horas mais escuras aos nossos dias mais brilhantes",
+    "login": "Entrar",
+    "logout": "Sair",
+    "getStarted": "Começar",
+    "learnMore": "Saiba Mais",
+    "dashboard": "Painel",
+    "pricing": "Preços",
+    "manifesto": "Manifesto",
+    "about": "Sobre",
+    "investors": "Investidores",
+    "waitlist": "Lista de Espera",
+    "trust": "Confiança",
+    "privacy": "Privacidade",
+    "origin": "Origem",
+    "settings": "Configurações",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso"
+  },
+  "ageGate": {
+    "title": "Verificação de Idade e Aviso de Bem-Estar",
+    "ageRequirement": "Você deve ter 18 anos ou mais para usar RYVYNN.",
+    "wellnessNotice": "RYVYNN é uma IA de bem-estar, não um provedor médico ou de saúde mental.",
+    "wellnessDetails": "Não diagnosticamos, tratamos ou substituímos conselheiros, terapeutas ou médicos licenciados.",
+    "crisisNotice": "Se você está em crise,",
+    "crisisAction": "por favor, entre em contato com seus serviços de emergência locais ou ligue/envie mensagem para",
+    "crisisNumber": "988",
+    "crisisLocation": "nos Estados Unidos.",
+    "acknowledgment": "Ao continuar, você reconhece que tem 18+ anos e entende que RYVYNN fornece suporte de bem-estar, não tratamento médico.",
+    "checkbox": "Tenho 18+ anos e entendo que este é um serviço de bem-estar, não atendimento médico",
+    "enter": "Entre no Seu Santuário"
+  },
+  "crisisBanner": {
+    "text": "Precisa de ajuda agora?",
+    "button": "Apoio em Crise"
+  },
+  "wellnessDisclaimer": {
+    "title": "Aviso de Bem-Estar",
+    "text": "RYVYNN é uma ferramenta de IA de bem-estar, não um provedor médico ou de saúde mental. Não diagnosticamos, tratamos ou substituímos profissionais licenciados. Se você está em crise, por favor, entre em contato com seus serviços de emergência locais ou ligue/envie mensagem para 988 nos Estados Unidos."
+  },
+  "home": {
+    "hero": {
+      "title": "RYVYNN",
+      "subtitle": "Das nossas horas mais escuras aos nossos dias mais brilhantes"
+    },
+    "features": {
+      "title": "Seu Espaço Sagrado",
+      "lantern": {
+        "title": "Lantern",
+        "description": "Compartilhe qualquer coisa anonimamente. Receba sabedoria de Lantern"
+      },
+      "journal": {
+        "title": "Diário",
+        "description": "Escreva em privado. Obtenha reflexões e insights de IA"
+      },
+      "rituals": {
+        "title": "Rituais Diários",
+        "description": "Comece seu dia com sabedoria, respiração e aterramento"
+      },
+      "feed": {
+        "title": "Feed de Milagres",
+        "description": "Leia histórias de cura. Saiba que você não está sozinho"
+      },
+      "tokens": {
+        "title": "Tokens da Alma",
+        "description": "Veja seu saldo. Doe para ajudar outros em necessidade"
+      },
+      "crisis": {
+        "title": "Apoio em Crise",
+        "description": "Ajuda imediata quando você mais precisa"
+      }
+    },
+    "zeroSurveillance": {
+      "title": "Selo de Vigilância Zero",
+      "subtitle": "Sua privacidade é sagrada. Aqui está nossa prova:",
+      "noTracking": "Rastreamento Zero",
+      "noCookies": "Sem Cookies",
+      "ephemeral": "Armazenamento Efêmero",
+      "noSharing": "Sem Compartilhamento"
+    },
+    "cta": {
+      "title": "Comece Sua Jornada",
+      "subtitle": "Junte-se a milhares encontrando seu caminho da escuridão para a luz"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo de volta",
+    "soulTokens": "Tokens da Alma",
+    "streak": "Sequência de Dias",
+    "todayProgress": "Progresso de Hoje",
+    "features": {
+      "confess": "Confessar (Lantern)",
+      "journal": "Diário",
+      "rituals": "Rituais Diários",
+      "feed": "Feed de Milagres",
+      "tokens": "Tokens da Alma",
+      "crisis": "Apoio em Crise",
+      "flame": "Passar a Chama"
+    }
+  },
+  "pricing": {
+    "title": "Preços",
+    "subtitle": "Preços sagrados Tesla 3-6-9. Escolha o nível que ressoa com sua jornada.",
+    "coreFree": "Os recursos principais são gratuitos para sempre.",
+    "premiumUnlock": "Os níveis premium desbloqueiam suporte mais profundo.",
+    "tiers": {
+      "seeker": {
+        "name": "Buscador",
+        "price": "$3",
+        "period": "/mês",
+        "description": "Para aqueles que começam sua jornada",
+        "cta": "Comece Sua Jornada"
+      },
+      "traveler": {
+        "name": "Viajante",
+        "price": "$6",
+        "period": "/mês",
+        "description": "Para aqueles que aprofundam sua prática",
+        "cta": "Aprofunde Sua Prática",
+        "popular": "Mais Popular"
+      },
+      "guardian": {
+        "name": "Guardião",
+        "price": "$9",
+        "period": "/mês",
+        "description": "Para aqueles que iluminam o caminho para outros",
+        "cta": "Torne-se um Guardião"
+      }
+    },
+    "free": {
+      "title": "Grátis Para Sempre",
+      "description": "Os recursos principais de bem-estar sempre serão gratuitos. Lantern (confissões), Rituais Diários, Apoio em Crise e Feed de Milagres são acessíveis a todos, sem necessidade de cartão de crédito.",
+      "impact": "Impacto sobre receita.",
+      "noPaywall": "Nunca bloquearemos o suporte de saúde mental atrás de um paywall.",
+      "cta": "Comece Grátis"
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "cancel": {
+        "q": "Posso cancelar a qualquer momento?",
+        "a": "Sim. Cancele a qualquer momento nas configurações da sua conta. Sem perguntas, sem taxas ocultas."
+      },
+      "payment": {
+        "q": "Quais métodos de pagamento vocês aceitam?",
+        "a": "Aceitamos todos os principais cartões de crédito via Stripe. Suas informações de pagamento nunca são armazenadas em nossos servidores."
+      },
+      "refund": {
+        "q": "Vocês oferecem reembolsos?",
+        "a": "Sim. Se você não estiver satisfeito nos primeiros 7 dias, reembolsaremos integralmente, sem perguntas."
+      },
+      "tesla": {
+        "q": "Por que 3-6-9?",
+        "a": "Inspirado pela crença de Nikola Tesla no poder sagrado de 3, 6 e 9. Esses números representam energia, frequência e vibração, a base de toda criação."
+      },
+      "data": {
+        "q": "O que acontece com meus dados se eu cancelar?",
+        "a": "Sua conta permanece ativa (nível gratuito). Se você excluir sua conta, todos os dados são removidos permanentemente em 30 dias."
+      }
+    }
+  },
+  "footer": {
+    "builtWithCare": "Construído com cuidado"
+  }
+}

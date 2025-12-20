@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- iOS-specific PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RYVYNN" />
+    
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" href="%VITE_APP_LOGO%" sizes="any" />
+    <link rel="apple-touch-icon" href="%VITE_APP_LOGO%" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Primary Meta Tags -->
+    <title>%VITE_APP_TITLE%</title>
+    <meta name="title" content="RYVYNN - From our darkest hours to our brightest days" />
+    <meta name="description" content="Anonymous emotional support powered by AI. Share your darkest hours, receive guidance from the Dual Flame, and find your brightest days. Zero surveillance, forever free." />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ryvynn.live/" />
+    <meta property="og:title" content="RYVYNN - From our darkest hours to our brightest days" />
+    <meta property="og:description" content="Anonymous emotional support powered by AI. Share your darkest hours, receive guidance from the Dual Flame, and find your brightest days." />
+    <meta property="og:image" content="%VITE_APP_LOGO%" />
+    <meta property="og:image:alt" content="Dual Flame of Eternal Light — red for our darkest hours, blue for our brightest days" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://ryvynn.live/" />
+    <meta property="twitter:title" content="RYVYNN - From our darkest hours to our brightest days" />
+    <meta property="twitter:description" content="Anonymous emotional support powered by AI. Share your darkest hours, receive guidance from the Dual Flame, and find your brightest days." />
+    <meta property="twitter:image" content="%VITE_APP_LOGO%" />
+    <!-- Add Google Fonts here, example:
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    -->
+  </head>
+
+  <body aria-label="RYVYNN application — dual flame sanctuary">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script
+      defer
+      src="%VITE_ANALYTICS_ENDPOINT%/umami"
+      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+  </body>
+
+</html>
