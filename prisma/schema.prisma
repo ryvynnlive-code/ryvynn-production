@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  email       String?   @unique
+  isAnonymous Boolean   @default(true)
+  soulTokens  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  confessions Confession[]
+  miracles    Miracle[]
+  
+  @@index([email])
+}
+
+model Confession {
+  id          String   @id @default(cuid())
+  userId      String
+  crisisLevel Int      @default(0)
+  processed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  miracle     Miracle?
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Miracle {
+  id           String   @id @default(cuid())
+  confessionId String   @unique
+  userId       String
+  content      String   @db.Text
+  views        Int      @default(0)
+  likes        Int      @default(0)
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  
+  confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isPublic])
+}
+
+model CrisisEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  severity  Int
+  createdAt DateTime @default(now())
+  
+  @@index([createdAt])
+  @@index([severity])
+}
