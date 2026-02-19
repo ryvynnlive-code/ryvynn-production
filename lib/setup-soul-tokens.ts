@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' });
 async function createSoulTokens() {
   const entry = await stripe.products.create({ name: 'Soul Token — Entry', description: 'Soul anchored badge + standard blessings' });
   const ep = await stripe.prices.create({ product: entry.id, unit_amount: 1700, currency: 'usd' });
