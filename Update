@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from 'next/server'
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export async function POST(req: NextRequest) {
+  try {
+    const { confession, userId } = await req.json()
+    if (!confession || confession.trim().length < 10) {
+      return NextResponse.json({ error: 'Confession too short' }, { status: 400 })
+    }
+    const crisisTerms = ['suicide','kill myself','end my life','want to die','self harm','hurt myself','cant go on',"can't go on",'end it all','better off dead','no reason to live']
+    if (crisisTerms.some(t => confession.toLowerCase().includes(t))) {
+      return NextResponse.json({ crisis: true })
+    }
+    const Anthropic = (await import('@anthropic-ai/sdk')).default
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const aiResponse = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 400,
+      messages: [{ role: 'user', content: `You are The Flame — RYVYNN's voice that transforms darkness into light.\n\nSomeone has anonymously shared this: "${confession}"\n\nRespond with a short miracle (3-5 sentences). Transform their pain into light. Speak directly to them with warmth. No labels, no headers — just the miracle.` }]
+    })
+    const content = aiResponse.content[0]?.type === 'text' ? aiResponse.content[0].text : 'Your darkness is already becoming light. The flame sees you.'
+    return NextResponse.json({ success: true, miracle: { content }, userId: userId || null })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: 'Processing failed', detail: message }, { status: 500 })
+  }
+}
