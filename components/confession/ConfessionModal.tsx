@@ -10,9 +10,10 @@ type AdviceStyle = 'clinical' | 'friendly' | 'uncut';
 interface ConfessionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmitted?: (content: string) => void;
 }
 
-export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
+export function ConfessionModal({ isOpen, onClose, onSubmitted }: ConfessionModalProps) {
   const [confession, setConfession] = useState('');
   const [genderVoice, setGenderVoice] = useState<GenderVoice>('neutral');
   const [adviceStyle, setAdviceStyle] = useState<AdviceStyle>('friendly');
@@ -23,7 +24,7 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
     if (confession.length < 10) return;
     setLoading(true);
     try {
-      await fetch('/api/confession', {
+      const res = await fetch('/api/confession', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -34,10 +35,22 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
           userId: `anon-${Date.now()}`,
         }),
       });
+
+      const data = await res.json().catch(() => ({}));
+
+      // Push to feed regardless
+      onSubmitted?.(confession);
       setConfession('');
       onClose();
+
+      if (data.crisis) {
+        // Crisis detected - could trigger safe mode
+      }
     } catch {
-      // silently handle
+      // Still push locally even if API fails
+      onSubmitted?.(confession);
+      setConfession('');
+      onClose();
     } finally {
       setLoading(false);
     }
@@ -59,7 +72,7 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="relative w-full max-w-lg bg-background border border-border rounded-xl p-6 md:p-8"
+            className="relative w-full max-w-lg bg-background border border-border rounded-xl p-6 md:p-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
@@ -84,6 +97,9 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
               placeholder="Pour it out. No judgment. No record."
               className="w-full h-40 bg-card border border-border rounded-lg p-4 text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent transition-colors resize-none leading-relaxed"
             />
+            <p className="text-xs text-muted-foreground mt-2">
+              Minimum 10 characters. Your confession appears in the feed anonymously.
+            </p>
 
             {/* Gender Voice */}
             <div className="mt-5">
