@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, MessageCircle, Globe, ArrowLeft } from 'lucide-react';
+import { SacredGeometry } from '@/components/sacred/SacredGeometry';
 
 const BREATHE_PHASES = [
   { label: 'Breathe In...', duration: 4000 },
@@ -35,16 +36,60 @@ export function SafeMode({ isActive, onExit }: SafeModeProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
-          className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center px-6"
+          className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center px-6 overflow-hidden"
         >
+          {/* Background sacred geometry -- very faint, slowly rotating */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <SacredGeometry
+              pattern="flower-of-life"
+              size={600}
+              opacity={0.02}
+              color="rgba(249,115,22,0.5)"
+              strokeWidth={0.35}
+            />
+          </div>
+          <div className="absolute top-[5%] right-[-5%] pointer-events-none">
+            <SacredGeometry
+              pattern="sri-yantra"
+              size={250}
+              opacity={0.015}
+              color="rgba(249,115,22,0.4)"
+              strokeWidth={0.3}
+            />
+          </div>
+
           {/* Status text */}
-          <p className="absolute top-8 left-0 right-0 text-center text-sm text-muted-foreground">
+          <p className="absolute top-8 left-0 right-0 text-center text-sm text-muted-foreground z-10">
             Safe Mode Active — You are not alone.
           </p>
 
           {/* Breathing circle */}
-          <div className="flex flex-col items-center gap-8 mb-16">
+          <div className="flex flex-col items-center gap-8 mb-16 relative z-10">
             <div className="relative flex items-center justify-center" style={{ width: 200, height: 200 }}>
+
+              {/* Seed of Life behind the breathing circle */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  animate={{
+                    scale: phaseIndex === 0 ? [0.8, 1.1] : phaseIndex === 1 ? 1.1 : [1.1, 0.8],
+                    opacity: phaseIndex === 0 ? [0.03, 0.06] : phaseIndex === 1 ? 0.06 : [0.06, 0.03],
+                  }}
+                  transition={{
+                    duration: BREATHE_PHASES[phaseIndex].duration / 1000,
+                    ease: 'easeInOut',
+                  }}
+                >
+                  <SacredGeometry
+                    pattern="seed-of-life"
+                    size={220}
+                    opacity={1}
+                    color="rgba(249,115,22,0.6)"
+                    animate={false}
+                    strokeWidth={0.4}
+                  />
+                </motion.div>
+              </div>
+
               <motion.div
                 animate={{
                   scale: phaseIndex === 0 ? [0.6, 1] : phaseIndex === 1 ? 1 : [1, 0.6],
@@ -95,7 +140,7 @@ export function SafeMode({ isActive, onExit }: SafeModeProps) {
           </div>
 
           {/* Crisis hotline cards */}
-          <div className="w-full max-w-sm flex flex-col gap-3">
+          <div className="w-full max-w-sm flex flex-col gap-3 relative z-10">
             <a
               href="tel:988"
               className="flex items-center gap-4 bg-card border border-border rounded-lg p-4 hover:border-accent/30 transition-colors"
@@ -141,7 +186,7 @@ export function SafeMode({ isActive, onExit }: SafeModeProps) {
           {/* Exit button */}
           <button
             onClick={onExit}
-            className="mt-10 inline-flex items-center gap-2 text-accent/70 hover:text-accent text-sm transition-colors"
+            className="relative z-10 mt-10 inline-flex items-center gap-2 text-accent/70 hover:text-accent text-sm transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             {"I'm okay, take me back"}

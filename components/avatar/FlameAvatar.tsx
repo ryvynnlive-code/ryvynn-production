@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { SacredGeometry } from '@/components/sacred/SacredGeometry';
 
 interface FlameAvatarProps {
   level: 1 | 2 | 3 | 4 | 5;
@@ -9,21 +10,34 @@ interface FlameAvatarProps {
 }
 
 const STAGES = {
-  1: { name: 'Ember', size: 48, color1: '#9a8478', color2: '#c2764a', glow: 'rgba(194,118,74,0.15)', pulseScale: 1.02 },
-  2: { name: 'Spark', size: 64, color1: '#ea580c', color2: '#f97316', glow: 'rgba(249,115,22,0.25)', pulseScale: 1.05 },
-  3: { name: 'Flame', size: 80, color1: '#ea580c', color2: '#fb923c', glow: 'rgba(249,115,22,0.35)', pulseScale: 1.08 },
-  4: { name: 'Blaze', size: 100, color1: '#f97316', color2: '#fbbf24', glow: 'rgba(251,191,36,0.4)', pulseScale: 1.1 },
-  5: { name: 'Sovereign', size: 120, color1: '#fbbf24', color2: '#fefce8', glow: 'rgba(254,252,232,0.45)', pulseScale: 1.12 },
+  1: { name: 'Ember', size: 48, color1: '#9a8478', color2: '#c2764a', glow: 'rgba(194,118,74,0.15)', pulseScale: 1.02, pattern: 'vesica-piscis' as const },
+  2: { name: 'Spark', size: 64, color1: '#ea580c', color2: '#f97316', glow: 'rgba(249,115,22,0.25)', pulseScale: 1.05, pattern: 'seed-of-life' as const },
+  3: { name: 'Flame', size: 80, color1: '#ea580c', color2: '#fb923c', glow: 'rgba(249,115,22,0.35)', pulseScale: 1.08, pattern: 'seed-of-life' as const },
+  4: { name: 'Blaze', size: 100, color1: '#f97316', color2: '#fbbf24', glow: 'rgba(251,191,36,0.4)', pulseScale: 1.1, pattern: 'flower-of-life' as const },
+  5: { name: 'Sovereign', size: 120, color1: '#fbbf24', color2: '#fefce8', glow: 'rgba(254,252,232,0.45)', pulseScale: 1.12, pattern: 'metatrons-cube' as const },
 };
 
 export function FlameAvatar({ level, xp = 0, maxXp = 100 }: FlameAvatarProps) {
   const stage = STAGES[level];
   const progress = Math.min((xp / maxXp) * 100, 100);
+  const geometrySize = stage.size + 80;
 
   return (
     <div className="flex flex-col items-center gap-5">
       {/* Flame Orb */}
       <div className="relative flex items-center justify-center" style={{ width: stage.size + 60, height: stage.size + 60 }}>
+
+        {/* Sacred geometry ring behind the orb -- spins slowly */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <SacredGeometry
+            pattern={stage.pattern}
+            size={geometrySize}
+            opacity={0.04 + level * 0.015}
+            color={stage.color2}
+            strokeWidth={0.5 + level * 0.1}
+          />
+        </div>
+
         {/* Outer glow rings for level 5 */}
         {level >= 5 && (
           <>
@@ -74,7 +88,7 @@ export function FlameAvatar({ level, xp = 0, maxXp = 100 }: FlameAvatarProps) {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="rounded-full relative"
+          className="rounded-full relative z-10"
           style={{
             width: stage.size,
             height: stage.size,

@@ -5,6 +5,7 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { FlameAvatar } from '@/components/avatar/FlameAvatar';
 import { SafeMode } from '@/components/safe-mode/SafeMode';
+import { SacredGeometry, SacredDivider } from '@/components/sacred/SacredGeometry';
 
 type GenderVoice = 'masculine' | 'feminine' | 'neutral';
 type AdviceStyle = 'clinical' | 'friendly' | 'uncut';
@@ -34,9 +35,29 @@ export default function SettingsPage() {
     <>
       <SafeMode isActive={safeMode} onExit={() => setSafeMode(false)} />
 
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground relative overflow-hidden sacred-grid">
+        {/* Background sacred geometry */}
+        <div className="fixed top-[20%] right-[-8%] pointer-events-none z-0">
+          <SacredGeometry
+            pattern="metatrons-cube"
+            size={400}
+            opacity={0.015}
+            color="rgba(249,115,22,0.5)"
+            strokeWidth={0.3}
+          />
+        </div>
+        <div className="fixed bottom-[-10%] left-[-5%] pointer-events-none z-0">
+          <SacredGeometry
+            pattern="flower-of-life"
+            size={350}
+            opacity={0.018}
+            color="rgba(249,115,22,0.4)"
+            strokeWidth={0.3}
+          />
+        </div>
+
         {/* Header */}
-        <header className="flex items-center gap-4 px-6 py-5 border-b border-border">
+        <header className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-border">
           <Link
             href="/"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -47,7 +68,7 @@ export default function SettingsPage() {
           <h1 className="text-lg font-semibold text-foreground">Settings</h1>
         </header>
 
-        <div className="max-w-lg mx-auto px-5 py-8 flex flex-col gap-10">
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8 flex flex-col gap-10">
           {/* Section: Your Flame */}
           <section>
             <h2 className="text-xs uppercase tracking-widest text-accent font-semibold mb-6">
@@ -57,6 +78,8 @@ export default function SettingsPage() {
               <FlameAvatar level={3} xp={67} maxXp={100} />
             </div>
           </section>
+
+          <SacredDivider />
 
           {/* Section: Preferences */}
           <section>
@@ -129,6 +152,8 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          <SacredDivider />
+
           {/* Section: Theme */}
           <section>
             <h2 className="text-xs uppercase tracking-widest text-accent font-semibold mb-5">
@@ -161,6 +186,8 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          <SacredDivider />
+
           {/* Section: Safety */}
           <section>
             <h2 className="text-xs uppercase tracking-widest text-accent font-semibold mb-5">
@@ -176,6 +203,8 @@ export default function SettingsPage() {
               </p>
             </button>
           </section>
+
+          <SacredDivider />
 
           {/* Section: Privacy */}
           <section>

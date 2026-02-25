@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame, MapPin } from 'lucide-react';
+import { SacredGeometry } from '@/components/sacred/SacredGeometry';
 
 type GenderVoice = 'masculine' | 'feminine' | 'neutral';
 type AdviceStyle = 'clinical' | 'friendly' | 'uncut';
@@ -72,9 +73,20 @@ export function ConfessionModal({ isOpen, onClose, onSubmitted }: ConfessionModa
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="relative w-full max-w-lg bg-background border border-border rounded-xl p-6 md:p-8 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-lg bg-background border border-border rounded-xl p-6 md:p-8 max-h-[90vh] overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Sacred geometry watermark in corner */}
+            <div className="absolute -top-6 -right-6 pointer-events-none">
+              <SacredGeometry
+                pattern="sri-yantra"
+                size={180}
+                opacity={0.03}
+                color="rgba(249,115,22,0.8)"
+                strokeWidth={0.4}
+              />
+            </div>
+
             {/* Close button */}
             <button
               onClick={onClose}

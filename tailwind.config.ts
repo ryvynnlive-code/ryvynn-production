@@ -63,12 +63,22 @@ const config: Config = {
           "0%": { transform: "translateY(-20px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+        "sacred-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "sacred-pulse": {
+          "0%, 100%": { opacity: "0.03" },
+          "50%": { opacity: "0.06" },
+        },
       },
       animation: {
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
         "card-glow": "card-glow 4s ease-in-out infinite",
         "breathe": "breathe 12s ease-in-out infinite",
         "slide-in": "slide-in 0.6s ease-out",
+        "sacred-spin": "sacred-spin 120s linear infinite",
+        "sacred-pulse": "sacred-pulse 8s ease-in-out infinite",
       },
     },
   },

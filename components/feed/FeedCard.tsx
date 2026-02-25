@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Flame, Heart, Eye } from 'lucide-react';
+import { SacredGeometry } from '@/components/sacred/SacredGeometry';
 
 export type FeedItemType = 'miracle' | 'confession';
 
@@ -18,18 +19,38 @@ interface FeedCardProps {
   item: FeedItem;
 }
 
+const CARD_PATTERNS: ('seed-of-life' | 'vesica-piscis' | 'flower-of-life')[] = [
+  'seed-of-life',
+  'vesica-piscis',
+  'flower-of-life',
+];
+
 export function FeedCard({ item }: FeedCardProps) {
   const isMiracle = item.type === 'miracle';
+  const patternIndex = item.id.charCodeAt(item.id.length - 1) % CARD_PATTERNS.length;
+  const cardPattern = CARD_PATTERNS[patternIndex];
 
   return (
     <motion.article
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className={`group relative rounded-lg border-l-[3px] p-5 animate-card-glow transition-all duration-300 hover:bg-muted ${
+      className={`group relative rounded-lg border-l-[3px] p-5 animate-card-glow transition-all duration-300 hover:bg-muted overflow-hidden ${
         isMiracle ? 'border-l-accent bg-card' : 'border-l-flame-400 bg-[#111118]'
       }`}
     >
+      {/* Sacred geometry watermark */}
+      <div className="absolute -right-4 -bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+        <SacredGeometry
+          pattern={cardPattern}
+          size={100}
+          opacity={0.04}
+          color="rgba(249,115,22,1)"
+          animate={false}
+          strokeWidth={0.5}
+        />
+      </div>
+
       {/* Hover glow */}
       <div
         className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
