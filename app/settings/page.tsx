@@ -12,7 +12,7 @@ type AdviceStyle = 'clinical' | 'friendly' | 'uncut';
 type ThemeOption = 'dark-flame' | 'obsidian' | 'sacred-light';
 
 const THEMES: { id: ThemeOption; label: string; colors: [string, string] }[] = [
-  { id: 'dark-flame', label: 'Dark Flame', colors: ['#12121a', '#f97316'] },
+  { id: 'dark-flame', label: 'Dark Flame', colors: ['#12121a', '#dc2626'] },
   { id: 'obsidian', label: 'Obsidian', colors: ['#000000', '#3f3f46'] },
   { id: 'sacred-light', label: 'Sacred Light', colors: ['#0f0f17', '#fbbf24'] },
 ];

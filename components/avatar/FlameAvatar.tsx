@@ -11,9 +11,9 @@ interface FlameAvatarProps {
 
 const STAGES = {
   1: { name: 'Ember', size: 48, color1: '#9a8478', color2: '#c2764a', glow: 'rgba(194,118,74,0.15)', pulseScale: 1.02, pattern: 'vesica-piscis' as const },
-  2: { name: 'Spark', size: 64, color1: '#ea580c', color2: '#f97316', glow: 'rgba(249,115,22,0.25)', pulseScale: 1.05, pattern: 'seed-of-life' as const },
-  3: { name: 'Flame', size: 80, color1: '#ea580c', color2: '#fb923c', glow: 'rgba(249,115,22,0.35)', pulseScale: 1.08, pattern: 'seed-of-life' as const },
-  4: { name: 'Blaze', size: 100, color1: '#f97316', color2: '#fbbf24', glow: 'rgba(251,191,36,0.4)', pulseScale: 1.1, pattern: 'flower-of-life' as const },
+  2: { name: 'Spark', size: 64, color1: '#b91c1c', color2: '#dc2626', glow: 'rgba(220,38,38,0.25)', pulseScale: 1.05, pattern: 'seed-of-life' as const },
+  3: { name: 'Flame', size: 80, color1: '#b91c1c', color2: '#ef4444', glow: 'rgba(220,38,38,0.35)', pulseScale: 1.08, pattern: 'seed-of-life' as const },
+  4: { name: 'Blaze', size: 100, color1: '#dc2626', color2: '#f59e0b', glow: 'rgba(245,158,11,0.4)', pulseScale: 1.1, pattern: 'flower-of-life' as const },
   5: { name: 'Sovereign', size: 120, color1: '#fbbf24', color2: '#fefce8', glow: 'rgba(254,252,232,0.45)', pulseScale: 1.12, pattern: 'metatrons-cube' as const },
 };
 
