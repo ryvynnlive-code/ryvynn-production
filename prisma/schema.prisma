@@ -3,62 +3,113 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
 }
 
-model User {
-  id          String    @id @default(cuid())
-  email       String?   @unique
-  isAnonymous Boolean   @default(true)
-  soulTokens  Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  confessions Confession[]
-  miracles    Miracle[]
-  
-  @@index([email])
+// Anonymous session — no PII, no email, no name. Ever.
+model AnonymousUser {
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  lastActive   DateTime       @updatedAt
+
+  confessions  Confession[]
+  crisisEvents CrisisEvent[]
+  soulToken    SoulToken?
+  miracles     MiraclePost[]
+
+  @@index([lastActive])
+  @@map("anonymous_users")
 }
 
+// Raw confession — content NEVER stored. Only the miracle response survives.
 model Confession {
-  id          String   @id @default(cuid())
-  userId      String
-  crisisLevel Int      @default(0)
-  processed   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  miracle     Miracle?
-  
-  @@index([userId])
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  miracleResponse String        @db.Text
+  anonymousUserId String
+  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+  miraclePost     MiraclePost?
+
+  @@index([anonymousUserId])
   @@index([createdAt])
+  @@map("confessions")
 }
 
-model Miracle {
-  id           String   @id @default(cuid())
-  confessionId String   @unique
-  userId       String
-  content      String   @db.Text
-  views        Int      @default(0)
-  likes        Int      @default(0)
-  isPublic     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  
-  confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([createdAt])
-  @@index([isPublic])
-}
-
+// Crisis signal — severity only, zero content stored
 model CrisisEvent {
-  id        String   @id @default(cuid())
-  userId    String?
-  severity  Int
-  createdAt DateTime @default(now())
-  
-  @@index([createdAt])
+  id              String        @id @default(cuid())
+  timestamp       DateTime      @default(now())
+  severity        Int           // 1-10
+  anonymousUserId String
+  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+
+  @@index([anonymousUserId])
+  @@index([timestamp])
   @@index([severity])
+  @@map("crisis_events")
+}
+
+// Public miracle feed — transformed text only, no source confession content
+model MiraclePost {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  content         String        @db.Text
+  heartCount      Int           @default(0)
+  viewCount       Int           @default(0)
+  isFeatured      Boolean       @default(false)
+  anonymousUserId String?
+  anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id], onDelete: SetNull)
+  confessionId    String?       @unique
+  confession      Confession?   @relation(fields: [confessionId], references: [id], onDelete: SetNull)
+  transactions    SoulTransaction[]
+
+  @@index([createdAt])
+  @@index([isFeatured])
+  @@map("miracle_posts")
+}
+
+// Soul Token wallet — one per anonymous user
+model SoulToken {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  balance         Int              @default(0)
+  lifetimeEarned  Int              @default(0)
+  lifetimeSpent   Int              @default(0)
+  anonymousUserId String           @unique
+  anonymousUser   AnonymousUser    @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+  transactions    SoulTransaction[]
+
+  @@index([balance])
+  @@map("soul_tokens")
+}
+
+// Full audit log for every token movement
+model SoulTransaction {
+  id            String          @id @default(cuid())
+  createdAt     DateTime        @default(now())
+  amount        Int             // positive = earned, negative = spent
+  type          TransactionType
+  description   String?
+  balanceAfter  Int
+  soulTokenId   String
+  soulToken     SoulToken       @relation(fields: [soulTokenId], references: [id], onDelete: Cascade)
+  miraclePostId String?
+  miraclePost   MiraclePost?    @relation(fields: [miraclePostId], references: [id], onDelete: SetNull)
+
+  @@index([soulTokenId])
+  @@index([createdAt])
+  @@map("soul_transactions")
+}
+
+enum TransactionType {
+  EARNED_DAILY
+  EARNED_CONFESSION
+  EARNED_MIRACLE
+  EARNED_HEART_RECEIVED
+  SPENT_HEART
+  SPENT_FEATURE
+  ADMIN_ADJUSTMENT
 }

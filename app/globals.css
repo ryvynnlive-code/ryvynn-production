@@ -11,9 +11,11 @@
     --card: #12121a;
     --card-foreground: #d4d4dc;
     --border: #1e1e2a;
-    --accent: #dc2626;
-    --accent-foreground: #0a0a0f;
-    --destructive: #dc2626;
+    --accent: #c026d3;
+    --accent-foreground: #ffffff;
+    --accent-glow: #9333ea;
+    --accent-hot: #e11d9a;
+    --destructive: #be185d;
     --radius: 0.75rem;
   }
 }
@@ -52,12 +54,12 @@ body {
 /* Sacred geometry grid overlay -- barely perceptible hexagonal grid */
 .sacred-grid {
   background-image:
-    linear-gradient(30deg, rgba(249,115,22,0.012) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,0.012) 87.5%, rgba(249,115,22,0.012)),
-    linear-gradient(150deg, rgba(249,115,22,0.012) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,0.012) 87.5%, rgba(249,115,22,0.012)),
-    linear-gradient(30deg, rgba(249,115,22,0.012) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,0.012) 87.5%, rgba(249,115,22,0.012)),
-    linear-gradient(150deg, rgba(249,115,22,0.012) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,0.012) 87.5%, rgba(249,115,22,0.012)),
-    linear-gradient(60deg, rgba(249,115,22,0.02) 25%, transparent 25.5%, transparent 75%, rgba(249,115,22,0.02) 75%, rgba(249,115,22,0.02)),
-    linear-gradient(60deg, rgba(249,115,22,0.02) 25%, transparent 25.5%, transparent 75%, rgba(249,115,22,0.02) 75%, rgba(249,115,22,0.02));
+    linear-gradient(30deg, rgba(192,38,211,0.015) 12%, transparent 12.5%, transparent 87%, rgba(192,38,211,0.015) 87.5%, rgba(192,38,211,0.015)),
+    linear-gradient(150deg, rgba(192,38,211,0.015) 12%, transparent 12.5%, transparent 87%, rgba(192,38,211,0.015) 87.5%, rgba(192,38,211,0.015)),
+    linear-gradient(30deg, rgba(192,38,211,0.015) 12%, transparent 12.5%, transparent 87%, rgba(192,38,211,0.015) 87.5%, rgba(192,38,211,0.015)),
+    linear-gradient(150deg, rgba(192,38,211,0.015) 12%, transparent 12.5%, transparent 87%, rgba(192,38,211,0.015) 87.5%, rgba(192,38,211,0.015)),
+    linear-gradient(60deg, rgba(147,51,234,0.025) 25%, transparent 25.5%, transparent 75%, rgba(147,51,234,0.025) 75%, rgba(147,51,234,0.025)),
+    linear-gradient(60deg, rgba(147,51,234,0.025) 25%, transparent 25.5%, transparent 75%, rgba(147,51,234,0.025) 75%, rgba(147,51,234,0.025));
   background-size: 80px 140px;
   background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
 }

@@ -12,7 +12,7 @@ type AdviceStyle = 'clinical' | 'friendly' | 'uncut';
 type ThemeOption = 'dark-flame' | 'obsidian' | 'sacred-light';
 
 const THEMES: { id: ThemeOption; label: string; colors: [string, string] }[] = [
-  { id: 'dark-flame', label: 'Dark Flame', colors: ['#12121a', '#dc2626'] },
+  { id: 'dark-flame', label: 'Dark Flame', colors: ['#12121a', '#c026d3'] },
   { id: 'obsidian', label: 'Obsidian', colors: ['#000000', '#3f3f46'] },
   { id: 'sacred-light', label: 'Sacred Light', colors: ['#0f0f17', '#fbbf24'] },
 ];
@@ -217,7 +217,7 @@ export default function SettingsPage() {
               </p>
               <button
                 onClick={handleClearSession}
-                className="mt-4 inline-flex items-center gap-2 text-destructive hover:text-red-400 text-sm font-medium transition-colors"
+                className="mt-4 inline-flex items-center gap-2 text-destructive hover:text-fuchsia-400 text-sm font-medium transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
                 Clear Session

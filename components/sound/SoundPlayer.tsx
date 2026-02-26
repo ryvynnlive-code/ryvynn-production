@@ -77,7 +77,7 @@ export default function SoundPlayer({ mood, confessionText, onClose }: Props) {
 
   if (result?.blocked) {
     return (
-      <div className="rounded-xl bg-zinc-900 border border-red-900/40 p-6 space-y-4">
+      <div className="rounded-xl bg-zinc-900 border border-fuchsia-900/40 p-6 space-y-4">
         <p className="text-zinc-300 text-sm leading-relaxed">{result.message}</p>
         <div className="space-y-1">
           <p className="text-xs text-zinc-500">🆘 988 Suicide &amp; Crisis Lifeline — call or text <strong className="text-zinc-300">988</strong></p>
@@ -109,7 +109,7 @@ export default function SoundPlayer({ mood, confessionText, onClose }: Props) {
         <button
           onClick={generateSong}
           disabled={loading}
-          className="w-full py-3 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="w-full py-3 rounded-lg bg-fuchsia-700 hover:bg-fuchsia-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
         >
           {loading ? "Generating..." : "Generate sound for this moment"}
         </button>
@@ -128,7 +128,7 @@ export default function SoundPlayer({ mood, confessionText, onClose }: Props) {
 
           <button
             onClick={toggleAudio}
-            className="w-full py-3 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg bg-fuchsia-700 hover:bg-fuchsia-600 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
             {playing ? (
               <>
@@ -152,7 +152,7 @@ export default function SoundPlayer({ mood, confessionText, onClose }: Props) {
         </div>
       )}
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-fuchsia-400">{error}</p>}
     </div>
   )
 }

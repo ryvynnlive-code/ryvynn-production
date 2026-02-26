@@ -19,16 +19,17 @@ const config: Config = {
         "accent-foreground": "var(--accent-foreground)",
         destructive: "var(--destructive)",
         flame: {
-          50: "#fff7ed",
-          100: "#ffedd5",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
+          50: "#fdf4ff",
+          100: "#fae8ff",
+          200: "#f5d0fe",
+          300: "#f0abfc",
+          400: "#e879f9",
+          500: "#d946ef",
+          600: "#c026d3",
+          700: "#9333ea",
+          800: "#7e22ce",
+          900: "#6b21a8",
+          hot: "#e11d9a",
         },
       },
       fontFamily: {
@@ -38,18 +39,18 @@ const config: Config = {
       keyframes: {
         "glow-pulse": {
           "0%, 100%": {
-            textShadow: "0 0 20px rgba(249,115,22,0.6), 0 0 40px rgba(249,115,22,0.3)",
+            textShadow: "0 0 20px rgba(192,38,211,0.7), 0 0 40px rgba(147,51,234,0.4)",
           },
           "50%": {
-            textShadow: "0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(249,115,22,0.5), 0 0 80px rgba(249,115,22,0.2)",
+            textShadow: "0 0 30px rgba(192,38,211,0.9), 0 0 60px rgba(147,51,234,0.6), 0 0 80px rgba(225,29,154,0.3)",
           },
         },
         "card-glow": {
           "0%, 100%": {
-            boxShadow: "0 0 15px rgba(249,115,22,0.05)",
+            boxShadow: "0 0 15px rgba(192,38,211,0.08)",
           },
           "50%": {
-            boxShadow: "0 0 25px rgba(249,115,22,0.1)",
+            boxShadow: "0 0 25px rgba(192,38,211,0.15)",
           },
         },
         "breathe": {
