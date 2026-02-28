@@ -5,16 +5,16 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const miracles = await prisma.miracle.findMany({
-      where: { isPublic: true },
+    const miracles = await prisma.miraclePost.findMany({
+      where: { isFeatured: false },
       orderBy: { createdAt: 'desc' },
       take: 50,
       select: {
         id: true,
         content: true,
         createdAt: true,
-        views: true,
-        likes: true
+        viewCount: true,
+        heartCount: true
       }
     });
 
