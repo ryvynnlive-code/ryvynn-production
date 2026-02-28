@@ -1,63 +1,83 @@
-import { NextResponse } from "next/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
-import { SOUND_PROFILES } from "@/lib/soundProfiles"
-import { isHighRisk } from "@/lib/crisisGate"
+/**
+ * POST /api/story-to-song
+ * { story, mood } → { lyrics, soundProfile }
+ * Text + tone output only (MIDI deferred to v2.1)
+ * Crisis gate enforced
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { runCrisisFSM, isSafeMode } from "@/lib/crisisFSM";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-export async function POST(req: Request) {
-  try {
-    const { text, mood } = await req.json()
+const SOUND_PROFILES = {
+  calm:    { bpm: 60,  freqRange: "40–200Hz",   description: "Deep resonance. Breath. Space." },
+  steady:  { bpm: 72,  freqRange: "80–400Hz",   description: "Grounded rhythm. Heartbeat pace." },
+  release: { bpm: 85,  freqRange: "200–800Hz",  description: "Movement. Letting go. Rise." },
+  heavy:   { bpm: 50,  freqRange: "20–120Hz",   description: "Bass weight. Held emotion. Truth." },
+  anxious: { bpm: 95,  freqRange: "400–2000Hz", description: "Energy that needs a path. Racing to stillness." },
+} as const;
 
-    if (!text || !mood) {
-      return NextResponse.json({ error: "Missing input" }, { status: 400 })
-    }
+type Mood = keyof typeof SOUND_PROFILES;
 
-    if (text.length < 5) {
-      return NextResponse.json({ error: "Text too short" }, { status: 400 })
-    }
-
-    if (isHighRisk(text)) {
-      return NextResponse.json({
-        blocked: true,
-        crisisRedirect: true,
-        message: "It sounds like you're going through a lot. Let's pause and focus on keeping you safe.",
-        resources: {
-          crisis: "988 Suicide & Crisis Lifeline — call or text 988",
-          text:   "Crisis Text Line — text HOME to 741741",
-        },
-      })
-    }
-
-    const profile = SOUND_PROFILES[mood] ?? SOUND_PROFILES.calm
-
-    const model  = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-    const result = await model.generateContent(
-      `You are writing short, metaphorical song lyrics for someone going through something hard.
+function buildLyricPrompt(story: string, mood: Mood): string {
+  const profile = SOUND_PROFILES[mood];
+  return `Transform this into healing song lyrics.
 
 Rules:
-- Under 120 words total
-- Supportive, warm, non-clinical tone
-- Age-appropriate — safe for teens and adults
-- No mention of self-harm, death, diagnoses, or medical advice
-- No promises or outcome claims
-- Write in second person ("you") — speak to the listener
-- Feeling: ${mood}
-- The listener shared: "${text.slice(0, 200)}"
+- Under 120 words
+- No rhyme forced — let it breathe
+- Imagery and metaphor — no literal retelling
+- No advice verbs (should, must, need to)
+- Mood: ${mood} — ${profile.description}
+- Three stanzas max: arrival, depth, witnessing
+- Second person ("you") or universal ("we") voice
+- No chorus label, no title
 
-Write lyrics that make them feel understood, not alone, and that emotions can move safely through them. No verse/chorus labels. Just the words.`
-    )
+The story: "${story.slice(0, 300)}"
 
-    const lyrics = result.response.text().trim() || "You don't have to carry this alone."
+Write only the lyrics. Nothing else.`;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { story, mood = "calm" } = await req.json();
+
+    if (!story || story.length < 5) {
+      return NextResponse.json({ error: "Story required" }, { status: 400 });
+    }
+
+    // Crisis gate — always first
+    const fsm = runCrisisFSM(story);
+    if (isSafeMode(fsm)) {
+      return NextResponse.json({
+        crisis:    true,
+        resources: fsm.resources,
+        message:   "Before the song — please reach out:",
+      });
+    }
+
+    const safeMood: Mood = (mood in SOUND_PROFILES) ? mood as Mood : "calm";
+    const profile = SOUND_PROFILES[safeMood];
+
+    const model  = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(buildLyricPrompt(story, safeMood));
+    const lyrics = result.response.text().trim();
 
     return NextResponse.json({
-      ok:         true,
-      profile,
       lyrics,
-      disclaimer: "This audio is designed to help your body feel calmer. You're in control — stop anytime.",
-    })
-  } catch (error) {
-    console.error("Story-to-song error:", error)
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 })
+      soundProfile: { ...profile, mood: safeMood },
+      // MIDI deferred to v2.1
+      midiAvailable: false,
+    });
+  } catch (err: any) {
+    // If Gemini fails — disable gracefully, app still launches
+    console.error("story-to-song error:", err?.message);
+    return NextResponse.json({
+      lyrics:       null,
+      soundProfile: SOUND_PROFILES.calm,
+      error:        "Song generation temporarily unavailable",
+      midiAvailable: false,
+    });
   }
 }

@@ -1,117 +1,143 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { detectCrisis } from '@/lib/crisis';
+/**
+ * POST /api/confession
+ * - anonId: server-generated HMAC (client sends seed, we hash it)
+ * - text: NEVER logged, encrypted at rest, deleted from memory after transform
+ * - Crisis FSM runs FIRST, keyword-local, no AI dependency
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { runCrisisFSM, isSafeMode, CRISIS_RESOURCES } from "@/lib/crisisFSM";
+import { encrypt, generateHmacId } from "@/lib/encryption";
+import { prisma } from "@/lib/prisma";
 
-// Lazy Prisma init — if DATABASE_URL is missing, DB ops are skipped gracefully
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let prisma: any = null
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-async function getPrisma() {
-  if (!process.env.DATABASE_URL) return null
-  if (prisma) return prisma
-  try {
-    const { PrismaClient } = await import('@prisma/client')
-    prisma = new PrismaClient()
-    return prisma
-  } catch {
-    return null
-  }
+// ── Miracle prompt (no advice verbs, companion tone) ─────────
+function buildMiraclePrompt(
+  text: string,
+  genderVoice: string,
+  adviceStyle: string
+): string {
+  const toneMap: Record<string, string> = {
+    clinical:  "calm, clear, grounded — like a steady hand",
+    friendly:  "warm, present, like a trusted friend at 2am",
+    uncut:     "raw, honest, no filters — real talk, not therapy-speak",
+  };
+  const voiceMap: Record<string, string> = {
+    masculine: "with strength and directness",
+    feminine:  "with warmth and intuition",
+    neutral:   "with balanced, universal compassion",
+  };
+  return `You are RYVYNN — a companion AI, not a therapist or advisor.
+
+Rules (non-negotiable):
+- Under 200 words
+- NEVER use: should, must, need to, you have to, I advise, I recommend
+- No diagnosis, no medical claims, no spiritual authority
+- No future promises ("you will be okay", "things get better")
+- Speak in second person ("you"), present tense
+- Tone: ${toneMap[adviceStyle] || toneMap.friendly} ${voiceMap[genderVoice] || voiceMap.neutral}
+- Transform the pain — don't minimize it, don't fix it, witness it
+- End with ONE grounding observation, not advice
+
+The person shared: "${text.slice(0, 400)}"
+
+Write their miracle — the transformation of their confession into witnessed truth.`;
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 export async function POST(req: NextRequest) {
-  try {
-    const { confession, userId } = await req.json();
+  let text = "";
 
-    if (!confession || confession.length < 10) {
-      return NextResponse.json({ error: 'Confession too short' }, { status: 400 });
+  try {
+    const body = await req.json();
+    const { confession, genderVoice = "neutral", adviceStyle = "friendly", userId } = body;
+    text = confession || "";
+
+    if (!text || text.length < 10) {
+      return NextResponse.json({ error: "Too short" }, { status: 400 });
     }
 
-    const crisisCheck = detectCrisis(confession);
+    // ── CRISIS FSM — runs first, local, no AI ────────────────
+    const fsm = runCrisisFSM(text);
 
-    if (crisisCheck.severity >= 8) {
-      // Try to log to DB but don't fail if unavailable
-      try {
-        const db = await getPrisma()
-        if (db) {
-          await db.crisisEvent.create({ data: { severity: crisisCheck.severity } })
-        }
-      } catch { /* DB unavailable — crisis redirect still fires */ }
+    if (isSafeMode(fsm)) {
+      // Encrypt even crisis text — no plaintext ever stored
+      const encrypted = await encrypt(text.slice(0, 500)).catch(() => "ENCRYPTED_FAILED");
+      // Log severity only — no content
+      await prisma.crisisEvent.create({
+        data: {
+          severity: fsm.severity,
+          fsmState: "SAFE_MODE",
+          anonymousUser: {
+            connectOrCreate: {
+              where:  { hmacId: await generateHmacId(userId || "anon") },
+              create: { hmacId: await generateHmacId(userId || "anon") },
+            },
+          },
+        },
+      }).catch(() => {}); // DB failure never crashes crisis response
 
       return NextResponse.json({
-        crisis: true,
-        severity: crisisCheck.severity,
-        message: "You matter. Please reach out — 988 Suicide & Crisis Lifeline (call or text 988).",
+        crisis:    true,
+        fsmState:  "SAFE_MODE",
+        severity:  fsm.severity,
+        resources: CRISIS_RESOURCES,
+        message:   "You reached out. That matters. Please use one of these right now:",
       });
     }
 
-    // AI miracle — always runs, DB is optional
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(
-      `Transform this anonymous confession into inspiring, hopeful poetry under 280 characters. Make it beautiful and let the person feel seen:\n\n${confession}`
-    );
-    const miracleText = result.response.text() || 'From darkness, light emerges.';
+    // ── Generate miracle ─────────────────────────────────────
+    const model  = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(buildMiraclePrompt(text, genderVoice, adviceStyle));
+    const miracleText = result.response.text().trim();
 
-    // Try DB persistence — degrade gracefully if unavailable
-    let savedMiracleId: string | null = null
-    let soulTokens = 1
+    // ── Encrypt confession snapshot + store ──────────────────
+    const hmacId = await generateHmacId(userId || `anon-${Date.now()}`);
+    const encrypted = await encrypt(text.slice(0, 1000));
 
-    try {
-      const db = await getPrisma()
-      if (db) {
-        const user = await db.user.upsert({
-          where: { id: userId || 'anonymous' },
-          update: {},
-          create: {
-            id: userId || `anon-${Date.now()}`,
-            isAnonymous: true,
-            soulTokens: 1
-          }
-        });
+    const savedConfession = await prisma.confession.create({
+      data: {
+        contentEncrypted: encrypted,
+        riskScore:        fsm.severity / 10,
+        miracleResponse:  miracleText,
+        genderVoice,
+        adviceStyle,
+        anonymousUser: {
+          connectOrCreate: {
+            where:  { hmacId },
+            create: { hmacId },
+          },
+        },
+      },
+    }).catch(() => null); // DB down = still return miracle
 
-        const conf = await db.confession.create({
-          data: {
-            userId: user.id,
-            crisisLevel: crisisCheck.severity,
-            processed: true
-          }
-        });
-
-        const miracle = await db.miracle.create({
-          data: {
-            confessionId: conf.id,
-            userId: user.id,
-            content: miracleText,
-            isPublic: true
-          }
-        });
-
-        await db.user.update({
-          where: { id: user.id },
-          data: { soulTokens: { increment: 1 } }
-        });
-
-        savedMiracleId = miracle.id
-        soulTokens = user.soulTokens + 1
-      }
-    } catch (dbError) {
-      console.error('DB error (non-fatal):', dbError)
-      // AI miracle still returns — DB failure is silent to user
+    // ── Create miracle post ──────────────────────────────────
+    if (savedConfession) {
+      const aiResonance = Math.min(0.6, fsm.severity > 0 ? 0.3 : 0.5);
+      const upvotes = 0;
+      await prisma.miraclePost.create({
+        data: {
+          content:      miracleText,
+          aiResonance,
+          rankScore:    upvotes * 0.6 + aiResonance * 0.4,
+          confessionId: savedConfession.id,
+          anonymousUser: { connect: { hmacId } },
+        },
+      }).catch(() => {});
     }
 
+    // ── Null out text — don't hold in memory ─────────────────
+    text = "";
+
     return NextResponse.json({
-      success: true,
-      miracle: {
-        id: savedMiracleId || `ephemeral-${Date.now()}`,
-        content: miracleText,
-        createdAt: new Date().toISOString(),
-      },
-      soulTokens,
+      crisis:  false,
+      fsmState: fsm.state,
+      miracle: { content: miracleText },
     });
 
-  } catch (error) {
-    console.error('Confession error:', error);
-    return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+  } catch (err: any) {
+    text = ""; // always clear
+    console.error("Confession route error:", err?.message);
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }

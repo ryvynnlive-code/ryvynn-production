@@ -3,62 +3,81 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Anonymous session — no PII, no email, no name. Ever.
+// ── Anonymous session — zero PII, ever ───────────────────────
 model AnonymousUser {
-  id           String         @id @default(cuid())
-  createdAt    DateTime       @default(now())
-  lastActive   DateTime       @updatedAt
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  lastActive   DateTime         @updatedAt
+  hmacId       String?          @unique  // server-generated HMAC identity
+  tier         UserTier         @default(FREE)
 
   confessions  Confession[]
   crisisEvents CrisisEvent[]
   soulToken    SoulToken?
   miracles     MiraclePost[]
+  blessings    Blessing[]
+  journalEntries JournalEntry[]
+  gaasLogs     GaasLog[]
 
   @@index([lastActive])
+  @@index([hmacId])
   @@map("anonymous_users")
 }
 
-// Raw confession — content NEVER stored. Only the miracle response survives.
+// ── Confession — original text NEVER stored, only encrypted snapshot ─
 model Confession {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  miracleResponse String        @db.Text
-  anonymousUserId String
-  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
-  miraclePost     MiraclePost?
+  id                String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  contentEncrypted  String        @db.Text   // AES-256-GCM, key never persisted
+  riskScore         Float         @default(0) // 0.0–1.0, from crisis FSM
+  isPublic          Boolean       @default(true)
+  miracleResponse   String        @db.Text
+  genderVoice       String        @default("neutral")
+  adviceStyle       String        @default("friendly")
+  anonymousUserId   String
+  anonymousUser     AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+  miraclePost       MiraclePost?
 
   @@index([anonymousUserId])
   @@index([createdAt])
+  @@index([riskScore])
   @@map("confessions")
 }
 
-// Crisis signal — severity only, zero content stored
+// ── Crisis event — severity + FSM state only, zero content ───
 model CrisisEvent {
   id              String        @id @default(cuid())
   timestamp       DateTime      @default(now())
-  severity        Int           // 1-10
+  severity        Int           // 1–10
+  fsmState        CrisisState   @default(DETECT)
+  resolved        Boolean       @default(false)
+  resolvedAt      DateTime?
   anonymousUserId String
   anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
 
   @@index([anonymousUserId])
   @@index([timestamp])
-  @@index([severity])
+  @@index([fsmState])
   @@map("crisis_events")
 }
 
-// Public miracle feed — transformed text only, no source confession content
+// ── Miracle feed — transformed output only ───────────────────
 model MiraclePost {
   id              String        @id @default(cuid())
   createdAt       DateTime      @default(now())
   content         String        @db.Text
+  upvotes         Int           @default(0)
   heartCount      Int           @default(0)
   viewCount       Int           @default(0)
+  aiResonance     Float         @default(0)    // 0.0–0.6 cap enforced
+  rankScore       Float         @default(0)    // (upvotes*0.6)+(aiResonance*0.4)
   isFeatured      Boolean       @default(false)
+  isBlurred       Boolean       @default(false) // premium gate
   anonymousUserId String?
   anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id], onDelete: SetNull)
   confessionId    String?       @unique
@@ -66,11 +85,57 @@ model MiraclePost {
   transactions    SoulTransaction[]
 
   @@index([createdAt])
+  @@index([rankScore])
   @@index([isFeatured])
   @@map("miracle_posts")
 }
 
-// Soul Token wallet — one per anonymous user
+// ── Blessing — AI-generated, vault-only, never public ────────
+model Blessing {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  content         String        @db.Text  // metaphor-only, no advice verbs
+  delivered       Boolean       @default(false)
+  deliveredAt     DateTime?
+  anonymousUserId String
+  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+
+  @@index([anonymousUserId])
+  @@index([delivered])
+  @@map("blessings")
+}
+
+// ── Dark Journal — local-first, sync = explicit consent ──────
+model JournalEntry {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  contentEncrypted String       @db.Text  // zero-knowledge, user key
+  burned          Boolean       @default(false)
+  burnedAt        DateTime?
+  syncConsent     Boolean       @default(false)
+  anonymousUserId String
+  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+
+  @@index([anonymousUserId])
+  @@index([burned])
+  @@map("journal_entries")
+}
+
+// ── GAAS log — guardian/friend queries, 300 token cap ────────
+model GaasLog {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  mode            GaasMode
+  tokensUsed      Int
+  anonymousUserId String
+  anonymousUser   AnonymousUser @relation(fields: [anonymousUserId], references: [id], onDelete: Cascade)
+
+  @@index([anonymousUserId])
+  @@map("gaas_logs")
+}
+
+// ── Soul Token wallet ─────────────────────────────────────────
 model SoulToken {
   id              String           @id @default(cuid())
   createdAt       DateTime         @default(now())
@@ -86,7 +151,7 @@ model SoulToken {
   @@map("soul_tokens")
 }
 
-// Full audit log for every token movement
+// ── Soul Transaction — immutable ledger ──────────────────────
 model SoulTransaction {
   id            String          @id @default(cuid())
   createdAt     DateTime        @default(now())
@@ -104,6 +169,24 @@ model SoulTransaction {
   @@map("soul_transactions")
 }
 
+// ── Enums ─────────────────────────────────────────────────────
+enum UserTier {
+  FREE
+  SOLO
+  FAMILY
+  THERAPIST
+  ENTERPRISE
+  LIFETIME
+}
+
+enum CrisisState {
+  IDLE
+  DETECT
+  INTERVENE
+  RESOLVE
+  SAFE_MODE
+}
+
 enum TransactionType {
   EARNED_DAILY
   EARNED_CONFESSION
@@ -112,4 +195,9 @@ enum TransactionType {
   SPENT_HEART
   SPENT_FEATURE
   ADMIN_ADJUSTMENT
+}
+
+enum GaasMode {
+  GUARDIAN
+  FRIEND
 }
