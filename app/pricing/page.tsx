@@ -174,7 +174,7 @@ function PricingContent() {
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
-      else alert("Something went wrong. Try again.")
+      else alert("Checkout error: " + (data.error || "No URL returned"))
     } catch {
       alert("Could not connect to payment. Try again.")
     } finally {
