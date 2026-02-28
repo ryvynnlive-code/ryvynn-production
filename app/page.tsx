@@ -10,21 +10,33 @@ import type { FeedItemType } from '@/components/feed/FeedCard';
 
 // ── Floating ember particles ──────────────────────────────────
 function Embers() {
+  const EMBER_POSITIONS = [0,1,2,3,4,5,6,7,8,9,10,11];
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute w-1 h-1 rounded-full opacity-0"
-          style={{
-            left: `${10 + (i * 7.3) % 80}%`,
-            bottom: `${5 + (i * 11) % 30}%`,
-            background: i % 3 === 0 ? '#c026d3' : i % 3 === 1 ? '#e11d9a' : '#9333ea',
-            animation: `ember-rise ${3 + (i % 4)}s ease-out ${i * 0.7}s infinite`,
-            '--drift': `${(i % 2 === 0 ? 1 : -1) * (8 + i * 3)}px`,
-          } as React.CSSProperties}
-        />
-      ))}
+      {EMBER_POSITIONS.map((i) => {
+        const colors = ['#c026d3','#e11d9a','#9333ea'];
+        const drift = (i % 2 === 0 ? 1 : -1) * (8 + i * 3);
+        return (
+          <div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: 4, height: 4,
+              left: `${10 + (i * 7.3) % 80}%`,
+              bottom: `${5 + (i * 11) % 30}%`,
+              background: colors[i % 3],
+              opacity: 0,
+              animation: `floatUp${i % 4} ${3 + (i % 4)}s ease-out ${i * 0.7}s infinite`,
+            }}
+          />
+        );
+      })}
+      <style>{`
+        @keyframes floatUp0 { 0%{opacity:0;transform:translateY(0) translateX(0) scale(1)} 20%{opacity:0.8} 100%{opacity:0;transform:translateY(-120px) translateX(20px) scale(0)} }
+        @keyframes floatUp1 { 0%{opacity:0;transform:translateY(0) translateX(0) scale(1)} 20%{opacity:0.8} 100%{opacity:0;transform:translateY(-110px) translateX(-25px) scale(0)} }
+        @keyframes floatUp2 { 0%{opacity:0;transform:translateY(0) translateX(0) scale(1)} 20%{opacity:0.7} 100%{opacity:0;transform:translateY(-100px) translateX(15px) scale(0)} }
+        @keyframes floatUp3 { 0%{opacity:0;transform:translateY(0) translateX(0) scale(1)} 20%{opacity:0.9} 100%{opacity:0;transform:translateY(-130px) translateX(-18px) scale(0)} }
+      `}</style>
     </div>
   );
 }
@@ -72,7 +84,7 @@ function LiveStat({ label, base, interval = 7000 }: { label: string; base: numbe
   }, [interval]);
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold text-white animate-counter-tick">{count.toLocaleString()}+</div>
+      <div className="text-2xl font-bold text-white ">{count.toLocaleString()}+</div>
       <div className="text-xs text-zinc-500 mt-0.5">{label}</div>
     </div>
   );
@@ -356,7 +368,7 @@ export default function Home() {
               </div>
               <div className="p-8 md:p-10 border-t md:border-t-0 md:border-l border-zinc-800/60">
                 {showGuardian ? (
-                  <div className="space-y-4 animate-fade-in">
+                  <div className="space-y-4 ">
                     <div className="rounded-xl bg-zinc-900 p-4 border border-fuchsia-900/30">
                       <p className="text-xs text-fuchsia-400 mb-1 font-semibold">AI GUARDIAN · NOW</p>
                       <p className="text-sm text-zinc-300 leading-relaxed italic">
