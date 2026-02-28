@@ -63,3 +63,72 @@ body {
   background-size: 80px 140px;
   background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
 }
+
+/* ═══ DUAL FLAME ANIMATIONS ═══ */
+@keyframes flame-flicker {
+  0%, 100% { transform: scaleY(1) scaleX(1) rotate(-1deg); opacity: 0.9; }
+  25%       { transform: scaleY(1.04) scaleX(0.97) rotate(1deg); opacity: 1; }
+  50%       { transform: scaleY(0.97) scaleX(1.02) rotate(-0.5deg); opacity: 0.95; }
+  75%       { transform: scaleY(1.06) scaleX(0.96) rotate(1.5deg); opacity: 1; }
+}
+@keyframes float-up {
+  0%   { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+  50%  { transform: translateY(-18px) rotate(3deg); opacity: 1; }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+}
+@keyframes ember-rise {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-120px) translateX(var(--drift, 20px)) scale(0); opacity: 0; }
+}
+@keyframes hero-glow {
+  0%, 100% { text-shadow: 0 0 30px rgba(192,38,211,0.7), 0 0 60px rgba(147,51,234,0.4), 0 0 100px rgba(225,29,154,0.2); }
+  50%       { text-shadow: 0 0 50px rgba(192,38,211,1), 0 0 100px rgba(147,51,234,0.7), 0 0 160px rgba(225,29,154,0.4); }
+}
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(192,38,211,0.3); box-shadow: 0 0 0 0 rgba(192,38,211,0); }
+  50%       { border-color: rgba(192,38,211,0.7); box-shadow: 0 0 20px 4px rgba(192,38,211,0.15); }
+}
+@keyframes blur-breathe {
+  0%, 100% { filter: blur(7px); }
+  50%       { filter: blur(9px); }
+}
+@keyframes counter-tick {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+@keyframes soul-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-flame        { animation: flame-flicker 3s ease-in-out infinite; }
+.animate-float        { animation: float-up 5s ease-in-out infinite; }
+.animate-hero-glow    { animation: hero-glow 4s ease-in-out infinite; }
+.animate-pulse-border { animation: pulse-border 3s ease-in-out infinite; }
+.animate-blur-breathe { animation: blur-breathe 4s ease-in-out infinite; }
+.animate-soul-spin    { animation: soul-spin 12s linear infinite; }
+
+/* Flame gradient backgrounds */
+.flame-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(147,51,234,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 50%, rgba(225,29,154,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 20% 50%, rgba(192,38,211,0.10) 0%, transparent 50%),
+    #0a0a0f;
+}
+.blurred-card {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
+}
+.glass-card {
+  background: rgba(18,18,26,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.soul-token-ring {
+  background: conic-gradient(from 0deg, #c026d3, #9333ea, #e11d9a, #c026d3);
+  border-radius: 9999px;
+  padding: 2px;
+}
