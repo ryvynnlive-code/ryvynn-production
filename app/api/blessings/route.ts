@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 async function generateBlessing() {
-  const msg = await anthropic.messages.create({ model:'claude-sonnet-4-6', max_tokens:200, messages:[{role:'user',content:'Generate a short powerful RYVYNN blessing for someone struggling. 2-3 sentences. Raw and real. Dual Flame energy. No platitudes.'}] });
-  return (msg.content[0] as {text:string}).text;
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const result = await model.generateContent('Generate a short powerful RYVYNN blessing for someone struggling. 2-3 sentences. Raw and real. Dual Flame energy. No platitudes.');
+  return result.response.text();
 }
 export async function POST(req: Request) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);

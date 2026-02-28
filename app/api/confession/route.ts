@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { detectCrisis } from '@/lib/crisis';
 
 // Lazy Prisma init — if DATABASE_URL is missing, DB ops are skipped gracefully
@@ -18,7 +18,7 @@ async function getPrisma() {
   }
 }
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,18 +47,11 @@ export async function POST(req: NextRequest) {
     }
 
     // AI miracle — always runs, DB is optional
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 512,
-      messages: [{
-        role: 'user',
-        content: `Transform this anonymous confession into inspiring, hopeful poetry under 280 characters. Make it beautiful and let the person feel seen:\n\n${confession}`
-      }]
-    });
-
-    const miracleText = message.content[0].type === 'text'
-      ? message.content[0].text
-      : 'From darkness, light emerges.';
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(
+      `Transform this anonymous confession into inspiring, hopeful poetry under 280 characters. Make it beautiful and let the person feel seen:\n\n${confession}`
+    );
+    const miracleText = result.response.text() || 'From darkness, light emerges.';
 
     // Try DB persistence — degrade gracefully if unavailable
     let savedMiracleId: string | null = null
