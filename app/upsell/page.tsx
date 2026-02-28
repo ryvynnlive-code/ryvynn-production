@@ -1,16 +1,38 @@
 'use client';
+import Link from 'next/link';
+import { Flame } from 'lucide-react';
+
 export default function UpsellPage() {
   return (
-    <main style={{background:'#0a0a0a',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 20px'}}>
-      <h1 style={{color:'#fff',fontSize:'1.8rem',marginBottom:'8px',textAlign:'center'}}>Your Eternity Message Awaits</h1>
-      <p style={{color:'#888',marginBottom:'32px',textAlign:'center'}}>Locked until ignition.</p>
-      <div style={{position:'relative',width:'100%',maxWidth:'600px',height:'400px',borderRadius:'16px',overflow:'hidden'}}>
-        <div style={{position:'absolute',inset:0,background:'#1a0a00',filter:'blur(12px)',transform:'scale(1.05)'}}/>
-        <div style={{position:'absolute',inset:0,background:'linear-gradient(137.5deg,rgba(255,69,0,0.35),rgba(255,215,0,0.25))'}}/>
-        <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'4rem'}}>🔥</div>
+    <main className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6 py-16 text-white">
+      <Flame className="h-16 w-16 text-fuchsia-500 mb-6" style={{ filter: 'drop-shadow(0 0 20px rgba(192,38,211,0.7))' }} />
+      <h1 className="text-3xl md:text-4xl font-bold text-center mb-3">Your Eternity Message Awaits</h1>
+      <p className="text-zinc-400 text-center mb-10 max-w-md">
+        Encrypted letters to your bloodline. A vault only you can burn or pass on. Locked until flame ignition.
+      </p>
+      <div className="relative w-full max-w-sm h-56 rounded-2xl overflow-hidden mb-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-950 to-zinc-950" />
+        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center space-y-2 blur-sm select-none pointer-events-none">
+            <p className="text-zinc-300 text-sm italic">"To my daughter, when you find this..."</p>
+            <p className="text-zinc-500 text-xs">• • • • • • • • • •</p>
+            <p className="text-zinc-400 text-xs">Deliver on: 01/01/2040</p>
+          </div>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="bg-black/60 rounded-xl px-6 py-3 border border-fuchsia-800/50">
+            <p className="text-fuchsia-300 text-sm font-semibold">🔒 Unlock with Lifetime Flame</p>
+          </div>
+        </div>
       </div>
-      <a href="/pricing" style={{marginTop:'28px',display:'inline-block',padding:'16px 40px',background:'linear-gradient(137.5deg,#ff4500,#ffd700)',color:'#000',fontWeight:'bold',fontSize:'1rem',borderRadius:'8px',textDecoration:'none',letterSpacing:'1px'}}>IGNITE — UNLOCK NOW</a>
-      <p style={{color:'#555',fontSize:'12px',marginTop:'12px'}}>Soul Token required. From $17.</p>
+      <Link
+        href="/pricing"
+        className="inline-block px-10 py-4 rounded-xl font-bold text-base text-black"
+        style={{ background: 'linear-gradient(135deg,#ca8a04,#ea580c)', boxShadow: '0 0 30px rgba(202,138,4,0.4)' }}
+      >
+        🔥 See All Tiers — Starting Free
+      </Link>
+      <p className="text-zinc-600 text-xs mt-4">Crisis access is always free. Eternity starts at $369.36 — one time.</p>
     </main>
   );
 }

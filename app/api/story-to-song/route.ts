@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
-import Anthropic from "@anthropic-ai/sdk"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { SOUND_PROFILES } from "@/lib/soundProfiles"
 import { isHighRisk } from "@/lib/crisisGate"
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
 export async function POST(req: Request) {
   try {
@@ -17,57 +17,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Text too short" }, { status: 400 })
     }
 
-    // Hard crisis gate — always runs first
     if (isHighRisk(text)) {
       return NextResponse.json({
         blocked: true,
         crisisRedirect: true,
-        message:
-          "It sounds like you're going through a lot. Let's pause and focus on keeping you safe.",
+        message: "It sounds like you're going through a lot. Let's pause and focus on keeping you safe.",
         resources: {
           crisis: "988 Suicide & Crisis Lifeline — call or text 988",
-          text: "Crisis Text Line — text HOME to 741741",
+          text:   "Crisis Text Line — text HOME to 741741",
         },
       })
     }
 
     const profile = SOUND_PROFILES[mood] ?? SOUND_PROFILES.calm
 
-    // Generate supportive lyrics via Claude
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 300,
-      messages: [
-        {
-          role: "user",
-          content: `You are writing short, metaphorical song lyrics for someone going through something hard.
+    const model  = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const result = await model.generateContent(
+      `You are writing short, metaphorical song lyrics for someone going through something hard.
 
 Rules:
 - Under 120 words total
 - Supportive, warm, non-clinical tone
 - Age-appropriate — safe for teens and adults
 - No mention of self-harm, death, diagnoses, or medical advice
-- No promises or outcome claims ("you will be healed" etc.)
+- No promises or outcome claims
 - Write in second person ("you") — speak to the listener
 - Feeling: ${mood}
 - The listener shared: "${text.slice(0, 200)}"
 
-Write lyrics that make them feel understood, not alone, and that emotions can move safely through them. No verse/chorus labels needed. Just the words.`,
-        },
-      ],
-    })
+Write lyrics that make them feel understood, not alone, and that emotions can move safely through them. No verse/chorus labels. Just the words.`
+    )
 
-    const lyrics =
-      message.content[0].type === "text"
-        ? message.content[0].text.trim()
-        : "You don't have to carry this alone."
+    const lyrics = result.response.text().trim() || "You don't have to carry this alone."
 
     return NextResponse.json({
-      ok: true,
+      ok:         true,
       profile,
       lyrics,
-      disclaimer:
-        "This audio is designed to help your body feel calmer. You're in control — stop anytime.",
+      disclaimer: "This audio is designed to help your body feel calmer. You're in control — stop anytime.",
     })
   } catch (error) {
     console.error("Story-to-song error:", error)

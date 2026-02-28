@@ -52,7 +52,13 @@ export default function Home() {
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
-        <div className="w-10" />
+        <Link
+          href="/pricing"
+          className="text-xs text-muted-foreground hover:text-foreground border border-border hover:border-accent/50 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+        >
+          <Flame className="h-3.5 w-3.5" />
+          Pricing
+        </Link>
         <div />
         <Link
           href="/settings"
