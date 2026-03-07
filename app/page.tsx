@@ -10,6 +10,29 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen">
+      {/* FREE FOREVER BANNER - Top Priority */}
+      <div className="bg-gradient-to-r from-ryvynn-cyan via-ryvynn-purple to-ryvynn-cyan py-6 sticky top-16 z-40 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">🛡</span>
+              <h2 className="text-3xl md:text-4xl font-black text-white">
+                CRISIS SUPPORT: FREE FOREVER
+              </h2>
+            </div>
+            <Link
+              href="/wall"
+              className="px-8 py-3 bg-white text-ryvynn-purple rounded-xl font-black text-lg hover:scale-105 transition-all shadow-lg"
+            >
+              ACCESS NOW →
+            </Link>
+          </div>
+          <p className="text-white text-sm mt-2 font-medium">
+            No card required · Anonymous · Zero surveillance · Premium members fund the mission
+          </p>
+        </div>
+      </div>
+
       {/* Hero Section - Sacred Geometry Spacing */}
       <section className="max-w-4xl mx-auto px-6 pt-32 pb-24 text-center">
         {/* Dual Flame Icon */}
