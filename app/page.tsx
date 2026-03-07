@@ -36,19 +36,30 @@ export default function HomePage() {
         </p>
         
         {/* CTAs - Sacred Spacing */}
-        <div className="flex gap-6 justify-center mb-8">
+        <div className="flex flex-col gap-4 items-center mb-8">
+          <div className="flex gap-6 justify-center">
+            <Link
+              href="/pricing"
+              className="group relative px-12 py-5 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-2xl font-bold text-white text-lg transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,217,255,0.6)] overflow-hidden"
+            >
+              <span className="relative z-10">{t('startFree')}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-ryvynn-purple to-ryvynn-cyan opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </Link>
+            <Link 
+              href="/pricing"
+              className="px-12 py-5 border-2 border-gray-700 rounded-2xl font-bold text-white text-lg hover:bg-gray-900 hover:border-ryvynn-cyan transition-all hover:scale-105"
+            >
+              {t('pricing')}
+            </Link>
+          </div>
+
+          {/* FREE FOREVER ACCESS - Prominent */}
           <Link
-            href="/pricing"
-            className="group relative px-12 py-5 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-2xl font-bold text-white text-lg transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,217,255,0.6)] overflow-hidden"
+            href="/wall"
+            className="group relative px-16 py-4 bg-black border-2 border-ryvynn-cyan rounded-2xl font-bold text-white text-xl transition-all hover:scale-105 hover:bg-ryvynn-cyan/10 animate-pulse-slow"
           >
-            <span className="relative z-10">{t('startFree')}</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-ryvynn-purple to-ryvynn-cyan opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          </Link>
-          <Link 
-            href="/pricing"
-            className="px-12 py-5 border-2 border-gray-700 rounded-2xl font-bold text-white text-lg hover:bg-gray-900 hover:border-ryvynn-cyan transition-all hover:scale-105"
-          >
-            {t('pricing')}
+            <span className="text-ryvynn-cyan">🔓 FREE CRISIS ACCESS FOREVER</span>
+            <div className="text-xs text-gray-400 mt-1">No card required • Anonymous • Share your shadow now</div>
           </Link>
         </div>
 
