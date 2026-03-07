@@ -24,17 +24,32 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
     setSubmitting(true);
     
     try {
-      // TODO: API call to submit confession
-      // await fetch('/api/confession', { method: 'POST', body: JSON.stringify({ confession, persona, ratedMode }) })
-      
-      // For now, just close
-      setTimeout(() => {
-        setConfession('');
-        setSubmitting(false);
-        onClose();
-      }, 1000);
+      const response = await fetch('/api/confession', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          confession,
+          mode: 'raw', // Default to raw mode (can expand to mode selector later)
+          language: 'en', // TODO: get from i18n context
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Confession submission failed');
+      }
+
+      const data = await response.json();
+      console.log('Transformation received:', data.transformation);
+
+      // TODO: Display transformation to user before sharing to wall
+      // For now, just close and clear
+      setConfession('');
+      setSubmitting(false);
+      onClose();
+
     } catch (error) {
       console.error('Confession submission failed:', error);
+      alert('Failed to transform confession. Please try again.');
       setSubmitting(false);
     }
   };
