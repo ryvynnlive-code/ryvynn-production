@@ -1,12 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { translations, Language, TranslationKey } from '@/lib/translations';
+import { translations, Language, TranslationKey, personaTranslations, PersonaTranslationKey, featureTranslations, FeatureTranslationKey } from '@/lib/translations';
 
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: TranslationKey) => string;
+  tp: (key: PersonaTranslationKey) => string;
+  tf: (key: FeatureTranslationKey) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -35,13 +37,23 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return translations[language][key];
   };
 
+  // Persona translation function
+  const tp = (key: PersonaTranslationKey): string => {
+    return personaTranslations[language][key];
+  };
+
+  // Feature translation function
+  const tf = (key: FeatureTranslationKey): string => {
+    return featureTranslations[language][key];
+  };
+
   // Prevent hydration mismatch
   if (!mounted) {
     return null;
   }
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
+    <I18nContext.Provider value={{ language, setLanguage, t, tp, tf }}>
       {children}
     </I18nContext.Provider>
   );

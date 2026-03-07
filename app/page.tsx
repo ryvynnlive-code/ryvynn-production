@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import Link from 'next/link';
 
 export default function HomePage() {
-  const { t } = useI18n();
+  const { t, tf } = useI18n();
 
   return (
     <main className="min-h-screen">
@@ -46,23 +46,41 @@ export default function HomePage() {
           {t('featuresTitle')}
         </h2>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
             <div className="text-4xl mb-4">🔐</div>
-            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{t('feature1Title')}</h3>
-            <p className="text-gray-400">{t('feature1Desc')}</p>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{tf('featureZeroSurveillance')}</h3>
+            <p className="text-gray-400">{tf('featureZeroDesc')}</p>
           </div>
           
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
             <div className="text-4xl mb-4">🛡️</div>
-            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{t('feature2Title')}</h3>
-            <p className="text-gray-400">{t('feature2Desc')}</p>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{tf('featureCrisisDetection')}</h3>
+            <p className="text-gray-400">{tf('featureCrisisDesc')}</p>
           </div>
           
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
             <div className="text-4xl mb-4">🌑</div>
-            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{t('feature3Title')}</h3>
-            <p className="text-gray-400">{t('feature3Desc')}</p>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-cyan">{tf('featureTransformation')}</h3>
+            <p className="text-gray-400">{tf('featureTransformDesc')}</p>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+            <div className="text-4xl mb-4">🤝</div>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-purple">{tf('featureGuardian')}</h3>
+            <p className="text-gray-400">{tf('featureGuardianDesc')}</p>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+            <div className="text-4xl mb-4">⏳</div>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-purple">{tf('featureEternity')}</h3>
+            <p className="text-gray-400">{tf('featureEternityDesc')}</p>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+            <div className="text-4xl mb-4">🪙</div>
+            <h3 className="text-xl font-bold mb-2 text-ryvynn-purple">{tf('featureTokens')}</h3>
+            <p className="text-gray-400">{tf('featureTokensDesc')}</p>
           </div>
         </div>
       </section>

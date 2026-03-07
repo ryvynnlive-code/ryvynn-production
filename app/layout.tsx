@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/contexts/I18nContext";
+import { PersonaProvider } from "@/contexts/PersonaContext";
+import { AgeTierProvider } from "@/contexts/AgeTierContext";
+import { GeolocationProvider } from "@/contexts/GeolocationContext";
+import { SoulTokenProvider } from "@/contexts/SoulTokenContext";
 import { CrisisBanner } from "@/components/CrisisBanner";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { Navigation } from "@/components/Navigation";
+import { AgeGate } from "@/components/persona/AgeGate";
 
 export const metadata: Metadata = {
   title: "RYVYNN - From Our Darkest Hours to Our Brightest Days",
@@ -18,17 +23,18 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-black text-white antialiased">
         <I18nProvider>
-          <CrisisBanner />
-          <nav className="border-b border-gray-800 py-4 px-6">
-            <div className="max-w-6xl mx-auto flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🔥🔥</span>
-                <span className="font-bold text-xl">RYVYNN</span>
-              </div>
-              <LanguageToggle />
-            </div>
-          </nav>
-          {children}
+          <PersonaProvider>
+            <AgeTierProvider>
+              <GeolocationProvider>
+                <SoulTokenProvider>
+                  <AgeGate />
+                  <CrisisBanner />
+                  <Navigation />
+                  {children}
+                </SoulTokenProvider>
+              </GeolocationProvider>
+            </AgeTierProvider>
+          </PersonaProvider>
         </I18nProvider>
       </body>
     </html>

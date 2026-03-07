@@ -99,3 +99,227 @@ export const translations = {
 
 export type Language = keyof typeof translations;
 export type TranslationKey = keyof typeof translations.en;
+
+// Persona & Age Gate Extensions
+export const personaTranslations = {
+  en: {
+    // Personas
+    choosePersona: 'Choose Your Voice',
+    feminine: 'Feminine',
+    masculine: 'Masculine',
+    neutral: 'Neutral',
+    feminineDesc: 'Warm, nurturing, empathetic guidance',
+    masculineDesc: 'Direct, strength-focused, action-driven',
+    neutralDesc: 'Balanced, universal, ungendered support',
+    
+    // 18+ Toggle
+    ageGateTitle: 'Age Verification',
+    ageGateSubtitle: 'RYVYNN contains raw, unfiltered content about trauma, addiction, and crisis.',
+    ageConfirm: 'I am 18 years or older',
+    ageDecline: 'I am under 18',
+    enableRated: 'Enable R-Rated Content',
+    ratedWarning: 'Uncensored language, explicit trauma discussion, no safety filters',
+    ratedEnabled: 'R-Rated Mode Active',
+    ratedDisabled: 'Safe Mode Active',
+    
+    // 50/50 Wall
+    wallTitle: 'The Wall',
+    wallSubtitle: '50% Confessions / 50% Transformations',
+    confessionsTab: 'Shadows (Confessions)',
+    transformationsTab: 'Light (Transformations)',
+    wallDescription: 'Anonymous confessions from those facing their darkness. AI transformations showing the path forward.',
+    submitConfession: 'Submit Anonymous Confession',
+    viewTransformation: 'View Transformation',
+  },
+  
+  es: {
+    // Personas
+    choosePersona: 'Elige Tu Voz',
+    feminine: 'Femenino',
+    masculine: 'Masculino',
+    neutral: 'Neutral',
+    feminineDesc: 'Guía cálida, nutritiva, empática',
+    masculineDesc: 'Directo, enfocado en fuerza, orientado a la acción',
+    neutralDesc: 'Apoyo equilibrado, universal, sin género',
+    
+    // 18+ Toggle
+    ageGateTitle: 'Verificación de Edad',
+    ageGateSubtitle: 'RYVYNN contiene contenido crudo y sin filtrar sobre trauma, adicción y crisis.',
+    ageConfirm: 'Tengo 18 años o más',
+    ageDecline: 'Soy menor de 18 años',
+    enableRated: 'Habilitar Contenido Clasificado R',
+    ratedWarning: 'Lenguaje sin censura, discusión explícita de trauma, sin filtros de seguridad',
+    ratedEnabled: 'Modo R Activo',
+    ratedDisabled: 'Modo Seguro Activo',
+    
+    // 50/50 Wall
+    wallTitle: 'El Muro',
+    wallSubtitle: '50% Confesiones / 50% Transformaciones',
+    confessionsTab: 'Sombras (Confesiones)',
+    transformationsTab: 'Luz (Transformaciones)',
+    wallDescription: 'Confesiones anónimas de quienes enfrentan su oscuridad. Transformaciones IA mostrando el camino adelante.',
+    submitConfession: 'Enviar Confesión Anónima',
+    viewTransformation: 'Ver Transformación',
+  },
+} as const;
+
+export type PersonaTranslationKey = keyof typeof personaTranslations.en;
+
+// Complete Feature Translations - Dark Messaging
+export const featureTranslations = {
+  en: {
+    // Dashboard
+    dashboard: 'Command Center',
+    myJourney: 'My Shadow Work',
+    soulTokens: 'Soul Tokens',
+    tokensAvailable: 'Available',
+    crisisStatus: 'Crisis Status',
+    
+    // AI Guardian
+    guardianTitle: 'AI Guardian',
+    guardianSubtitle: 'Your companion in darkness',
+    talkToGuardian: 'Talk to Guardian',
+    guardianActive: 'Guardian Active',
+    guardianResponse: 'Guardian Response',
+    
+    // Transformation System
+    submitConfessionTitle: 'Face Your Shadow',
+    confessionPlaceholder: 'Write what haunts you. No judgment. No storage. Just transformation.',
+    transformButton: 'Transform',
+    transforming: 'Transforming...',
+    viewTransformation: 'View Transformation',
+    rawConfessionWarning: 'Your raw words are never stored. AI transforms them, then discards the original.',
+    
+    // Journal
+    journalTitle: 'Dark Journal',
+    journalEntry: 'Journal Entry',
+    encrypted: 'Encrypted',
+    yourEyesOnly: 'Your eyes only',
+    newEntry: 'New Entry',
+    
+    // Digital Eternity
+    eternityTitle: 'Digital Eternity',
+    eternitySubtitle: 'Messages to your bloodline',
+    createEternityMessage: 'Create Eternity Message',
+    eternityWarning: 'Encrypted. Time-locked. Delivered to descendants after you\'re gone.',
+    recipientBloodline: 'For: Future bloodline',
+    unlockDate: 'Unlock Date',
+    
+    // Crisis System
+    crisisDetected: 'Crisis Detected',
+    crisisTierBaseline: 'Baseline - You\'re stable',
+    crisisTierHeightened: 'Heightened - Warning signs detected',
+    crisisTierActive: 'Active - Intervention recommended',
+    crisisTierCritical: 'CRITICAL - Call 988 NOW',
+    call988: 'Call 988 (Free, 24/7)',
+    crisisResources: 'Crisis Resources',
+    
+    // Soul Token Actions
+    earnTokens: 'Earn Tokens',
+    spendTokens: 'Spend Tokens',
+    tokenHistory: 'Token History',
+    earnedFor: 'Earned for',
+    spentOn: 'Spent on',
+    
+    // Settings
+    settings: 'Settings',
+    privacy: 'Privacy',
+    account: 'Account',
+    dangerZone: 'Danger Zone',
+    deleteAllData: 'Delete All My Data',
+    deleteWarning: 'This burns everything. Permanent. No recovery.',
+    
+    // Features List
+    featureZeroSurveillance: 'Zero Surveillance',
+    featureZeroDesc: 'Structurally impossible to spy on you. Your darkness is yours.',
+    featureCrisisDetection: 'Crisis Detection',
+    featureCrisisDesc: 'AI watches for warning signs. Always free. No account needed.',
+    featureTransformation: 'Shadow Transformation',
+    featureTransformDesc: 'Raw confession → insight. Face it. Transform it. Own it.',
+    featureGuardian: 'AI Guardian',
+    featureGuardianDesc: 'Your companion. Matches your persona. Never judges.',
+    featureEternity: 'Digital Eternity',
+    featureEternityDesc: 'Encrypted messages to descendants. Outlive your body.',
+    featureTokens: 'Soul Token Economy',
+    featureTokensDesc: 'Earn by showing up. Spend on growth. Crisis tier earns too.',
+  },
+  
+  es: {
+    // Dashboard
+    dashboard: 'Centro de Comando',
+    myJourney: 'Mi Trabajo con Sombras',
+    soulTokens: 'Tokens del Alma',
+    tokensAvailable: 'Disponibles',
+    crisisStatus: 'Estado de Crisis',
+    
+    // AI Guardian
+    guardianTitle: 'Guardián IA',
+    guardianSubtitle: 'Tu compañero en la oscuridad',
+    talkToGuardian: 'Hablar con Guardián',
+    guardianActive: 'Guardián Activo',
+    guardianResponse: 'Respuesta del Guardián',
+    
+    // Transformation System
+    submitConfessionTitle: 'Enfrenta Tu Sombra',
+    confessionPlaceholder: 'Escribe lo que te persigue. Sin juicio. Sin almacenamiento. Solo transformación.',
+    transformButton: 'Transformar',
+    transforming: 'Transformando...',
+    viewTransformation: 'Ver Transformación',
+    rawConfessionWarning: 'Tus palabras crudas nunca se almacenan. IA las transforma, luego descarta el original.',
+    
+    // Journal
+    journalTitle: 'Diario Oscuro',
+    journalEntry: 'Entrada de Diario',
+    encrypted: 'Encriptado',
+    yourEyesOnly: 'Solo tus ojos',
+    newEntry: 'Nueva Entrada',
+    
+    // Digital Eternity
+    eternityTitle: 'Eternidad Digital',
+    eternitySubtitle: 'Mensajes a tu linaje',
+    createEternityMessage: 'Crear Mensaje de Eternidad',
+    eternityWarning: 'Encriptado. Bloqueado por tiempo. Entregado a descendientes después de que te vayas.',
+    recipientBloodline: 'Para: Linaje futuro',
+    unlockDate: 'Fecha de Desbloqueo',
+    
+    // Crisis System
+    crisisDetected: 'Crisis Detectada',
+    crisisTierBaseline: 'Base - Estás estable',
+    crisisTierHeightened: 'Elevado - Señales de advertencia detectadas',
+    crisisTierActive: 'Activo - Intervención recomendada',
+    crisisTierCritical: 'CRÍTICO - Llama 988 AHORA',
+    call988: 'Llamar 988 (Gratis, 24/7)',
+    crisisResources: 'Recursos de Crisis',
+    
+    // Soul Token Actions
+    earnTokens: 'Ganar Tokens',
+    spendTokens: 'Gastar Tokens',
+    tokenHistory: 'Historial de Tokens',
+    earnedFor: 'Ganado por',
+    spentOn: 'Gastado en',
+    
+    // Settings
+    settings: 'Configuración',
+    privacy: 'Privacidad',
+    account: 'Cuenta',
+    dangerZone: 'Zona de Peligro',
+    deleteAllData: 'Eliminar Todos Mis Datos',
+    deleteWarning: 'Esto quema todo. Permanente. Sin recuperación.',
+    
+    // Features List
+    featureZeroSurveillance: 'Cero Vigilancia',
+    featureZeroDesc: 'Estructuralmente imposible espiarte. Tu oscuridad es tuya.',
+    featureCrisisDetection: 'Detección de Crisis',
+    featureCrisisDesc: 'IA vigila señales de advertencia. Siempre gratis. Sin cuenta necesaria.',
+    featureTransformation: 'Transformación de Sombra',
+    featureTransformDesc: 'Confesión cruda → percepción. Enfréntala. Transfórmala. Poséela.',
+    featureGuardian: 'Guardián IA',
+    featureGuardianDesc: 'Tu compañero. Coincide con tu persona. Nunca juzga.',
+    featureEternity: 'Eternidad Digital',
+    featureEternityDesc: 'Mensajes encriptados a descendientes. Sobrevive a tu cuerpo.',
+    featureTokens: 'Economía de Tokens del Alma',
+    featureTokensDesc: 'Gana presentándote. Gasta en crecimiento. Nivel de crisis también gana.',
+  },
+} as const;
+
+export type FeatureTranslationKey = keyof typeof featureTranslations.en;
