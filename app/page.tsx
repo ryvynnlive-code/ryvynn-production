@@ -28,9 +28,12 @@ export default function HomePage() {
         </p>
         
         <div className="flex gap-4 justify-center">
-          <button className="px-8 py-4 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg font-bold text-white hover:opacity-90 transition-opacity">
+          <Link
+            href="/pricing"
+            className="px-8 py-4 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg font-bold text-white hover:opacity-90 transition-opacity"
+          >
             {t('startFree')}
-          </button>
+          </Link>
           <Link 
             href="/pricing"
             className="px-8 py-4 border border-gray-700 rounded-lg font-bold text-white hover:bg-gray-900 transition-colors"
@@ -82,6 +85,46 @@ export default function HomePage() {
             <h3 className="text-xl font-bold mb-2 text-ryvynn-purple">{tf('featureTokens')}</h3>
             <p className="text-gray-400">{tf('featureTokensDesc')}</p>
           </div>
+        </div>
+      </section>
+
+      {/* Coming Soon Section */}
+      <section className="max-w-6xl mx-auto px-6 py-20 border-t border-gray-800">
+        <div className="text-center mb-12">
+          <div className="text-6xl mb-4">⌚</div>
+          <h2 className="text-3xl font-bold mb-4 text-ryvynn-purple">
+            Coming Soon: Wearables Integration
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Real-time biometric crisis detection through Apple Watch, Fitbit, and more. 
+            Your body knows when you're in crisis — we'll help you catch it early.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="bg-gray-900/30 border border-gray-800 rounded-lg p-6 text-center">
+            <div className="text-4xl mb-3">❤️</div>
+            <h3 className="font-bold mb-2 text-ryvynn-cyan">Heart Rate Monitoring</h3>
+            <p className="text-sm text-gray-500">Detect anxiety spikes & panic attacks</p>
+          </div>
+
+          <div className="bg-gray-900/30 border border-gray-800 rounded-lg p-6 text-center">
+            <div className="text-4xl mb-3">😴</div>
+            <h3 className="font-bold mb-2 text-ryvynn-cyan">Sleep Tracking</h3>
+            <p className="text-sm text-gray-500">Identify depression patterns early</p>
+          </div>
+
+          <div className="bg-gray-900/30 border border-gray-800 rounded-lg p-6 text-center">
+            <div className="text-4xl mb-3">🏃</div>
+            <h3 className="font-bold mb-2 text-ryvynn-cyan">Activity Patterns</h3>
+            <p className="text-sm text-gray-500">Track behavioral changes over time</p>
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
+          <p className="text-sm text-gray-600 italic">
+            Premium members will get early access when wearables launch in 2026.
+          </p>
         </div>
       </section>
 

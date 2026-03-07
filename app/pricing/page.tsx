@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 
 const PRICING_TIERS = [
@@ -86,6 +87,34 @@ const PRICING_TIERS = [
 
 export default function PricingPage() {
   const { t } = useI18n();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleCheckout = async (tier: typeof PRICING_TIERS[0]) => {
+    setLoading(tier.id);
+
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: tier.priceId,
+          coupon: tier.coupon || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Payment processing failed. Please try again.');
+      setLoading(null);
+    }
+  };
 
   return (
     <main className="min-h-screen py-12 px-6">
@@ -164,12 +193,20 @@ export default function PricingPage() {
               </ul>
 
               {/* CTA Button */}
-              <button className={`w-full py-3 rounded-lg font-bold transition-opacity ${
-                tier.highlight
-                  ? 'bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-white hover:opacity-90'
-                  : 'bg-gray-800 text-white hover:bg-gray-700'
-              }`}>
-                {tier.introPrice ? `${t('startFree')} 🔥` : `${t('ignite')} ${tier.name}`}
+              <button
+                onClick={() => handleCheckout(tier)}
+                disabled={loading !== null}
+                className={`w-full py-3 rounded-lg font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
+                  tier.highlight
+                    ? 'bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-white hover:opacity-90'
+                    : 'bg-gray-800 text-white hover:bg-gray-700'
+                }`}
+              >
+                {loading === tier.id
+                  ? '🔄 Loading...'
+                  : tier.introPrice
+                  ? `${t('startFree')} 🔥`
+                  : `${t('ignite')} ${tier.name}`}
               </button>
             </div>
           ))}
