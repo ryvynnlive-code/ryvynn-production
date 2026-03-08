@@ -1,175 +1,101 @@
 /**
- * Client-Side Encryption for RYVYNN
- * 
- * Zero-knowledge encryption for journal entries and eternity messages.
- * Uses Web Crypto API (SubtleCrypto) for AES-GCM encryption.
- * 
- * Security Model:
- * - User password → PBKDF2 → AES-256-GCM key
- * - Key never leaves client
- * - Server only stores encrypted ciphertext
- * - User owns and controls their data
+ * Client-side encryption utilities for RYVYNN
+ * AES-256-GCM with PBKDF2 key derivation
  */
 
-const SALT_LENGTH = 16; // bytes
-const IV_LENGTH = 12; // bytes for GCM
-const ITERATIONS = 100000; // PBKDF2 iterations
-const KEY_LENGTH = 256; // bits
-
-/**
- * Derive encryption key from user password
- */
-async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+export async function encrypt(text: string, password: string): Promise<string> {
   const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
+  const data = encoder.encode(text);
 
-  // Import password as key material
+  // Generate salt and IV
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  // Derive key from password
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    passwordBuffer,
+    encoder.encode(password),
     'PBKDF2',
     false,
-    ['deriveKey']
+    ['deriveBits', 'deriveKey']
   );
 
-  // Derive AES-GCM key
-  return crypto.subtle.deriveKey(
+  const key = await crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
-      iterations: ITERATIONS,
+      salt: salt,
+      iterations: 100000,
       hash: 'SHA-256',
     },
     keyMaterial,
-    {
-      name: 'AES-GCM',
-      length: KEY_LENGTH,
-    },
-    false,
+    { name: 'AES-GCM', length: 256 },
+    true,
     ['encrypt', 'decrypt']
   );
+
+  // Encrypt
+  const encrypted = await crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv: iv,
+    },
+    key,
+    data
+  );
+
+  // Combine salt + IV + encrypted data
+  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, salt.length);
+  combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+
+  // Return as base64
+  return btoa(String.fromCharCode(...combined));
 }
 
-/**
- * Encrypt text with user password
- */
-export async function encryptText(plaintext: string, password: string): Promise<string> {
-  try {
-    const encoder = new TextEncoder();
-    
-    // Generate random salt and IV
-    const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-    const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
-    
-    // Derive key from password
-    const key = await deriveKey(password, salt);
-    
-    // Encrypt plaintext
-    const plaintextBuffer = encoder.encode(plaintext);
-    const ciphertext = await crypto.subtle.encrypt(
-      {
-        name: 'AES-GCM',
-        iv,
-      },
-      key,
-      plaintextBuffer
-    );
-    
-    // Combine salt + IV + ciphertext
-    const combined = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
-    combined.set(salt, 0);
-    combined.set(iv, salt.length);
-    combined.set(new Uint8Array(ciphertext), salt.length + iv.length);
-    
-    // Return base64 encoded
-    return btoa(String.fromCharCode(...combined));
-    
-  } catch (error) {
-    console.error('Encryption error:', error);
-    throw new Error('Failed to encrypt data');
-  }
-}
+export async function decrypt(encryptedData: string, password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
-/**
- * Decrypt text with user password
- */
-export async function decryptText(encrypted: string, password: string): Promise<string> {
-  try {
-    // Decode base64
-    const combined = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
-    
-    // Extract salt, IV, and ciphertext
-    const salt = combined.slice(0, SALT_LENGTH);
-    const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-    const ciphertext = combined.slice(SALT_LENGTH + IV_LENGTH);
-    
-    // Derive key from password
-    const key = await deriveKey(password, salt);
-    
-    // Decrypt ciphertext
-    const plaintextBuffer = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv,
-      },
-      key,
-      ciphertext
-    );
-    
-    // Decode to string
-    const decoder = new TextDecoder();
-    return decoder.decode(plaintextBuffer);
-    
-  } catch (error) {
-    console.error('Decryption error:', error);
-    throw new Error('Failed to decrypt data - wrong password or corrupted data');
-  }
-}
+  // Decode base64
+  const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
 
-/**
- * Generate a random encryption password for user
- * (Store in user's password manager or write down)
- */
-export function generateEncryptionPassword(): string {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  
-  // Convert to base64 for readability
-  return btoa(String.fromCharCode(...array))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
+  // Extract salt, IV, and encrypted data
+  const salt = combined.slice(0, 16);
+  const iv = combined.slice(16, 28);
+  const data = combined.slice(28);
 
-/**
- * Validate encryption password strength
- */
-export function validatePassword(password: string): { valid: boolean; message: string } {
-  if (password.length < 16) {
-    return { valid: false, message: 'Password must be at least 16 characters' };
-  }
-  
-  if (password.length < 32) {
-    return { valid: true, message: 'Password strength: Medium' };
-  }
-  
-  return { valid: true, message: 'Password strength: Strong' };
-}
+  // Derive key from password
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits', 'deriveKey']
+  );
 
-/**
- * Test encryption/decryption with sample data
- */
-export async function testEncryption(): Promise<boolean> {
-  try {
-    const testData = 'Test encryption: 🔥 RYVYNN zero-knowledge vault';
-    const password = generateEncryptionPassword();
-    
-    const encrypted = await encryptText(testData, password);
-    const decrypted = await decryptText(encrypted, password);
-    
-    return testData === decrypted;
-  } catch (error) {
-    console.error('Encryption test failed:', error);
-    return false;
-  }
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+
+  // Decrypt
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv: iv,
+    },
+    key,
+    data
+  );
+
+  return decoder.decode(decrypted);
 }
