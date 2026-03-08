@@ -311,6 +311,66 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =====================================================
 -- SCHEMA COMPLETE
 -- =====================================================
+
+-- =====================================================
+-- RPC FUNCTION: AWARD TOKENS
+-- =====================================================
+CREATE OR REPLACE FUNCTION award_tokens(
+  user_uuid UUID,
+  amount INTEGER,
+  transaction_type TEXT,
+  description TEXT DEFAULT NULL
+)
+RETURNS JSON AS $$
+DECLARE
+  current_balance INTEGER;
+  new_balance INTEGER;
+BEGIN
+  -- Get current balance
+  SELECT soul_tokens INTO current_balance
+  FROM profiles
+  WHERE id = user_uuid;
+  
+  IF current_balance IS NULL THEN
+    RAISE EXCEPTION 'User not found: %', user_uuid;
+  END IF;
+  
+  -- Update balance
+  new_balance := current_balance + amount;
+  
+  UPDATE profiles
+  SET soul_tokens = new_balance
+  WHERE id = user_uuid;
+  
+  -- Log transaction
+  INSERT INTO token_transactions (user_id, amount, type, description)
+  VALUES (user_uuid, amount, transaction_type, description);
+  
+  RETURN json_build_object(
+    'previous_balance', current_balance,
+    'amount_awarded', amount,
+    'new_balance', new_balance
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================
+-- RPC FUNCTION: INCREMENT WALL VOTES
+-- =====================================================
+CREATE OR REPLACE FUNCTION increment_wall_votes(entry_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  new_vote_count INTEGER;
+BEGIN
+  UPDATE wall_entries
+  SET votes = votes + 1
+  WHERE id = entry_id
+  RETURNING votes INTO new_vote_count;
+  
+  RETURN new_vote_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- After running this schema:
 -- 1. Set NEXT_PUBLIC_SUPABASE_URL in Vercel env vars
 -- 2. Set NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel env vars
