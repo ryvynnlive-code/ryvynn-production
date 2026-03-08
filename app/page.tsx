@@ -35,10 +35,17 @@ export default function HomePage() {
 
       {/* Hero Section - Sacred Geometry Spacing */}
       <section className="max-w-4xl mx-auto px-6 pt-32 pb-24 text-center">
-        {/* Dual Flame Icon */}
-        <div className="flex justify-center gap-3 mb-12 animate-pulse">
-          <span className="text-7xl drop-shadow-[0_0_25px_rgba(0,217,255,0.5)]">🔥</span>
-          <span className="text-7xl drop-shadow-[0_0_25px_rgba(139,92,246,0.5)]">🔥</span>
+        {/* Dual Flame Logo - Sacred Brand Identity */}
+        <div className="flex justify-center mb-12 animate-float">
+          <div className="relative w-64 h-64 md:w-80 md:h-80">
+            <img 
+              src="/assets/dual-flame-logo.png" 
+              alt="RYVYNN Dual Flame - From our darkest hours to our brightest days" 
+              className="w-full h-full object-contain drop-shadow-[0_0_60px_rgba(0,217,255,0.4)]"
+            />
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-t from-ryvynn-cyan/20 via-transparent to-ryvynn-purple/20 blur-3xl -z-10"></div>
+          </div>
         </div>
         
         {/* Hero Title - Golden Ratio Typography */}

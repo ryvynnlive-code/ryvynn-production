@@ -13,6 +13,10 @@ import { AgeGate } from "@/components/persona/AgeGate";
 export const metadata: Metadata = {
   title: "RYVYNN - From Our Darkest Hours to Our Brightest Days",
   description: "Anonymous AI-powered mental wellness. Zero surveillance. Face your shadows.",
+  icons: {
+    icon: '/assets/dual-flame-logo.png',
+    apple: '/assets/dual-flame-logo.png',
+  },
 };
 
 export default function RootLayout({

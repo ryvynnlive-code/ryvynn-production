@@ -29,8 +29,14 @@ export function Navigation() {
       <nav className="border-b border-gray-800 py-4 px-6 bg-black/50 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <span className="text-2xl">🔥🔥</span>
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+              <div className="relative w-12 h-12">
+                <img 
+                  src="/assets/dual-flame-logo.png" 
+                  alt="RYVYNN Dual Flame" 
+                  className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,217,255,0.6)] group-hover:drop-shadow-[0_0_30px_rgba(139,92,246,0.8)] transition-all duration-300"
+                />
+              </div>
               <span className="font-bold text-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
                 RYVYNN
               </span>
