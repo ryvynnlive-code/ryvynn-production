@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { usePersona } from '@/contexts/PersonaContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ConfessionModalProps {
   isOpen: boolean;
@@ -14,9 +15,11 @@ type FlowStep = 'write' | 'transforming' | 'reveal';
 export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
   const { tp, language } = useI18n();
   const { persona, ratedMode } = usePersona();
+  const { user } = useAuth();
   const [confession, setConfession] = useState('');
   const [transformation, setTransformation] = useState('');
   const [step, setStep] = useState<FlowStep>('write');
+  const [sharing, setSharing] = useState(false);
 
   if (!isOpen) return null;
 
@@ -56,13 +59,47 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
     setConfession('');
     setTransformation('');
     setStep('write');
+    setSharing(false);
     onClose();
   };
 
-  const handleShareToWall = () => {
-    // TODO: Actually share to wall (POST to /api/wall)
-    alert('Wall sharing coming soon! Your transformation is ready.');
-    handleReset();
+  const handleShareToWall = async () => {
+    if (!confession || !transformation || sharing) return;
+
+    setSharing(true);
+
+    try {
+      const response = await fetch('/api/wall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id || null,
+          confession,
+          transformation,
+          isAnonymous: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to share to wall');
+      }
+
+      const data = await response.json();
+
+      if (data.tokensEarned && data.tokensEarned > 0) {
+        alert(`✨ Shared to wall! You earned ${data.tokensEarned} 🔥 soul tokens!`);
+      } else {
+        alert('✨ Shared to wall anonymously! Your transformation is now helping others.');
+      }
+
+      handleReset();
+
+    } catch (error) {
+      console.error('Share to wall failed:', error);
+      alert('Failed to share to wall. Please try again.');
+    } finally {
+      setSharing(false);
+    }
   };
 
   // WRITE STEP
