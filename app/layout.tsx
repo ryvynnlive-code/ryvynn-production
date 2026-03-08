@@ -5,6 +5,7 @@ import { PersonaProvider } from "@/contexts/PersonaContext";
 import { AgeTierProvider } from "@/contexts/AgeTierContext";
 import { GeolocationProvider } from "@/contexts/GeolocationContext";
 import { SoulTokenProvider } from "@/contexts/SoulTokenContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { CrisisBanner } from "@/components/CrisisBanner";
 import { Navigation } from "@/components/Navigation";
 import { AgeGate } from "@/components/persona/AgeGate";
@@ -22,20 +23,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-black text-white antialiased">
-        <I18nProvider>
-          <PersonaProvider>
-            <AgeTierProvider>
-              <GeolocationProvider>
-                <SoulTokenProvider>
-                  <AgeGate />
-                  <CrisisBanner />
-                  <Navigation />
-                  {children}
-                </SoulTokenProvider>
-              </GeolocationProvider>
-            </AgeTierProvider>
-          </PersonaProvider>
-        </I18nProvider>
+        <AuthProvider>
+          <I18nProvider>
+            <PersonaProvider>
+              <AgeTierProvider>
+                <GeolocationProvider>
+                  <SoulTokenProvider>
+                    <AgeGate />
+                    <CrisisBanner />
+                    <Navigation />
+                    {children}
+                  </SoulTokenProvider>
+                </GeolocationProvider>
+              </AgeTierProvider>
+            </PersonaProvider>
+          </I18nProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,50 +1,124 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { SignIn } from '@/components/auth/SignIn';
+import { SignUp } from '@/components/auth/SignUp';
 
 export function Navigation() {
   const { t, tf } = useI18n();
+  const { user, profile, signOut, loading } = useAuth();
   const pathname = usePathname();
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
 
   const navItems = [
     { href: '/', label: t('home') },
-    { href: '/dashboard', label: tf('dashboard') },
+    { href: '/dashboard', label: tf('dashboard'), protected: true },
     { href: '/wall', label: 'Wall' },
     { href: '/crisis', label: 'Crisis' },
     { href: '/pricing', label: t('pricing') },
   ];
 
   return (
-    <nav className="border-b border-gray-800 py-4 px-6">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80">
-            <span className="text-2xl">🔥🔥</span>
-            <span className="font-bold text-xl">RYVYNN</span>
-          </Link>
+    <>
+      <nav className="border-b border-gray-800 py-4 px-6 bg-black/50 backdrop-blur-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <span className="text-2xl">🔥🔥</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
+                RYVYNN
+              </span>
+            </Link>
+            
+            <div className="hidden md:flex gap-6">
+              {navItems.map((item) => {
+                // Hide protected routes if not logged in
+                if (item.protected && !user) return null;
+                
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`text-sm font-medium transition-colors ${
+                      pathname === item.href
+                        ? 'text-ryvynn-cyan'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
           
-          <div className="hidden md:flex gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  pathname === item.href
-                    ? 'text-ryvynn-cyan'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="flex items-center gap-4">
+            <LanguageToggle />
+            
+            {!loading && (
+              <>
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm">
+                      <div className="font-medium text-white">{user.email?.split('@')[0]}</div>
+                      {profile && (
+                        <div className="text-xs text-ryvynn-cyan">
+                          {profile.soul_tokens} 🔥 tokens
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={signOut}
+                      className="px-4 py-2 text-sm border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowSignIn(true)}
+                      className="px-4 py-2 text-sm border border-ryvynn-cyan rounded-lg text-ryvynn-cyan hover:bg-ryvynn-cyan/10 transition-colors"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => setShowSignUp(true)}
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg text-white font-bold hover:scale-105 transition-transform"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-        
-        <LanguageToggle />
-      </div>
-    </nav>
+      </nav>
+
+      <SignIn 
+        isOpen={showSignIn} 
+        onClose={() => setShowSignIn(false)}
+        onSwitchToSignUp={() => {
+          setShowSignIn(false);
+          setShowSignUp(true);
+        }}
+      />
+      
+      <SignUp 
+        isOpen={showSignUp} 
+        onClose={() => setShowSignUp(false)}
+        onSwitchToSignIn={() => {
+          setShowSignUp(false);
+          setShowSignIn(true);
+        }}
+      />
+    </>
   );
 }
