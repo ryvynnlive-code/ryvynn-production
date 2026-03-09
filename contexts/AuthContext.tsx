@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => Promise<{ error?: string; requiresEmailConfirmation?: boolean; message?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -58,6 +58,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist yet - create it with defaults
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: userId,
+            persona: 'neutral',
+            age_tier: 'adult',
+            r_rated_mode: false,
+            soul_tokens: 10,
+            streak_days: 0,
+            last_checkin: new Date().toISOString(),
+          }, { onConflict: 'id' })
+          .select()
+          .single();
+
+        if (!createError && newProfile) {
+          setProfile(newProfile);
+        }
+        return;
+      }
+
       if (error) throw error;
       setProfile(data);
     } catch (error) {
@@ -99,11 +121,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
+      // Check if email confirmation is required
+      // When confirmation required: user exists but session is null
+      if (data.user && !data.session) {
+        return { 
+          requiresEmailConfirmation: true,
+          message: `Check your email (${email}) for a confirmation link, then come back to sign in.`
+        };
+      }
+
       if (data.user) {
-        // Create profile
+        // Create profile - don't throw if it fails (may already exist or RLS issue)
+        // Use upsert to avoid duplicate key errors
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
+          .upsert({
             id: data.user.id,
             persona,
             age_tier: ageTier,
@@ -111,9 +143,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             soul_tokens: 10, // Starting tokens
             streak_days: 0,
             last_checkin: new Date().toISOString(),
-          });
+          }, { onConflict: 'id' });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          // Log but don't block signup - user is created, profile can be created on first login
+          console.error('Profile creation error (non-fatal):', profileError.message);
+        }
       }
 
       return {};

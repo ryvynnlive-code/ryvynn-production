@@ -181,7 +181,7 @@ export async function PUT(req: NextRequest) {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       const { error } = await supabase.rpc('increment_wall_votes', {
-        entry_uuid: entryId,
+        entry_id: entryId,  // Fixed: was entry_uuid, function expects entry_id
       });
 
       if (error) {

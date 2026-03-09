@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
       ],
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing`,
-      allow_promotion_codes: true, // Let users enter promo codes
+      // NOTE: allow_promotion_codes and discounts are mutually exclusive in Stripe
+      // Only enable allow_promotion_codes when no coupon is pre-applied
+      ...(coupon ? {} : { allow_promotion_codes: true }),
     };
 
     // Add coupon if provided
@@ -56,7 +58,10 @@ export async function POST(req: NextRequest) {
     formBody.append('mode', sessionData.mode);
     formBody.append('success_url', sessionData.success_url);
     formBody.append('cancel_url', sessionData.cancel_url);
-    formBody.append('allow_promotion_codes', 'true');
+    // Only allow promo codes when no coupon is pre-applied (Stripe rejects both simultaneously)
+    if (!coupon) {
+      formBody.append('allow_promotion_codes', 'true');
+    }
     sessionData.payment_method_types.forEach((type: string) => {
       formBody.append('payment_method_types[]', type);
     });

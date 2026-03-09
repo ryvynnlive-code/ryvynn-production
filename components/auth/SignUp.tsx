@@ -55,7 +55,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
 
     setLoading(true);
 
-    const { error: signUpError } = await signUp(
+    const result = await signUp(
       email, 
       password, 
       persona, 
@@ -63,16 +63,22 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
       turnstileToken || undefined
     );
 
-    if (signUpError) {
+    if (result.error) {
       // Check for specific error types
-      if (signUpError.includes('fetch') || signUpError.includes('network') || signUpError.includes('connection')) {
+      if (result.error.includes('fetch') || result.error.includes('network') || result.error.includes('connection')) {
         setError(t('errorDatabaseConnection'));
       } else {
-        setError(signUpError);
+        setError(result.error);
       }
       setLoading(false);
       // Reset Turnstile on error
       setTurnstileToken(null);
+    } else if (result.requiresEmailConfirmation) {
+      // Email confirmation required - show success message
+      setLoading(false);
+      setError('');
+      alert(`✅ Account created! ${result.message}`);
+      onClose();
     } else {
       onClose();
       // Clear form

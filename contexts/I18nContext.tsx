@@ -32,28 +32,23 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('ryvynn-language', lang);
   };
 
-  // Translation function
-  const t = (key: TranslationKey): string => {
-    return translations[language][key];
+  // Use a stable default during SSR/hydration - never return null (kills entire app)
+  const effectiveLanguage = mounted ? language : 'en';
+
+  const tEffective = (key: TranslationKey): string => {
+    return translations[effectiveLanguage]?.[key] ?? translations['en'][key] ?? key;
   };
 
-  // Persona translation function
-  const tp = (key: PersonaTranslationKey): string => {
-    return personaTranslations[language][key];
+  const tpEffective = (key: PersonaTranslationKey): string => {
+    return personaTranslations[effectiveLanguage]?.[key] ?? personaTranslations['en'][key] ?? key;
   };
 
-  // Feature translation function
-  const tf = (key: FeatureTranslationKey): string => {
-    return featureTranslations[language][key];
+  const tfEffective = (key: FeatureTranslationKey): string => {
+    return featureTranslations[effectiveLanguage]?.[key] ?? featureTranslations['en'][key] ?? key;
   };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t, tp, tf }}>
+    <I18nContext.Provider value={{ language: effectiveLanguage, setLanguage, t: tEffective, tp: tpEffective, tf: tfEffective }}>
       {children}
     </I18nContext.Provider>
   );
