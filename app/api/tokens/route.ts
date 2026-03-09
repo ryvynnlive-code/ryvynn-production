@@ -4,57 +4,58 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// GET token balance and check daily streak
+// GET token balance + streak + recent transactions
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'userId required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get profile with token balance
+    // Get profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('soul_tokens, streak_days, last_checkin')
       .eq('id', userId)
       .single();
 
-    if (profileError) {
-      throw profileError;
-    }
+    if (profileError) throw profileError;
 
+    // Get recent transactions
+    const { data: transactions, error: txError } = await supabase
+      .from('token_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (txError) console.error('Error fetching transactions:', txError);
+
+    // Return shape that matches dashboard TokenData interface
     return NextResponse.json({
-      tokens: profile.soul_tokens,
-      streakDays: profile.streak_days,
-      lastCheckin: profile.last_checkin,
+      balance: profile.soul_tokens,
+      streak: profile.streak_days,
+      lastCheckIn: profile.last_checkin,
+      transactions: transactions || [],
     });
 
   } catch (error) {
     console.error('Token GET error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch token balance' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch token data' }, { status: 500 });
   }
 }
 
-// POST to check in daily and update streak
+// POST - daily check-in
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'userId required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -66,24 +67,19 @@ export async function POST(req: NextRequest) {
       .eq('id', userId)
       .single();
 
-    if (profileError) {
-      throw profileError;
-    }
+    if (profileError) throw profileError;
 
     const now = new Date();
     const lastCheckin = new Date(profile.last_checkin);
-    const hoursSinceCheckin = (now.getTime() - lastCheckin.getTime()) / (1000 * 60 * 60);
+    const hoursSince = (now.getTime() - lastCheckin.getTime()) / (1000 * 60 * 60);
 
     let newStreak = profile.streak_days;
     let bonusTokens = 0;
     let message = '';
 
-    // If checked in within 24-48 hours: maintain/increment streak
-    if (hoursSinceCheckin >= 24 && hoursSinceCheckin < 48) {
+    if (hoursSince >= 24 && hoursSince < 48) {
       newStreak = profile.streak_days + 1;
-      bonusTokens = 1; // Daily check-in bonus
-      
-      // Streak bonuses
+      bonusTokens = 1;
       if (newStreak === 3) {
         bonusTokens += 5;
         message = '🔥 3-day streak! +6 tokens total';
@@ -96,12 +92,8 @@ export async function POST(req: NextRequest) {
       } else {
         message = `✨ Day ${newStreak} streak! +${bonusTokens} token`;
       }
-      
-    // If checked in too early (< 24 hours): no change
-    } else if (hoursSinceCheckin < 24) {
-      message = `⏰ Check back in ${Math.ceil(24 - hoursSinceCheckin)} hours for daily bonus`;
-      
-    // If checked in too late (> 48 hours): reset streak
+    } else if (hoursSince < 24) {
+      message = `⏰ Check back in ${Math.ceil(24 - hoursSince)}h for daily bonus`;
     } else {
       newStreak = 1;
       bonusTokens = 1;
@@ -109,84 +101,51 @@ export async function POST(req: NextRequest) {
     }
 
     // Update profile
+    const newBalance = profile.soul_tokens + bonusTokens;
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         last_checkin: now.toISOString(),
         streak_days: newStreak,
-        soul_tokens: profile.soul_tokens + bonusTokens,
+        soul_tokens: newBalance,
       })
       .eq('id', userId);
 
-    if (updateError) {
-      throw updateError;
-    }
+    if (updateError) throw updateError;
 
-    // Log transaction if bonus awarded
+    // Log transaction
     if (bonusTokens > 0) {
       const { error: txError } = await supabase
         .from('token_transactions')
         .insert({
           user_id: userId,
           amount: bonusTokens,
-          type: newStreak > 1 && hoursSinceCheckin >= 24 ? 'streak_bonus' : 'daily_checkin',
+          type: hoursSince < 24 ? 'daily_checkin' : 'streak_bonus',
           description: message,
         });
-
-      if (txError) {
-        console.error('Error logging transaction:', txError);
-      }
+      if (txError) console.error('Transaction log error:', txError);
     }
 
-    return NextResponse.json({
-      tokens: profile.soul_tokens + bonusTokens,
-      streakDays: newStreak,
-      bonusTokens,
-      message,
-      canCheckInAgain: hoursSinceCheckin >= 24,
-    });
-
-  } catch (error) {
-    console.error('Token POST error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process check-in' },
-      { status: 500 }
-    );
-  }
-}
-
-// GET transaction history
-export async function PUT(req: NextRequest) {
-  try {
-    const { userId, limit = 50 } = await req.json();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'userId required' },
-        { status: 400 }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { data, error } = await supabase
+    // Fetch updated transactions
+    const { data: transactions } = await supabase
       .from('token_transactions')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(20);
 
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json({ transactions: data || [] });
+    // Return full TokenData shape so dashboard setTokenData(data) works
+    return NextResponse.json({
+      balance: newBalance,
+      streak: newStreak,
+      lastCheckIn: now.toISOString(),
+      transactions: transactions || [],
+      tokensEarned: bonusTokens,
+      message,
+    });
 
   } catch (error) {
-    console.error('Token transaction history error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch transaction history' },
-      { status: 500 }
-    );
+    console.error('Token POST error:', error);
+    return NextResponse.json({ error: 'Failed to process check-in' }, { status: 500 });
   }
 }
