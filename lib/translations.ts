@@ -7,15 +7,42 @@ export const translations = {
     home: 'Home',
     pricing: 'Pricing',
     about: 'About',
-    
+    wall: 'Wall',
+    crisis: 'Crisis',
+    soulTokensLabel: 'tokens',
+
     // Crisis Banner
     crisisBanner: 'In Crisis? Call 988 - Free, Confidential, 24/7',
-    
+
     // Homepage Hero
     tagline: 'From Our Darkest Hours to Our Brightest Days',
     heroSubtitle: 'Face your shadows. Transform your darkness. Own your story.',
     heroDescription: 'Anonymous AI-powered mental wellness for those who face their demons head-on. Zero surveillance. Always free in crisis.',
-    
+
+    // Homepage - Crisis CTA Strip
+    crisisCtaLabel: 'CRISIS SUPPORT: FREE FOREVER',
+    crisisCtaButton: 'ACCESS NOW →',
+    crisisTrustLine: 'No card required · Anonymous · Zero surveillance · Premium members fund the mission',
+    crisisFreeBadge: '🔓 FREE CRISIS ACCESS FOREVER',
+    crisisFreeSubtext: 'Crisis tier never expires. Never paywalled. Never blocked.',
+
+    // Homepage - Wearables / Coming Soon
+    comingSoonTitle: 'Wearables Integration',
+    comingSoonSubtitle: 'Coming Soon',
+    comingSoonDesc: 'RYVYNN connects to your wearables. Heart rate spikes, sleep disruption, and stress signals feed your AI Guardian — detecting crisis before you can name it.',
+    comingSoonBadge: 'Phase 2 Roadmap',
+    comingSoonFeature1: 'Heart rate crisis detection',
+    comingSoonFeature2: 'Sleep pattern analysis',
+    comingSoonFeature3: 'Real-time stress monitoring',
+    comingSoonFeature4: 'Passive wellness tracking',
+
+    // Homepage Footer
+    footerCopyright: '© 2025 AONIXX',
+    footerBuiltFor: 'Built for the Shadows',
+    footerZeroSurveillance: 'Zero Surveillance Forever',
+    footerMission: 'From Our Darkest Hours to Our Brightest Days',
+    footerCompany: 'AONIXX, a DBA of NEXXT GEN INNOVATIONS LLC',
+
     // Core Features
     featuresTitle: 'Built for the Shadows',
     feature1Title: 'Zero Surveillance',
@@ -24,8 +51,20 @@ export const translations = {
     feature2Desc: 'AI Guardian watches for warning signs. Free crisis intervention, always. No account needed.',
     feature3Title: 'Shadow Work',
     feature3Desc: 'Transform raw confessions into insights. Face what haunts you with AI that doesn\'t judge.',
-    
-    // Pricing
+
+    // Impact Stats
+    impactLivesSaved: 'Lives Saved by 2030',
+    impactForGood: 'For Greater Good',
+    impactCountries: 'Countries Served',
+    impactTarget: '10M',
+    impactTargetLabel: 'Target',
+    impactMission: 'RYVYNN was built for those who fall through the cracks — the uninsured, the stigmatized, the ones who suffer in silence. Zero surveillance. Free crisis tier. Premium funds the mission.',
+    impactStat70: '70%',
+    impactStat70Label: 'of people with mental health conditions receive no treatment',
+
+    // Pricing Page
+    pricingHeroTitle: 'Ignite Your Flame',
+    pricingHeroSubtitle: 'Crisis access is always free. Premium ignites the mission.',
     pricingTitle: 'Choose Your Path',
     pricingSubtitle: 'Crisis access is always free. Premium features fund the mission.',
     perMonth: '/mo',
@@ -33,21 +72,69 @@ export const translations = {
     firstMonth: 'first month',
     then: 'then',
     cancelAnytime: 'cancel anytime',
-    
+    pricingBadgeMostPopular: 'Most Popular',
+    pricingBadgeBestValue: 'Best Value',
+    pricingBadgeFounder: 'Founding Member',
+    pricingBadgeFree: 'Always Free',
+    pricingCtaGetStarted: 'Get Started',
+    pricingCtaIgniteFlame: 'Ignite Flame',
+    pricingCtaJoinFamily: 'Join Family',
+    pricingCtaUpgradePro: 'Go Pro',
+    pricingCtaScaleTeam: 'Scale Team',
+    pricingCtaBurnEternal: 'Burn Eternal',
+    pricingCtaAccessNow: 'Access Now — Free',
+    pricingCtaSignIn: 'Sign In to Upgrade',
+    pricingCurrentPlan: 'Current Plan',
+    pricingProcessing: 'Processing...',
+
+    // Tier Names
+    tierCrisis: 'Crisis Tier',
+    tierSolo: 'Solo Flame',
+    tierFamily: 'Family Flame',
+    tierTherapist: 'Therapist Flame',
+    tierEnterprise: 'Enterprise Flame',
+    tierLifetime: 'Eternal Flame',
+
+    // Tier Descriptions
+    tierCrisisDesc: 'Full crisis access. Zero cost. Forever.',
+    tierSoloDesc: 'Full platform access for one. Soul tokens, Guardian, Journal, Eternity.',
+    tierFamilyDesc: 'Up to 4 accounts. Shared mission. Separate vaults.',
+    tierTherapistDesc: 'Client management, session tools, HIPAA-aligned privacy.',
+    tierEnterpriseDesc: 'Unlimited accounts, admin dashboard, custom integrations.',
+    tierLifetimeDesc: 'One payment. Eternal access. Founding member status forever.',
+
+    // Free Tier Features
+    freeTierFeature1: 'AI Crisis Detection (C-SSRS graded)',
+    freeTierFeature2: 'Call/text 988 instant access',
+    freeTierFeature3: '1 Guardian session/week',
+    freeTierFeature4: 'Anonymous confessions',
+    freeTierFeature5: 'Sacred Feed (read-only)',
+
+    // Pricing Free Banner
+    pricingFreeBannerTitle: 'Crisis Tier — Always Free',
+    pricingFreeBannerDesc: 'If you\'re in crisis right now, you have full access. Zero card. Zero login required.',
+    pricingFreeBannerCta: 'Access Free Crisis Support →',
+
+    // Pricing Trust
+    pricingTrust1: 'Zero Surveillance',
+    pricingTrust2: 'Cancel Anytime',
+    pricingTrust3: 'Free Crisis Tier Forever',
+    pricingTrust4: 'Encrypted Vaults',
+
     // CTA Buttons
     startFree: 'Start Free',
     upgrade: 'Upgrade',
     ignite: 'Ignite',
-    
+
     // Footer
     missionStatement: 'Target: 10 Million Lives Saved by 2030',
     companyInfo: 'By AONIXX / NEXXT GEN INNOVATIONS LLC',
-    
+
     // Language Toggle
     language: 'Language',
     switchToSpanish: 'Español',
     switchToEnglish: 'English',
-    
+
     // Authentication
     signUp: 'Sign Up',
     signIn: 'Sign In',
@@ -62,18 +149,18 @@ export const translations = {
     creatingAccount: 'Creating Account...',
     alreadyHaveAccount: 'Already have an account?',
     dontHaveAccount: "Don't have an account?",
-    
+
     // Persona Options
     personaNeutral: 'Neutral',
     personaFeminine: 'Feminine',
     personaMasculine: 'Masculine',
-    
+
     // Age Tier Options
     ageTierYouth: '13-17 (Youth)',
     ageTierYoungAdult: '18-29 (Young Adult)',
     ageTierAdult: '30-54 (Adult)',
     ageTierMature: '55+ (Mature)',
-    
+
     // Error Messages
     errorPasswordsNoMatch: 'Passwords do not match',
     errorPasswordTooShort: 'Password must be at least 8 characters',
@@ -82,25 +169,52 @@ export const translations = {
     errorSignInFailed: 'Sign in failed. Please check your credentials.',
     errorDatabaseConnection: 'Unable to connect to server. Please check your internet connection and try again.',
     errorSecurityVerification: 'Please complete the security verification',
-    
+
     // Privacy Notice
     privacyNotice: 'Zero surveillance. Your data is encrypted and you control everything.',
   },
-  
+
   es: {
     // Navigation
     home: 'Inicio',
     pricing: 'Precios',
     about: 'Acerca',
-    
+    wall: 'Muro',
+    crisis: 'Crisis',
+    soulTokensLabel: 'tokens',
+
     // Crisis Banner
     crisisBanner: 'En Crisis? Llame 988 - Gratis, Confidencial, 24/7',
-    
+
     // Homepage Hero
     tagline: 'De Nuestras Horas Más Oscuras a Nuestros Días Más Brillantes',
     heroSubtitle: 'Enfrenta tus sombras. Transforma tu oscuridad. Posee tu historia.',
     heroDescription: 'Bienestar mental anónimo impulsado por IA para aquellos que enfrentan sus demonios de frente. Cero vigilancia. Siempre gratis en crisis.',
-    
+
+    // Homepage - Crisis CTA Strip
+    crisisCtaLabel: 'APOYO EN CRISIS: GRATIS PARA SIEMPRE',
+    crisisCtaButton: 'ACCEDER AHORA →',
+    crisisTrustLine: 'Sin tarjeta · Anónimo · Cero vigilancia · Miembros premium financian la misión',
+    crisisFreeBadge: '🔓 ACCESO GRATIS EN CRISIS PARA SIEMPRE',
+    crisisFreeSubtext: 'El nivel de crisis nunca expira. Nunca bloqueado por pago. Nunca interrumpido.',
+
+    // Homepage - Wearables / Coming Soon
+    comingSoonTitle: 'Integración con Dispositivos',
+    comingSoonSubtitle: 'Próximamente',
+    comingSoonDesc: 'RYVYNN se conecta a tus dispositivos. Picos de frecuencia cardíaca, alteraciones del sueño y señales de estrés alimentan a tu Guardián IA — detectando crisis antes de que puedas nombrarla.',
+    comingSoonBadge: 'Hoja de Ruta Fase 2',
+    comingSoonFeature1: 'Detección de crisis por frecuencia cardíaca',
+    comingSoonFeature2: 'Análisis de patrones de sueño',
+    comingSoonFeature3: 'Monitoreo de estrés en tiempo real',
+    comingSoonFeature4: 'Seguimiento pasivo de bienestar',
+
+    // Homepage Footer
+    footerCopyright: '© 2025 AONIXX',
+    footerBuiltFor: 'Construido para las Sombras',
+    footerZeroSurveillance: 'Cero Vigilancia Para Siempre',
+    footerMission: 'De Nuestras Horas Más Oscuras a Nuestros Días Más Brillantes',
+    footerCompany: 'AONIXX, DBA de NEXXT GEN INNOVATIONS LLC',
+
     // Core Features
     featuresTitle: 'Construido para las Sombras',
     feature1Title: 'Cero Vigilancia',
@@ -109,8 +223,20 @@ export const translations = {
     feature2Desc: 'Guardián IA vigila señales de advertencia. Intervención de crisis gratuita, siempre. Sin cuenta necesaria.',
     feature3Title: 'Trabajo con Sombras',
     feature3Desc: 'Transforma confesiones crudas en percepciones. Enfrenta lo que te persigue con IA que no juzga.',
-    
-    // Pricing
+
+    // Impact Stats
+    impactLivesSaved: 'Vidas Salvadas para 2030',
+    impactForGood: 'Para el Bien Mayor',
+    impactCountries: 'Países Atendidos',
+    impactTarget: '10M',
+    impactTargetLabel: 'Meta',
+    impactMission: 'RYVYNN fue construido para los que caen en las grietas — los sin seguro, los estigmatizados, los que sufren en silencio. Cero vigilancia. Nivel de crisis gratuito. Premium financia la misión.',
+    impactStat70: '70%',
+    impactStat70Label: 'de personas con condiciones de salud mental no reciben tratamiento',
+
+    // Pricing Page
+    pricingHeroTitle: 'Enciende Tu Llama',
+    pricingHeroSubtitle: 'Acceso de crisis siempre gratis. Premium enciende la misión.',
     pricingTitle: 'Elige Tu Camino',
     pricingSubtitle: 'Acceso de crisis siempre gratis. Funciones premium financian la misión.',
     perMonth: '/mes',
@@ -118,21 +244,69 @@ export const translations = {
     firstMonth: 'primer mes',
     then: 'luego',
     cancelAnytime: 'cancelar en cualquier momento',
-    
+    pricingBadgeMostPopular: 'Más Popular',
+    pricingBadgeBestValue: 'Mejor Valor',
+    pricingBadgeFounder: 'Miembro Fundador',
+    pricingBadgeFree: 'Siempre Gratis',
+    pricingCtaGetStarted: 'Comenzar',
+    pricingCtaIgniteFlame: 'Encender Llama',
+    pricingCtaJoinFamily: 'Unirse a Familia',
+    pricingCtaUpgradePro: 'Ir Pro',
+    pricingCtaScaleTeam: 'Escalar Equipo',
+    pricingCtaBurnEternal: 'Arder Eternamente',
+    pricingCtaAccessNow: 'Acceder Ahora — Gratis',
+    pricingCtaSignIn: 'Iniciar Sesión para Actualizar',
+    pricingCurrentPlan: 'Plan Actual',
+    pricingProcessing: 'Procesando...',
+
+    // Tier Names
+    tierCrisis: 'Nivel de Crisis',
+    tierSolo: 'Llama Solo',
+    tierFamily: 'Llama Familiar',
+    tierTherapist: 'Llama Terapeuta',
+    tierEnterprise: 'Llama Empresarial',
+    tierLifetime: 'Llama Eterna',
+
+    // Tier Descriptions
+    tierCrisisDesc: 'Acceso completo de crisis. Cero costo. Para siempre.',
+    tierSoloDesc: 'Acceso completo a la plataforma para uno. Tokens del Alma, Guardián, Diario, Eternidad.',
+    tierFamilyDesc: 'Hasta 4 cuentas. Misión compartida. Bóvedas separadas.',
+    tierTherapistDesc: 'Gestión de clientes, herramientas de sesión, privacidad alineada con HIPAA.',
+    tierEnterpriseDesc: 'Cuentas ilimitadas, panel de administración, integraciones personalizadas.',
+    tierLifetimeDesc: 'Un pago. Acceso eterno. Estado de miembro fundador para siempre.',
+
+    // Free Tier Features
+    freeTierFeature1: 'Detección de Crisis IA (graduada C-SSRS)',
+    freeTierFeature2: 'Acceso instantáneo a llamada/texto 988',
+    freeTierFeature3: '1 sesión de Guardián/semana',
+    freeTierFeature4: 'Confesiones anónimas',
+    freeTierFeature5: 'Feed Sagrado (solo lectura)',
+
+    // Pricing Free Banner
+    pricingFreeBannerTitle: 'Nivel de Crisis — Siempre Gratis',
+    pricingFreeBannerDesc: 'Si estás en crisis ahora mismo, tienes acceso completo. Sin tarjeta. Sin inicio de sesión requerido.',
+    pricingFreeBannerCta: 'Acceder a Apoyo de Crisis Gratuito →',
+
+    // Pricing Trust
+    pricingTrust1: 'Cero Vigilancia',
+    pricingTrust2: 'Cancelar en Cualquier Momento',
+    pricingTrust3: 'Nivel de Crisis Gratis Para Siempre',
+    pricingTrust4: 'Bóvedas Encriptadas',
+
     // CTA Buttons
     startFree: 'Comenzar Gratis',
     upgrade: 'Mejorar',
     ignite: 'Encender',
-    
+
     // Footer
     missionStatement: 'Objetivo: 10 Millones de Vidas Salvadas para 2030',
     companyInfo: 'Por AONIXX / NEXXT GEN INNOVATIONS LLC',
-    
+
     // Language Toggle
     language: 'Idioma',
     switchToSpanish: 'Español',
     switchToEnglish: 'English',
-    
+
     // Authentication
     signUp: 'Registrarse',
     signIn: 'Iniciar Sesión',
@@ -147,18 +321,18 @@ export const translations = {
     creatingAccount: 'Creando Cuenta...',
     alreadyHaveAccount: '¿Ya tienes una cuenta?',
     dontHaveAccount: '¿No tienes una cuenta?',
-    
+
     // Persona Options
     personaNeutral: 'Neutral',
     personaFeminine: 'Femenino',
     personaMasculine: 'Masculino',
-    
+
     // Age Tier Options
     ageTierYouth: '13-17 (Juventud)',
     ageTierYoungAdult: '18-29 (Adulto Joven)',
     ageTierAdult: '30-54 (Adulto)',
     ageTierMature: '55+ (Maduro)',
-    
+
     // Error Messages
     errorPasswordsNoMatch: 'Las contraseñas no coinciden',
     errorPasswordTooShort: 'La contraseña debe tener al menos 8 caracteres',
@@ -167,7 +341,7 @@ export const translations = {
     errorSignInFailed: 'Inicio de sesión falló. Por favor verifica tus credenciales.',
     errorDatabaseConnection: 'No se puede conectar al servidor. Por favor verifica tu conexión a internet e intenta de nuevo.',
     errorSecurityVerification: 'Por favor completa la verificación de seguridad',
-    
+
     // Privacy Notice
     privacyNotice: 'Cero vigilancia. Tus datos están encriptados y tú controlas todo.',
   },
@@ -187,7 +361,7 @@ export const personaTranslations = {
     feminineDesc: 'Warm, nurturing, empathetic guidance',
     masculineDesc: 'Direct, strength-focused, action-driven',
     neutralDesc: 'Balanced, universal, ungendered support',
-    
+
     // 18+ Toggle
     ageGateTitle: 'Age Verification',
     ageGateSubtitle: 'RYVYNN contains raw, unfiltered content about trauma, addiction, and crisis.',
@@ -197,7 +371,7 @@ export const personaTranslations = {
     ratedWarning: 'Uncensored language, explicit trauma discussion, no safety filters',
     ratedEnabled: 'R-Rated Mode Active',
     ratedDisabled: 'Safe Mode Active',
-    
+
     // 50/50 Wall
     wallTitle: 'The Wall',
     wallSubtitle: '50% Confessions / 50% Transformations',
@@ -207,7 +381,7 @@ export const personaTranslations = {
     submitConfession: 'Submit Anonymous Confession',
     viewTransformation: 'View Transformation',
   },
-  
+
   es: {
     // Personas
     choosePersona: 'Elige Tu Voz',
@@ -217,7 +391,7 @@ export const personaTranslations = {
     feminineDesc: 'Guía cálida, nutritiva, empática',
     masculineDesc: 'Directo, enfocado en fuerza, orientado a la acción',
     neutralDesc: 'Apoyo equilibrado, universal, sin género',
-    
+
     // 18+ Toggle
     ageGateTitle: 'Verificación de Edad',
     ageGateSubtitle: 'RYVYNN contiene contenido crudo y sin filtrar sobre trauma, adicción y crisis.',
@@ -227,7 +401,7 @@ export const personaTranslations = {
     ratedWarning: 'Lenguaje sin censura, discusión explícita de trauma, sin filtros de seguridad',
     ratedEnabled: 'Modo R Activo',
     ratedDisabled: 'Modo Seguro Activo',
-    
+
     // 50/50 Wall
     wallTitle: 'El Muro',
     wallSubtitle: '50% Confesiones / 50% Transformaciones',
@@ -246,18 +420,67 @@ export const featureTranslations = {
   en: {
     // Dashboard
     dashboard: 'Command Center',
+    dashboardLoading: 'Loading your command center...',
+    dashboardTitle: 'Command Center',
+    dashboardSubtitle: 'Your journey from darkness to light',
     myJourney: 'My Shadow Work',
+
+    // Soul Tokens / Stats
     soulTokens: 'Soul Tokens',
+    soulTokensLabel: 'tokens',
     tokensAvailable: 'Available',
+    tokenBalance: 'BALANCE',
+    tokenStreak: 'STREAK',
+    tokenCheckIn: 'CHECK-IN',
+    tokenDayStreak: 'Day Streak',
+    tokenEarnDaily: 'Earn +1 token daily',
+    tokenCheckInBtn: '🔥 Daily Check-In',
+    tokenCheckInDone: '✅ Checked in today!',
+    tokenCheckingIn: 'Checking in...',
     crisisStatus: 'Crisis Status',
-    
+
+    // Dashboard Quick Actions
+    actionGuardian: 'AI Guardian',
+    actionGuardianSub: 'Talk to your companion',
+    actionJournal: 'Dark Journal',
+    actionJournalSub: 'Private encrypted entries',
+    actionEternity: 'Digital Eternity',
+    actionEternitySub: 'Messages to bloodline',
+    actionWall: 'Sacred Wall',
+    actionWallSub: 'Anonymous confessions',
+
+    // Token Transactions
+    recentTokenActivity: 'Recent Token Activity',
+    noTransactions: 'No transactions yet.',
+    noTransactionsSub: 'Start earning by checking in daily!',
+    streakBonusTitle: '⚡ Streak Bonuses',
+    streakBonus3: 'Day 3: +5 tokens 🎁',
+    streakBonus7: 'Day 7: +15 tokens 🎁',
+    streakBonus30: 'Day 30: +50 tokens 🎁🔥',
+    streakBonus100: '100-day streak: +100 bonus tokens',
+
     // AI Guardian
     guardianTitle: 'AI Guardian',
     guardianSubtitle: 'Your companion in darkness',
+    guardianLoading: 'Loading your Guardian...',
+    guardianReady: 'Your Guardian is here.',
+    guardianEmpty: 'Share what\'s on your mind.',
+    guardianPlaceholder: 'Talk to your guardian...',
+    guardianKeyboardHint: 'Press Enter to send, Shift+Enter for new line',
+    guardianFreeLabel: 'Free during crisis tier',
     talkToGuardian: 'Talk to Guardian',
     guardianActive: 'Guardian Active',
     guardianResponse: 'Guardian Response',
-    
+    guardianInfoTitle: 'Your AI Guardian:',
+    guardianInfo1: 'Remembers your journey and adapts over time',
+    guardianInfo2: 'Detects crisis signals and responds with care',
+    guardianInfo3: 'Never judges — built for your darkest hours',
+    guardianInfo4: 'Matches your chosen persona and age tier',
+    guardianInfo5: 'Always available — free in crisis, unlimited with premium',
+    guardianCrisisTitle: 'Crisis Support Available',
+    guardianCrisisDesc: 'If you\'re experiencing a crisis: Call or text 988 (free, 24/7). Your Guardian is here too.',
+    guardianError: 'Your Guardian is momentarily unavailable. If you\'re in crisis, call or text 988 — free, 24/7.',
+
     // Transformation System
     submitConfessionTitle: 'Face Your Shadow',
     confessionPlaceholder: 'Write what haunts you. No judgment. No storage. Just transformation.',
@@ -265,22 +488,101 @@ export const featureTranslations = {
     transforming: 'Transforming...',
     viewTransformation: 'View Transformation',
     rawConfessionWarning: 'Your raw words are never stored. AI transforms them, then discards the original.',
-    
+
     // Journal
     journalTitle: 'Dark Journal',
+    journalSubtitle: 'Encrypted entries • Your shadows are safe here',
+    journalLoading: 'Loading your private journal...',
+    journalWriteTitle: 'Write Entry',
     journalEntry: 'Journal Entry',
+    journalNewEntry: 'New Entry',
+    journalSaving: 'Saving...',
+    journalSave: 'Save Entry',
+    journalEncrypting: '🔐 Encrypting & Saving...',
+    journalSaveWithToken: '🔥 Save Entry (+1 Token)',
+    journalCancel: 'Cancel',
+    journalDelete: 'Delete',
+    journalEdit: 'Edit',
+    journalTitleLabel: 'Title',
+    journalTitlePlaceholder: 'Entry title...',
+    journalContentPlaceholder: 'Pour your shadows onto the page. Your words are encrypted and yours alone...',
+    journalEncryptedBadge: '🔒 Encrypted',
+    journalPrivateNote: 'Your eyes only — encrypted end-to-end',
+    journalPastEntries: 'Past Entries',
+    journalNoEntries: 'No entries yet. Your first shadow work starts here.',
+    journalNoEntriesSub: 'Start journaling to earn tokens!',
+    journalMoodLabel: 'Mood',
+    journalEncryptionTitle: '🔒 Privacy & Encryption',
+    journalEncryptionDesc: 'Your journal is encrypted with AES-256-GCM. We cannot read your entries. No one can.',
+    journalClientNote: 'Client-side encrypted (AES-256-GCM). Only you can read this.',
+    journalCopied: 'Entry copied to clipboard!',
+    journalCopy: '📋 Copy',
+    journalClose: 'Close',
+    journalPrivacyBullet1: 'All entries encrypted client-side (AES-256-GCM)',
+    journalPrivacyBullet2: 'Server never sees plaintext content',
+    journalPrivacyBullet3: 'Earn +1 token per journal entry',
+    journalPrivacyBullet4: 'Your data, your control — export or delete anytime',
     encrypted: 'Encrypted',
     yourEyesOnly: 'Your eyes only',
-    newEntry: 'New Entry',
-    
+
     // Digital Eternity
     eternityTitle: 'Digital Eternity',
-    eternitySubtitle: 'Messages to your bloodline',
-    createEternityMessage: 'Create Eternity Message',
+    eternitySubtitle: 'Messages to your bloodline. Delivered when you\'re gone.',
+    eternityNewMessage: 'Create Eternity Message',
+    eternityTitleLabel: 'Message Title',
+    eternityTitlePlaceholder: 'A title for this message...',
+    eternityRecipientLabel: 'Recipient (Name or Relationship)',
+    eternityRecipientPlaceholder: 'My son, My daughter, My future self...',
+    eternityContentPlaceholder: 'Write your message. What do you want them to know when you\'re gone?',
+    eternityTriggerLabel: 'Delivery Trigger',
+    eternityTrigger1: 'After my passing (estate-linked)',
+    eternityTrigger2: 'On a specific date',
+    eternityTrigger3: 'After years of inactivity',
+    eternityTrigger4: 'Manual delivery by me',
+    eternityUnlockDate: 'Unlock Date',
+    eternitySave: 'Lock Message',
+    eternityCancel: 'Cancel',
+    eternityDelete: 'Delete',
+    eternityNoMessages: 'No messages yet. Your legacy starts here.',
+    eternityEncryptionTitle: 'Time-Locked & Encrypted',
+    eternityEncryptionDesc: 'Each message is encrypted with AES-256-GCM. Time-locked. Delivered to your bloodline after you\'re gone.',
+    eternityFeature1: 'Military-grade encryption',
+    eternityFeature2: 'Configurable delivery triggers',
+    eternityFeature3: 'Survives account deletion',
+    eternityFeature4: 'Anonymous to recipients until unlocked',
     eternityWarning: 'Encrypted. Time-locked. Delivered to descendants after you\'re gone.',
+    eternityLoading: 'Loading your eternity vault...',
+    eternityTriggerCondition: 'Trigger Condition',
+    eternityTriggerDeath: 'Upon My Death (verified via obituary/SSN)',
+    eternityTriggerDate: 'Specific Date (birthday, anniversary, etc.)',
+    eternityTriggerBloodline: 'When Bloodline Descendant Claims',
+    eternityTriggerDateLabel: 'Trigger Date',
+    eternityEncrypting: '🔐 Encrypting & Sealing...',
+    eternitySealButton: '🌌 Seal in Eternity (+5 Tokens)',
+    eternityPrivacyNote: 'Military-grade encryption. Delivered only when conditions met.',
+    eternitySealedMessages: 'Sealed Messages',
+    eternityNoMessagesSub: 'Leave your legacy for those who come after.',
+    eternityTriggerDeathLabel: '💀 Upon Death',
+    eternityTriggerBloodlineLabel: '🧬 Bloodline Claim',
+    eternitySealed: '🔒 Sealed',
+    eternityCreated: 'Created',
+    eternityHowTitle: '🌌 How Eternity Works',
+    eternityHow1: 'Messages encrypted & stored indefinitely',
+    eternityHow2: 'Death: Released when verified (obituary/SSN)',
+    eternityHow3: 'Date: Auto-delivered on specified date',
+    eternityHow4: 'Bloodline: Descendants claim with DNA/documents',
+    eternityHow5: 'Your legacy, forever preserved',
+    eternityCard1Title: 'Last Words',
+    eternityCard1Desc: 'Final messages to loved ones, delivered after you\'re gone',
+    eternityCard2Title: 'Future Blessings',
+    eternityCard2Desc: 'Birthday messages for descendants not yet born',
+    eternityCard3Title: 'Family Wisdom',
+    eternityCard3Desc: 'Ancestral knowledge passed down through generations',
+    eternityZeroTitle: 'Zero Knowledge Encryption',
+    eternityZeroDesc: 'Your eternity messages are encrypted on your device before being sent to our servers. We mathematically cannot read them. Only your designated recipients can decrypt them when trigger conditions are met. Your legacy is yours alone.',
     recipientBloodline: 'For: Future bloodline',
     unlockDate: 'Unlock Date',
-    
+
     // Crisis System
     crisisDetected: 'Crisis Detected',
     crisisTierBaseline: 'Baseline - You\'re stable',
@@ -289,14 +591,31 @@ export const featureTranslations = {
     crisisTierCritical: 'CRITICAL - Call 988 NOW',
     call988: 'Call 988 (Free, 24/7)',
     crisisResources: 'Crisis Resources',
-    
+    crisisPageTitle: 'Crisis Support',
+    crisisPageSubtitle: 'You are not alone. Help is real. Help is free.',
+    crisisEmergencyBanner: 'If you are in immediate danger, call 911 or go to your nearest emergency room.',
+    crisisImmediateDanger: 'In Immediate Danger?',
+    crisisImmediateDesc: 'If you or someone else is in immediate physical danger, call emergency services (911 in US) NOW.',
+    crisisCall988Button: '📞 Call 988',
+    crisisText741Button: '💬 Text 741741',
+    crisisNationalTitle: 'National Crisis Lines',
+    crisisNationalTitleUS: 'National Resources (US)',
+    crisisUSTitle: 'US Crisis Resources',
+    crisisInternationalTitle: 'International Resources',
+    crisisVisitWebsite: 'Visit Website →',
+    crisisLocationPrefix: '📍 Resources for:',
+    crisisPrivacyTitle: '🔐 Your Privacy',
+    crisisPrivacyDesc: 'RYVYNN does not track which crisis resources you access. Your location is used only to show relevant local resources and is never stored on our servers.',
+    crisisWarningSignsTitle: 'Warning Signs',
+    crisisWarningSignsDesc: 'RYVYNN\'s AI monitors for these signals and escalates automatically.',
+
     // Soul Token Actions
     earnTokens: 'Earn Tokens',
     spendTokens: 'Spend Tokens',
     tokenHistory: 'Token History',
     earnedFor: 'Earned for',
     spentOn: 'Spent on',
-    
+
     // Settings
     settings: 'Settings',
     privacy: 'Privacy',
@@ -304,7 +623,7 @@ export const featureTranslations = {
     dangerZone: 'Danger Zone',
     deleteAllData: 'Delete All My Data',
     deleteWarning: 'This burns everything. Permanent. No recovery.',
-    
+
     // Features List
     featureZeroSurveillance: 'Zero Surveillance',
     featureZeroDesc: 'Structurally impossible to spy on you. Your darkness is yours.',
@@ -319,22 +638,71 @@ export const featureTranslations = {
     featureTokens: 'Soul Token Economy',
     featureTokensDesc: 'Earn by showing up. Spend on growth. Crisis tier earns too.',
   },
-  
+
   es: {
     // Dashboard
     dashboard: 'Centro de Comando',
+    dashboardLoading: 'Cargando tu centro de comando...',
+    dashboardTitle: 'Centro de Comando',
+    dashboardSubtitle: 'Tu viaje de la oscuridad a la luz',
     myJourney: 'Mi Trabajo con Sombras',
+
+    // Soul Tokens / Stats
     soulTokens: 'Tokens del Alma',
+    soulTokensLabel: 'tokens',
     tokensAvailable: 'Disponibles',
+    tokenBalance: 'SALDO',
+    tokenStreak: 'RACHA',
+    tokenCheckIn: 'REGISTRO',
+    tokenDayStreak: 'Días de Racha',
+    tokenEarnDaily: 'Gana +1 token diariamente',
+    tokenCheckInBtn: '🔥 Registro Diario',
+    tokenCheckInDone: '✅ ¡Registrado hoy!',
+    tokenCheckingIn: 'Registrando...',
     crisisStatus: 'Estado de Crisis',
-    
+
+    // Dashboard Quick Actions
+    actionGuardian: 'Guardián IA',
+    actionGuardianSub: 'Habla con tu compañero',
+    actionJournal: 'Diario Oscuro',
+    actionJournalSub: 'Entradas privadas encriptadas',
+    actionEternity: 'Eternidad Digital',
+    actionEternitySub: 'Mensajes al linaje',
+    actionWall: 'Muro Sagrado',
+    actionWallSub: 'Confesiones anónimas',
+
+    // Token Transactions
+    recentTokenActivity: 'Actividad Reciente de Tokens',
+    noTransactions: 'Sin transacciones aún.',
+    noTransactionsSub: '¡Comienza a ganar haciendo check-in diariamente!',
+    streakBonusTitle: '⚡ Bonos de Racha',
+    streakBonus3: 'Día 3: +5 tokens 🎁',
+    streakBonus7: 'Día 7: +15 tokens 🎁',
+    streakBonus30: 'Día 30: +50 tokens 🎁🔥',
+    streakBonus100: 'Racha de 100 días: +100 tokens de bono',
+
     // AI Guardian
     guardianTitle: 'Guardián IA',
     guardianSubtitle: 'Tu compañero en la oscuridad',
+    guardianLoading: 'Cargando tu Guardián...',
+    guardianReady: 'Tu Guardián está aquí.',
+    guardianEmpty: 'Comparte lo que tienes en mente.',
+    guardianPlaceholder: 'Habla con tu guardián...',
+    guardianKeyboardHint: 'Presiona Enter para enviar, Shift+Enter para nueva línea',
+    guardianFreeLabel: 'Gratis durante el nivel de crisis',
     talkToGuardian: 'Hablar con Guardián',
     guardianActive: 'Guardián Activo',
     guardianResponse: 'Respuesta del Guardián',
-    
+    guardianInfoTitle: 'Tu Guardián IA:',
+    guardianInfo1: 'Recuerda tu viaje y se adapta con el tiempo',
+    guardianInfo2: 'Detecta señales de crisis y responde con cuidado',
+    guardianInfo3: 'Nunca juzga — construido para tus horas más oscuras',
+    guardianInfo4: 'Coincide con tu persona y grupo de edad elegidos',
+    guardianInfo5: 'Siempre disponible — gratis en crisis, ilimitado con premium',
+    guardianCrisisTitle: 'Apoyo de Crisis Disponible',
+    guardianCrisisDesc: 'Si estás experimentando una crisis: Llama o envía texto al 988 (gratis, 24/7). Tu Guardián también está aquí.',
+    guardianError: 'Tu Guardián no está disponible momentáneamente. Si estás en crisis, llama o envía texto al 988 — gratis, 24/7.',
+
     // Transformation System
     submitConfessionTitle: 'Enfrenta Tu Sombra',
     confessionPlaceholder: 'Escribe lo que te persigue. Sin juicio. Sin almacenamiento. Solo transformación.',
@@ -342,22 +710,101 @@ export const featureTranslations = {
     transforming: 'Transformando...',
     viewTransformation: 'Ver Transformación',
     rawConfessionWarning: 'Tus palabras crudas nunca se almacenan. IA las transforma, luego descarta el original.',
-    
+
     // Journal
     journalTitle: 'Diario Oscuro',
+    journalSubtitle: 'Entradas encriptadas • Tus sombras están seguras aquí',
+    journalLoading: 'Cargando tu diario privado...',
+    journalWriteTitle: 'Escribir Entrada',
     journalEntry: 'Entrada de Diario',
+    journalNewEntry: 'Nueva Entrada',
+    journalSaving: 'Guardando...',
+    journalSave: 'Guardar Entrada',
+    journalEncrypting: '🔐 Encriptando y Guardando...',
+    journalSaveWithToken: '🔥 Guardar Entrada (+1 Token)',
+    journalCancel: 'Cancelar',
+    journalDelete: 'Eliminar',
+    journalEdit: 'Editar',
+    journalTitleLabel: 'Título',
+    journalTitlePlaceholder: 'Título de la entrada...',
+    journalContentPlaceholder: 'Vierte tus sombras en la página. Tus palabras están encriptadas y son solo tuyas...',
+    journalEncryptedBadge: '🔒 Encriptado',
+    journalPrivateNote: 'Solo tus ojos — encriptado de extremo a extremo',
+    journalPastEntries: 'Entradas Anteriores',
+    journalNoEntries: 'Sin entradas aún. Tu primer trabajo con sombras comienza aquí.',
+    journalNoEntriesSub: '¡Empieza a escribir para ganar tokens!',
+    journalMoodLabel: 'Estado de Ánimo',
+    journalEncryptionTitle: '🔒 Privacidad y Encriptación',
+    journalEncryptionDesc: 'Tu diario está encriptado con AES-256-GCM. No podemos leer tus entradas. Nadie puede.',
+    journalClientNote: 'Encriptado del lado del cliente (AES-256-GCM). Solo tú puedes leer esto.',
+    journalCopied: '¡Entrada copiada al portapapeles!',
+    journalCopy: '📋 Copiar',
+    journalClose: 'Cerrar',
+    journalPrivacyBullet1: 'Todas las entradas encriptadas del lado del cliente (AES-256-GCM)',
+    journalPrivacyBullet2: 'El servidor nunca ve contenido en texto plano',
+    journalPrivacyBullet3: 'Gana +1 token por entrada de diario',
+    journalPrivacyBullet4: 'Tus datos, tu control — exporta o elimina en cualquier momento',
     encrypted: 'Encriptado',
     yourEyesOnly: 'Solo tus ojos',
-    newEntry: 'Nueva Entrada',
-    
+
     // Digital Eternity
     eternityTitle: 'Eternidad Digital',
-    eternitySubtitle: 'Mensajes a tu linaje',
-    createEternityMessage: 'Crear Mensaje de Eternidad',
+    eternitySubtitle: 'Mensajes a tu linaje. Entregados cuando te hayas ido.',
+    eternityNewMessage: 'Crear Mensaje de Eternidad',
+    eternityTitleLabel: 'Título del Mensaje',
+    eternityTitlePlaceholder: 'Un título para este mensaje...',
+    eternityRecipientLabel: 'Destinatario (Nombre o Relación)',
+    eternityRecipientPlaceholder: 'Mi hijo, Mi hija, Mi yo futuro...',
+    eternityContentPlaceholder: 'Escribe tu mensaje. ¿Qué quieres que sepan cuando te hayas ido?',
+    eternityTriggerLabel: 'Disparador de Entrega',
+    eternityTrigger1: 'Después de mi fallecimiento (vinculado al patrimonio)',
+    eternityTrigger2: 'En una fecha específica',
+    eternityTrigger3: 'Después de años de inactividad',
+    eternityTrigger4: 'Entrega manual por mí',
+    eternityUnlockDate: 'Fecha de Desbloqueo',
+    eternitySave: 'Bloquear Mensaje',
+    eternityCancel: 'Cancelar',
+    eternityDelete: 'Eliminar',
+    eternityNoMessages: 'Sin mensajes aún. Tu legado comienza aquí.',
+    eternityEncryptionTitle: 'Bloqueado por Tiempo y Encriptado',
+    eternityEncryptionDesc: 'Cada mensaje está encriptado con AES-256-GCM. Bloqueado por tiempo. Entregado a tu linaje después de que te hayas ido.',
+    eternityFeature1: 'Encriptación de grado militar',
+    eternityFeature2: 'Disparadores de entrega configurables',
+    eternityFeature3: 'Sobrevive a la eliminación de cuenta',
+    eternityFeature4: 'Anónimo para destinatarios hasta el desbloqueo',
     eternityWarning: 'Encriptado. Bloqueado por tiempo. Entregado a descendientes después de que te vayas.',
+    eternityLoading: 'Cargando tu bóveda de eternidad...',
+    eternityTriggerCondition: 'Condición de Activación',
+    eternityTriggerDeath: 'Tras Mi Fallecimiento (verificado por obituario/SSN)',
+    eternityTriggerDate: 'Fecha Específica (cumpleaños, aniversario, etc.)',
+    eternityTriggerBloodline: 'Cuando un Descendiente de Sangre lo Reclame',
+    eternityTriggerDateLabel: 'Fecha de Activación',
+    eternityEncrypting: '🔐 Encriptando y Sellando...',
+    eternitySealButton: '🌌 Sellar en Eternidad (+5 Tokens)',
+    eternityPrivacyNote: 'Encriptación de grado militar. Entregado solo cuando se cumplan las condiciones.',
+    eternitySealedMessages: 'Mensajes Sellados',
+    eternityNoMessagesSub: 'Deja tu legado para los que vendrán después.',
+    eternityTriggerDeathLabel: '💀 Tras la Muerte',
+    eternityTriggerBloodlineLabel: '🧬 Reclamo de Linaje',
+    eternitySealed: '🔒 Sellado',
+    eternityCreated: 'Creado',
+    eternityHowTitle: '🌌 Cómo Funciona la Eternidad',
+    eternityHow1: 'Mensajes encriptados y almacenados indefinidamente',
+    eternityHow2: 'Muerte: Liberado cuando se verifica (obituario/SSN)',
+    eternityHow3: 'Fecha: Entregado automáticamente en la fecha especificada',
+    eternityHow4: 'Linaje: Los descendientes reclaman con ADN/documentos',
+    eternityHow5: 'Tu legado, preservado para siempre',
+    eternityCard1Title: 'Últimas Palabras',
+    eternityCard1Desc: 'Mensajes finales a seres queridos, entregados después de que te hayas ido',
+    eternityCard2Title: 'Bendiciones Futuras',
+    eternityCard2Desc: 'Mensajes de cumpleaños para descendientes que aún no han nacido',
+    eternityCard3Title: 'Sabiduría Familiar',
+    eternityCard3Desc: 'Conocimiento ancestral transmitido a través de generaciones',
+    eternityZeroTitle: 'Encriptación de Conocimiento Cero',
+    eternityZeroDesc: 'Tus mensajes de eternidad se encriptan en tu dispositivo antes de ser enviados a nuestros servidores. Matemáticamente no podemos leerlos. Solo tus destinatarios designados pueden descifrarlos cuando se cumplan las condiciones. Tu legado es solo tuyo.',
     recipientBloodline: 'Para: Linaje futuro',
     unlockDate: 'Fecha de Desbloqueo',
-    
+
     // Crisis System
     crisisDetected: 'Crisis Detectada',
     crisisTierBaseline: 'Base - Estás estable',
@@ -366,14 +813,31 @@ export const featureTranslations = {
     crisisTierCritical: 'CRÍTICO - Llama 988 AHORA',
     call988: 'Llamar 988 (Gratis, 24/7)',
     crisisResources: 'Recursos de Crisis',
-    
+    crisisPageTitle: 'Apoyo en Crisis',
+    crisisPageSubtitle: 'No estás solo. La ayuda es real. La ayuda es gratis.',
+    crisisEmergencyBanner: 'Si estás en peligro inmediato, llama al 911 o ve a la sala de emergencias más cercana.',
+    crisisImmediateDanger: '¿En Peligro Inmediato?',
+    crisisImmediateDesc: 'Si tú o alguien más está en peligro físico inmediato, llama a servicios de emergencia (911 en EE.UU.) AHORA.',
+    crisisCall988Button: '📞 Llamar 988',
+    crisisText741Button: '💬 Texto 741741',
+    crisisNationalTitle: 'Líneas Nacionales de Crisis',
+    crisisNationalTitleUS: 'Recursos Nacionales (EE.UU.)',
+    crisisUSTitle: 'Recursos de Crisis en EE.UU.',
+    crisisInternationalTitle: 'Recursos Internacionales',
+    crisisVisitWebsite: 'Visitar Sitio Web →',
+    crisisLocationPrefix: '📍 Recursos para:',
+    crisisPrivacyTitle: '🔐 Tu Privacidad',
+    crisisPrivacyDesc: 'RYVYNN no rastrea qué recursos de crisis accedes. Tu ubicación se usa solo para mostrar recursos locales relevantes y nunca se almacena en nuestros servidores.',
+    crisisWarningSignsTitle: 'Señales de Advertencia',
+    crisisWarningSignsDesc: 'La IA de RYVYNN monitorea estas señales y escala automáticamente.',
+
     // Soul Token Actions
     earnTokens: 'Ganar Tokens',
     spendTokens: 'Gastar Tokens',
     tokenHistory: 'Historial de Tokens',
     earnedFor: 'Ganado por',
     spentOn: 'Gastado en',
-    
+
     // Settings
     settings: 'Configuración',
     privacy: 'Privacidad',
@@ -381,7 +845,7 @@ export const featureTranslations = {
     dangerZone: 'Zona de Peligro',
     deleteAllData: 'Eliminar Todos Mis Datos',
     deleteWarning: 'Esto quema todo. Permanente. Sin recuperación.',
-    
+
     // Features List
     featureZeroSurveillance: 'Cero Vigilancia',
     featureZeroDesc: 'Estructuralmente imposible espiarte. Tu oscuridad es tuya.',

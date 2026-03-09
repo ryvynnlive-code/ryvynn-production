@@ -20,7 +20,7 @@ interface TokenData {
 }
 
 export default function DashboardPage() {
-  const { t } = useI18n();
+  const { tf } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
@@ -40,7 +40,6 @@ export default function DashboardPage() {
       try {
         const response = await fetch(`/api/tokens?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to load tokens');
-        
         const data = await response.json();
         setTokenData(data);
       } catch (error) {
@@ -55,7 +54,6 @@ export default function DashboardPage() {
 
   const handleCheckIn = async () => {
     if (!user || checkingIn) return;
-
     setCheckingIn(true);
 
     try {
@@ -69,11 +67,9 @@ export default function DashboardPage() {
 
       const data = await response.json();
       setTokenData(data);
-      
-      alert(`✨ Daily check-in complete! You earned ${data.tokensEarned} 🔥 tokens!`);
+      alert(`✨ ${tf('tokenCheckInBtn')} +${data.tokensEarned} 🔥`);
     } catch (error) {
       console.error('Check-in error:', error);
-      alert('Check-in failed. Please try again.');
     } finally {
       setCheckingIn(false);
     }
@@ -84,17 +80,15 @@ export default function DashboardPage() {
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-pulse">🔥</div>
-          <p className="text-gray-400">Loading your command center...</p>
+          <p className="text-gray-400">{tf('dashboardLoading')}</p>
         </div>
       </main>
     );
   }
 
-  if (!user || !tokenData) {
-    return null;
-  }
+  if (!user || !tokenData) return null;
 
-  const canCheckIn = tokenData.lastCheckIn 
+  const canCheckIn = tokenData.lastCheckIn
     ? new Date(tokenData.lastCheckIn).toDateString() !== new Date().toDateString()
     : true;
 
@@ -103,11 +97,9 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-2">
-            🎯 Command Center
+            🎯 {tf('dashboardTitle')}
           </h1>
-          <p className="text-gray-400">
-            Your journey from darkness to light
-          </p>
+          <p className="text-gray-400">{tf('dashboardSubtitle')}</p>
         </div>
 
         {/* Stats Grid */}
@@ -116,31 +108,31 @@ export default function DashboardPage() {
           <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-ryvynn-purple rounded-2xl p-6 shadow-[0_0_30px_rgba(139,92,246,0.3)]">
             <div className="flex items-center justify-between mb-4">
               <span className="text-4xl">🔥</span>
-              <span className="text-xs text-gray-500">BALANCE</span>
+              <span className="text-xs text-gray-500">{tf('tokenBalance')}</span>
             </div>
             <div className="text-5xl font-black text-ryvynn-purple mb-2">
               {tokenData.balance}
             </div>
-            <p className="text-sm text-gray-400">Soul Tokens</p>
+            <p className="text-sm text-gray-400">{tf('soulTokensLabel')}</p>
           </div>
 
           {/* Streak */}
           <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-ryvynn-cyan rounded-2xl p-6 shadow-[0_0_30px_rgba(0,217,255,0.3)]">
             <div className="flex items-center justify-between mb-4">
               <span className="text-4xl">⚡</span>
-              <span className="text-xs text-gray-500">STREAK</span>
+              <span className="text-xs text-gray-500">{tf('tokenStreak')}</span>
             </div>
             <div className="text-5xl font-black text-ryvynn-cyan mb-2">
               {tokenData.streak}
             </div>
-            <p className="text-sm text-gray-400">Day Streak</p>
+            <p className="text-sm text-gray-400">{tf('tokenDayStreak')}</p>
           </div>
 
           {/* Daily Check-In */}
           <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-gray-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-4xl">✨</span>
-              <span className="text-xs text-gray-500">CHECK-IN</span>
+              <span className="text-xs text-gray-500">{tf('tokenCheckIn')}</span>
             </div>
             {canCheckIn ? (
               <button
@@ -148,16 +140,14 @@ export default function DashboardPage() {
                 disabled={checkingIn}
                 className="w-full py-3 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl font-bold text-white hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all"
               >
-                {checkingIn ? 'Checking in...' : '🔥 Daily Check-In'}
+                {checkingIn ? tf('tokenCheckingIn') : tf('tokenCheckInBtn')}
               </button>
             ) : (
               <div className="text-center py-3 text-gray-500">
-                ✅ Checked in today!
+                {tf('tokenCheckInDone')}
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Earn +1 token daily
-            </p>
+            <p className="text-xs text-gray-500 mt-2 text-center">{tf('tokenEarnDaily')}</p>
           </div>
         </div>
 
@@ -168,8 +158,8 @@ export default function DashboardPage() {
             className="bg-gray-900/50 border-2 border-gray-800 rounded-xl p-6 hover:border-ryvynn-purple transition-all group text-center"
           >
             <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
-            <h3 className="font-bold text-white mb-1">Guardian</h3>
-            <p className="text-xs text-gray-500">AI companion</p>
+            <h3 className="font-bold text-white mb-1">{tf('actionGuardian')}</h3>
+            <p className="text-xs text-gray-500">{tf('actionGuardianSub')}</p>
           </Link>
 
           <Link
@@ -177,8 +167,8 @@ export default function DashboardPage() {
             className="bg-gray-900/50 border-2 border-gray-800 rounded-xl p-6 hover:border-ryvynn-cyan transition-all group text-center"
           >
             <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📔</div>
-            <h3 className="font-bold text-white mb-1">Journal</h3>
-            <p className="text-xs text-gray-500">Private entries</p>
+            <h3 className="font-bold text-white mb-1">{tf('actionJournal')}</h3>
+            <p className="text-xs text-gray-500">{tf('actionJournalSub')}</p>
           </Link>
 
           <Link
@@ -186,8 +176,8 @@ export default function DashboardPage() {
             className="bg-gray-900/50 border-2 border-gray-800 rounded-xl p-6 hover:border-ryvynn-purple transition-all group text-center"
           >
             <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🌌</div>
-            <h3 className="font-bold text-white mb-1">Eternity</h3>
-            <p className="text-xs text-gray-500">Legacy vault</p>
+            <h3 className="font-bold text-white mb-1">{tf('actionEternity')}</h3>
+            <p className="text-xs text-gray-500">{tf('actionEternitySub')}</p>
           </Link>
 
           <Link
@@ -195,8 +185,8 @@ export default function DashboardPage() {
             className="bg-gray-900/50 border-2 border-gray-800 rounded-xl p-6 hover:border-ryvynn-cyan transition-all group text-center"
           >
             <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">✨</div>
-            <h3 className="font-bold text-white mb-1">Wall</h3>
-            <p className="text-xs text-gray-500">Share miracles</p>
+            <h3 className="font-bold text-white mb-1">{tf('actionWall')}</h3>
+            <p className="text-xs text-gray-500">{tf('actionWallSub')}</p>
           </Link>
         </div>
 
@@ -204,13 +194,13 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-gray-800 rounded-2xl p-6">
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
             <span>💰</span>
-            Recent Token Activity
+            {tf('recentTokenActivity')}
           </h2>
 
           {tokenData.transactions.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              <p>No transactions yet.</p>
-              <p className="text-sm mt-2">Start earning by checking in daily!</p>
+              <p>{tf('noTransactions')}</p>
+              <p className="text-sm mt-2">{tf('noTransactionsSub')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -236,13 +226,13 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Streak Bonuses Info */}
+        {/* Streak Bonuses */}
         <div className="mt-6 p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
-          <h3 className="font-bold text-ryvynn-cyan mb-2">⚡ Streak Bonuses</h3>
+          <h3 className="font-bold text-ryvynn-cyan mb-2">{tf('streakBonusTitle')}</h3>
           <ul className="text-sm text-gray-400 space-y-1">
-            <li>• Day 3: +5 tokens 🎁</li>
-            <li>• Day 7: +15 tokens 🎁</li>
-            <li>• Day 30: +50 tokens 🎁🔥</li>
+            <li>• {tf('streakBonus3')}</li>
+            <li>• {tf('streakBonus7')}</li>
+            <li>• {tf('streakBonus30')}</li>
           </ul>
         </div>
       </div>

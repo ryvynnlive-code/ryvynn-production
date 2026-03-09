@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { IMPACT, SPACE, TYPE } from '@/lib/sacred-geometry';
+import { IMPACT } from '@/lib/sacred-geometry';
+import { useI18n } from '@/contexts/I18nContext';
 
 export function ImpactStats() {
+  const { t } = useI18n();
   const [lives, setLives] = useState(0);
   const [revenue, setRevenue] = useState(0);
 
   useEffect(() => {
-    // Animate numbers on mount
     const duration = 2000;
     const steps = 60;
     const livesStep = IMPACT.livesSaved / steps;
@@ -19,7 +20,6 @@ export function ImpactStats() {
       currentStep++;
       setLives(Math.floor(livesStep * currentStep));
       setRevenue(Math.floor(revenueStep * currentStep));
-      
       if (currentStep >= steps) clearInterval(interval);
     }, duration / steps);
 
@@ -43,8 +43,8 @@ export function ImpactStats() {
               <div className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-ryvynn-cyan via-white to-ryvynn-cyan bg-clip-text text-transparent mb-2">
                 {formatNumber(lives)}
               </div>
-              <div className="text-gray-400 text-lg">Lives Saved by 2030</div>
-              <div className="text-ryvynn-cyan text-sm mt-2">🔥 Mission Target</div>
+              <div className="text-gray-400 text-lg">{t('impactLivesSaved')}</div>
+              <div className="text-ryvynn-cyan text-sm mt-2">🔥 {t('impactTargetLabel')}</div>
             </div>
           </div>
 
@@ -55,7 +55,7 @@ export function ImpactStats() {
               <div className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-ryvynn-purple via-white to-ryvynn-purple bg-clip-text text-transparent mb-2">
                 {formatNumber(revenue)}+
               </div>
-              <div className="text-gray-400 text-lg">For Greater Good</div>
+              <div className="text-gray-400 text-lg">{t('impactForGood')}</div>
               <div className="text-ryvynn-purple text-sm mt-2">💎 Impact Capital</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ export function ImpactStats() {
               <div className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-ryvynn-cyan via-ryvynn-purple to-ryvynn-cyan bg-clip-text text-transparent mb-2">
                 {IMPACT.globalReach}
               </div>
-              <div className="text-gray-400 text-lg">Countries Served</div>
+              <div className="text-gray-400 text-lg">{t('impactCountries')}</div>
               <div className="text-ryvynn-purple text-sm mt-2">🌍 Global Platform</div>
             </div>
           </div>
@@ -76,13 +76,10 @@ export function ImpactStats() {
         {/* Mission Statement */}
         <div className="mt-16 text-center max-w-3xl mx-auto">
           <div className="text-xl md:text-2xl text-gray-300 leading-relaxed">
-            Privacy-first AI mental wellness platform building the foundation for 
-            <span className="text-ryvynn-cyan font-bold"> billion-dollar impact </span>
-            across crisis intervention, addiction recovery, and 
-            <span className="text-ryvynn-purple font-bold"> high-impact AI causes worldwide</span>.
+            {t('impactMission')}
           </div>
           <div className="mt-6 text-sm text-gray-500 italic">
-            70% of users access crisis support free, forever. Premium revenue fuels the mission.
+            {t('impactStat70')} {t('impactStat70Label')}
           </div>
         </div>
       </div>

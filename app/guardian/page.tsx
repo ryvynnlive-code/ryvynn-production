@@ -102,7 +102,7 @@ export default function GuardianPage() {
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize - I\'m experiencing technical difficulties. If you\'re in crisis, please call or text **988** (24/7, confidential, free).',
+        content: tf('guardianError'),
       };
       
       setMessages(prev => [...prev, fallbackMessage]);
@@ -124,7 +124,7 @@ export default function GuardianPage() {
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-pulse">🛡️</div>
-          <p className="text-gray-400">Loading your Guardian...</p>
+          <p className="text-gray-400">{tf('guardianLoading')}</p>
         </div>
       </main>
     );
@@ -147,9 +147,9 @@ export default function GuardianPage() {
             <div className="flex items-start gap-3">
               <span className="text-3xl">🚨</span>
               <div>
-                <h3 className="font-bold text-red-400 mb-1">Crisis Support Available</h3>
+                <h3 className="font-bold text-red-400 mb-1">{tf('guardianCrisisTitle')}</h3>
                 <p className="text-sm text-gray-300">
-                  If you're experiencing a crisis: <strong>Call or text 988</strong> (24/7, confidential, free)
+                  {tf('guardianCrisisDesc')}
                 </p>
               </div>
             </div>
@@ -161,8 +161,8 @@ export default function GuardianPage() {
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-12">
                 <div className="text-6xl mb-4">🛡️</div>
-                <p className="text-lg">Your Guardian is here.</p>
-                <p className="text-sm mt-2">Share what's on your mind.</p>
+                <p className="text-lg">{tf('guardianReady')}</p>
+                <p className="text-sm mt-2">{tf('guardianEmpty')}</p>
               </div>
             )}
 
@@ -208,7 +208,7 @@ export default function GuardianPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Talk to your guardian..."
+                placeholder={tf('guardianPlaceholder')}
                 rows={2}
                 className="flex-1 bg-gray-900 border-2 border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-ryvynn-purple resize-none"
                 disabled={loading}
@@ -222,20 +222,20 @@ export default function GuardianPage() {
               </button>
             </div>
             <div className="text-xs text-gray-500 mt-2 flex items-center justify-between">
-              <span>Press Enter to send, Shift+Enter for new line</span>
-              <span className="text-ryvynn-purple font-bold">Free during crisis tier</span>
+              <span>{tf('guardianKeyboardHint')}</span>
+              <span className="text-ryvynn-purple font-bold">{tf('guardianFreeLabel')}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-6 p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
-          <h3 className="font-bold text-ryvynn-cyan mb-2">🛡️ Your AI Guardian</h3>
+          <h3 className="font-bold text-ryvynn-cyan mb-2">🛡️ {tf('guardianInfoTitle')}</h3>
           <ul className="text-sm text-gray-400 space-y-1">
-            <li>• Compassionate, crisis-aware companion</li>
-            <li>• Remembers your conversation history</li>
-            <li>• Automatic 988 routing if crisis detected</li>
-            <li>• Adjusts to your {persona} persona</li>
-            <li>• Zero surveillance - your data is yours</li>
+            <li>• {tf('guardianInfo1')}</li>
+            <li>• {tf('guardianInfo2')}</li>
+            <li>• {tf('guardianInfo3')}</li>
+            <li>• {tf('guardianInfo4')}</li>
+            <li>• {tf('guardianInfo5')}</li>
           </ul>
         </div>
       </div>

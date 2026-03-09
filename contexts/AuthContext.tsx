@@ -124,6 +124,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if email confirmation is required
       // When confirmation required: user exists but session is null
       if (data.user && !data.session) {
+        // Send welcome email (best-effort, non-blocking)
+        fetch('/api/auth/send-welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }).catch((err) => console.warn('Welcome email fire-and-forget failed:', err));
+
         return { 
           requiresEmailConfirmation: true,
           message: `Check your email (${email}) for a confirmation link, then come back to sign in.`
@@ -149,6 +156,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Log but don't block signup - user is created, profile can be created on first login
           console.error('Profile creation error (non-fatal):', profileError.message);
         }
+
+        // Send welcome email (best-effort, non-blocking)
+        fetch('/api/auth/send-welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }).catch((err) => console.warn('Welcome email fire-and-forget failed:', err));
       }
 
       return {};

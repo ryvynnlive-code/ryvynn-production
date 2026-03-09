@@ -17,18 +17,18 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">🛡</span>
               <h2 className="text-3xl md:text-4xl font-black text-white">
-                CRISIS SUPPORT: FREE FOREVER
+                {t('crisisCtaLabel')}
               </h2>
             </div>
             <Link
               href="/wall"
               className="px-8 py-3 bg-white text-ryvynn-purple rounded-xl font-black text-lg hover:scale-105 transition-all shadow-lg"
             >
-              ACCESS NOW →
+              {t('crisisCtaButton')}
             </Link>
           </div>
           <p className="text-white text-sm mt-2 font-medium">
-            No card required · Anonymous · Zero surveillance · Premium members fund the mission
+            {t('crisisTrustLine')}
           </p>
         </div>
       </div>
@@ -88,8 +88,8 @@ export default function HomePage() {
             href="/wall"
             className="group relative px-16 py-4 bg-black border-2 border-ryvynn-cyan rounded-2xl font-bold text-white text-xl transition-all hover:scale-105 hover:bg-ryvynn-cyan/10 animate-pulse-slow"
           >
-            <span className="text-ryvynn-cyan">🔓 FREE CRISIS ACCESS FOREVER</span>
-            <div className="text-xs text-gray-400 mt-1">No card required • Anonymous • Share your shadow now</div>
+            <span className="text-ryvynn-cyan">{t('crisisFreeBadge')}</span>
+            <div className="text-xs text-gray-400 mt-1">{t('crisisFreeSubtext')}</div>
           </Link>
         </div>
 
@@ -97,15 +97,15 @@ export default function HomePage() {
         <div className="flex justify-center gap-8 text-sm text-gray-500 mt-8">
           <div className="flex items-center gap-2">
             <span>🔒</span>
-            <span>Zero Surveillance</span>
+            <span>{t('pricingTrust1')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span>🛡</span>
-            <span>Crisis Tier Free Forever</span>
+            <span>{t('pricingTrust3')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span>⚡</span>
-            <span>Cancel Anytime</span>
+            <span>{t('pricingTrust2')}</span>
           </div>
         </div>
       </section>
@@ -179,44 +179,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Coming Soon Section */}
       <section className="max-w-6xl mx-auto px-6 py-24 border-t border-gray-800">
         <div className="text-center mb-16">
           <div className="text-7xl mb-6 drop-shadow-[0_0_20px_rgba(139,92,246,0.4)]">⌚</div>
           <h2 className="text-4xl font-bold mb-6">
             <span className="bg-gradient-to-r from-ryvynn-purple via-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
-              Coming Soon: Wearables Integration
+              {t('comingSoonSubtitle')}: {t('comingSoonTitle')}
             </span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Real-time biometric crisis detection through Apple Watch, Fitbit, Garmin, and more. 
-            Your body knows when you're in crisis — we'll help you catch it early.
+            {t('comingSoonDesc')}
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="bg-gradient-to-b from-gray-900/80 to-black border border-gray-800 rounded-2xl p-8 text-center hover:border-ryvynn-cyan transition-all">
             <div className="text-5xl mb-4">❤️</div>
-            <h3 className="font-bold text-xl mb-3 text-ryvynn-cyan">Heart Rate Monitoring</h3>
-            <p className="text-gray-500">Detect anxiety spikes & panic attacks in real-time</p>
+            <h3 className="font-bold text-xl mb-3 text-ryvynn-cyan">{t('comingSoonFeature1')}</h3>
+            <p className="text-gray-500">{t('comingSoonFeature2')}</p>
           </div>
 
           <div className="bg-gradient-to-b from-gray-900/80 to-black border border-gray-800 rounded-2xl p-8 text-center hover:border-ryvynn-purple transition-all">
             <div className="text-5xl mb-4">😴</div>
-            <h3 className="font-bold text-xl mb-3 text-ryvynn-purple">Sleep Tracking</h3>
-            <p className="text-gray-500">Identify depression patterns before they escalate</p>
+            <h3 className="font-bold text-xl mb-3 text-ryvynn-purple">{t('comingSoonFeature3')}</h3>
+            <p className="text-gray-500">{t('comingSoonFeature4')}</p>
           </div>
 
           <div className="bg-gradient-to-b from-gray-900/80 to-black border border-gray-800 rounded-2xl p-8 text-center hover:border-ryvynn-cyan transition-all">
             <div className="text-5xl mb-4">🏃</div>
-            <h3 className="font-bold text-xl mb-3 text-ryvynn-cyan">Activity Patterns</h3>
-            <p className="text-gray-500">Track behavioral changes over time</p>
+            <h3 className="font-bold text-xl mb-3 text-ryvynn-cyan">{t('comingSoonBadge')}</h3>
+            <p className="text-gray-500">{t('comingSoonSubtitle')}</p>
           </div>
         </div>
 
         <div className="text-center mt-12">
           <p className="text-gray-600 italic text-lg">
-            Premium members get early access when wearables launch in 2026 🔥
+            {t('comingSoonBadge')} 🔥
           </p>
         </div>
       </section>
@@ -229,11 +227,11 @@ export default function HomePage() {
             {t('missionStatement')}
           </p>
           <div className="flex justify-center gap-6 text-sm text-gray-600 pt-4">
-            <span>© 2025 AONIXX</span>
+            <span>{t('footerCopyright')}</span>
             <span>•</span>
-            <span>Built for the Shadows</span>
+            <span>{t('footerBuiltFor')}</span>
             <span>•</span>
-            <span>Zero Surveillance Forever</span>
+            <span>{t('footerZeroSurveillance')}</span>
           </div>
         </div>
       </footer>

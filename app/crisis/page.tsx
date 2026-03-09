@@ -48,38 +48,44 @@ export default function CrisisPage() {
   ];
 
   const internationalResources = [
-    { country: 'Canada', contact: 'Talk Suicide: 1-833-456-4566', },
-    { country: 'UK', contact: 'Samaritans: 116 123', },
-    { country: 'Australia', contact: 'Lifeline: 13 11 14', },
-    { country: 'International', contact: 'iasp.info/resources/Crisis_Centres', },
+    { country: 'Canada', contact: 'Talk Suicide: 1-833-456-4566' },
+    { country: 'UK', contact: 'Samaritans: 116 123' },
+    { country: 'Australia', contact: 'Lifeline: 13 11 14' },
+    { country: 'International', contact: 'iasp.info/resources/Crisis_Centres' },
   ];
 
   return (
     <main className="min-h-screen py-12 px-6">
       <div className="max-w-4xl mx-auto">
+        {/* Page Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-white mb-3">{tf('crisisPageTitle')}</h1>
+          <p className="text-lg text-gray-400">{tf('crisisPageSubtitle')}</p>
+        </div>
+
         {/* Emergency Banner */}
         <div className="bg-red-900 border border-red-700 rounded-lg p-6 mb-8">
           <div className="flex items-start gap-4">
             <span className="text-4xl">🆘</span>
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                In Immediate Danger?
+                {tf('crisisImmediateDanger')}
               </h2>
               <p className="text-red-100 mb-4">
-                If you or someone else is in immediate physical danger, call emergency services (911 in US) NOW.
+                {tf('crisisImmediateDesc')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
                   href="tel:988"
                   className="px-6 py-3 bg-white text-red-900 rounded-lg font-bold hover:bg-gray-100 inline-block"
                 >
-                  📞 Call 988
+                  {tf('crisisCall988Button')}
                 </a>
                 <a
                   href="sms:741741&body=HELLO"
                   className="px-6 py-3 bg-red-700 text-white rounded-lg font-bold hover:bg-red-600 inline-block"
                 >
-                  💬 Text 741741
+                  {tf('crisisText741Button')}
                 </a>
               </div>
             </div>
@@ -90,7 +96,7 @@ export default function CrisisPage() {
         {location.detected && (
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 mb-8">
             <div className="text-sm text-gray-400">
-              📍 Resources for: {location.city}, {location.region}, {location.country}
+              {tf('crisisLocationPrefix')} {location.city}, {location.region}, {location.country}
             </div>
           </div>
         )}
@@ -98,9 +104,9 @@ export default function CrisisPage() {
         {/* National Resources */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-ryvynn-cyan mb-6">
-            {location.countryCode === 'US' ? 'National Resources (US)' : 'US Crisis Resources'}
+            {location.countryCode === 'US' ? tf('crisisNationalTitleUS') : tf('crisisUSTitle')}
           </h2>
-          
+
           <div className="space-y-4">
             {nationalResources.map((resource) => (
               <div
@@ -116,7 +122,7 @@ export default function CrisisPage() {
                   rel="noopener noreferrer"
                   className="text-sm text-ryvynn-purple hover:underline"
                 >
-                  Visit Website →
+                  {tf('crisisVisitWebsite')}
                 </a>
               </div>
             ))}
@@ -126,9 +132,9 @@ export default function CrisisPage() {
         {/* International Resources */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-ryvynn-purple mb-6">
-            International Crisis Lines
+            {tf('crisisInternationalTitle')}
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             {internationalResources.map((resource) => (
               <div
@@ -144,9 +150,9 @@ export default function CrisisPage() {
 
         {/* Privacy Note */}
         <div className="bg-ryvynn-cyan/10 border border-ryvynn-cyan/30 rounded-lg p-6">
-          <h3 className="font-bold text-ryvynn-cyan mb-2">🔐 Your Privacy</h3>
+          <h3 className="font-bold text-ryvynn-cyan mb-2">{tf('crisisPrivacyTitle')}</h3>
           <p className="text-sm text-gray-400">
-            RYVYNN does not track which crisis resources you access. Your location is used only to show relevant local resources and is never stored on our servers.
+            {tf('crisisPrivacyDesc')}
           </p>
         </div>
       </div>

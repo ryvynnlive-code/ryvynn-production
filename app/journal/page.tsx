@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { useRouter } from 'next/navigation';
 import { encrypt, decrypt } from '@/lib/encryption';
 
@@ -14,6 +15,7 @@ interface JournalEntry {
 
 export default function JournalPage() {
   const { user, loading: authLoading } = useAuth();
+  const { tf } = useI18n();
   const router = useRouter();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +37,9 @@ export default function JournalPage() {
 
   const loadEntries = async () => {
     if (!user) return;
-
     try {
       const response = await fetch(`/api/journal?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to load entries');
-      
       const data = await response.json();
       setEntries(data.entries || []);
     } catch (error) {
@@ -51,31 +51,18 @@ export default function JournalPage() {
 
   const handleSave = async () => {
     if (!newEntry.trim() || !user || writing) return;
-
     setWriting(true);
-
     try {
-      // Get encryption key from user (or env var for demo)
       const encryptionKey = process.env.NEXT_PUBLIC_JOURNAL_KEY || 'demo-encryption-key';
-      
-      // Encrypt content
       const encrypted = await encrypt(newEntry, encryptionKey);
-
       const response = await fetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          encryptedContent: encrypted,
-        }),
+        body: JSON.stringify({ userId: user.id, encryptedContent: encrypted }),
       });
-
       if (!response.ok) throw new Error('Failed to save entry');
-
       const data = await response.json();
-      
       alert(`✨ Entry saved! You earned ${data.tokensEarned || 1} 🔥 tokens!`);
-      
       setNewEntry('');
       loadEntries();
     } catch (error) {
@@ -90,7 +77,6 @@ export default function JournalPage() {
     try {
       const encryptionKey = process.env.NEXT_PUBLIC_JOURNAL_KEY || 'demo-encryption-key';
       const decrypted = await decrypt(entry.encrypted_content, encryptionKey);
-      
       setDecryptedContent(decrypted);
       setSelectedEntry(entry);
     } catch (error) {
@@ -104,7 +90,7 @@ export default function JournalPage() {
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-pulse">📔</div>
-          <p className="text-gray-400">Loading your private journal...</p>
+          <p className="text-gray-400">{tf('journalLoading')}</p>
         </div>
       </main>
     );
@@ -117,11 +103,9 @@ export default function JournalPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-2">
-            📔 Dark Journal
+            📔 {tf('journalTitle')}
           </h1>
-          <p className="text-gray-400">
-            Encrypted entries • Your shadows are safe here
-          </p>
+          <p className="text-gray-400">{tf('journalSubtitle')}</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -130,13 +114,13 @@ export default function JournalPage() {
             <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-ryvynn-cyan rounded-2xl p-6 shadow-[0_0_30px_rgba(0,217,255,0.2)]">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
                 <span>✍️</span>
-                Write Entry
+                {tf('journalWriteTitle')}
               </h2>
 
               <textarea
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
-                placeholder="Pour your shadows onto the page. Your words are encrypted and yours alone..."
+                placeholder={tf('journalContentPlaceholder')}
                 rows={12}
                 className="w-full bg-black border-2 border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-ryvynn-cyan resize-none mb-4"
                 disabled={writing}
@@ -147,13 +131,13 @@ export default function JournalPage() {
                 disabled={writing || !newEntry.trim()}
                 className="w-full py-4 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl font-bold text-white hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_0_20px_rgba(0,217,255,0.3)]"
               >
-                {writing ? '🔐 Encrypting & Saving...' : '🔥 Save Entry (+1 Token)'}
+                {writing ? tf('journalEncrypting') : tf('journalSaveWithToken')}
               </button>
 
               <div className="mt-4 p-3 bg-ryvynn-cyan/10 border border-ryvynn-cyan/30 rounded-lg">
                 <p className="text-xs text-gray-400 flex items-center gap-2">
                   <span>🔒</span>
-                  <span>Client-side encrypted (AES-256-GCM). Only you can read this.</span>
+                  <span>{tf('journalClientNote')}</span>
                 </p>
               </div>
             </div>
@@ -164,13 +148,13 @@ export default function JournalPage() {
             <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-gray-800 rounded-2xl p-6">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
                 <span>📚</span>
-                Past Entries ({entries.length})
+                {tf('journalPastEntries')} ({entries.length})
               </h2>
 
               {entries.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  <p>No entries yet.</p>
-                  <p className="text-sm mt-2">Start journaling to earn tokens!</p>
+                  <p>{tf('journalNoEntries')}</p>
+                  <p className="text-sm mt-2">{tf('journalNoEntriesSub')}</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
@@ -184,7 +168,7 @@ export default function JournalPage() {
                         <span className="text-sm font-medium text-white">
                           {new Date(entry.created_at).toLocaleDateString()}
                         </span>
-                        <span className="text-xs text-gray-500">🔒 Encrypted</span>
+                        <span className="text-xs text-gray-500">{tf('journalEncryptedBadge')}</span>
                       </div>
                     </button>
                   ))}
@@ -208,10 +192,7 @@ export default function JournalPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    setSelectedEntry(null);
-                    setDecryptedContent('');
-                  }}
+                  onClick={() => { setSelectedEntry(null); setDecryptedContent(''); }}
                   className="text-gray-400 hover:text-white text-2xl"
                 >
                   ✕
@@ -228,20 +209,17 @@ export default function JournalPage() {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(decryptedContent);
-                    alert('Entry copied to clipboard!');
+                    alert(tf('journalCopied'));
                   }}
                   className="flex-1 py-3 border-2 border-ryvynn-cyan rounded-xl text-ryvynn-cyan font-bold hover:bg-ryvynn-cyan/10 transition-all"
                 >
-                  📋 Copy
+                  {tf('journalCopy')}
                 </button>
                 <button
-                  onClick={() => {
-                    setSelectedEntry(null);
-                    setDecryptedContent('');
-                  }}
+                  onClick={() => { setSelectedEntry(null); setDecryptedContent(''); }}
                   className="flex-1 py-3 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl text-white font-bold hover:scale-105 transition-all"
                 >
-                  Close
+                  {tf('journalClose')}
                 </button>
               </div>
             </div>
@@ -250,12 +228,12 @@ export default function JournalPage() {
 
         {/* Info */}
         <div className="mt-6 p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
-          <h3 className="font-bold text-ryvynn-cyan mb-2">🔒 Privacy & Encryption</h3>
+          <h3 className="font-bold text-ryvynn-cyan mb-2">{tf('journalEncryptionTitle')}</h3>
           <ul className="text-sm text-gray-400 space-y-1">
-            <li>• All entries encrypted client-side (AES-256-GCM)</li>
-            <li>• Server never sees plaintext content</li>
-            <li>• Earn +1 token per journal entry</li>
-            <li>• Your data, your control - export or delete anytime</li>
+            <li>• {tf('journalPrivacyBullet1')}</li>
+            <li>• {tf('journalPrivacyBullet2')}</li>
+            <li>• {tf('journalPrivacyBullet3')}</li>
+            <li>• {tf('journalPrivacyBullet4')}</li>
           </ul>
         </div>
       </div>

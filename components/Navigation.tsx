@@ -19,8 +19,8 @@ export function Navigation() {
   const navItems = [
     { href: '/', label: t('home') },
     { href: '/dashboard', label: tf('dashboard'), protected: true },
-    { href: '/wall', label: 'Wall' },
-    { href: '/crisis', label: 'Crisis' },
+    { href: '/wall', label: t('wall') },
+    { href: '/crisis', label: t('crisis') },
     { href: '/pricing', label: t('pricing') },
   ];
 
@@ -44,9 +44,7 @@ export function Navigation() {
             
             <div className="hidden md:flex gap-6">
               {navItems.map((item) => {
-                // Hide protected routes if not logged in
                 if (item.protected && !user) return null;
-                
                 return (
                   <Link
                     key={item.href}
@@ -75,7 +73,7 @@ export function Navigation() {
                       <div className="font-medium text-white">{user.email?.split('@')[0]}</div>
                       {profile && (
                         <div className="text-xs text-ryvynn-cyan">
-                          {profile.soul_tokens} 🔥 tokens
+                          {profile.soul_tokens} 🔥 {t('soulTokensLabel')}
                         </div>
                       )}
                     </div>
@@ -83,7 +81,7 @@ export function Navigation() {
                       onClick={signOut}
                       className="px-4 py-2 text-sm border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
                     >
-                      Sign Out
+                      {t('signOut')}
                     </button>
                   </div>
                 ) : (
@@ -92,13 +90,13 @@ export function Navigation() {
                       onClick={() => setShowSignIn(true)}
                       className="px-4 py-2 text-sm border border-ryvynn-cyan rounded-lg text-ryvynn-cyan hover:bg-ryvynn-cyan/10 transition-colors"
                     >
-                      Sign In
+                      {t('signIn')}
                     </button>
                     <button
                       onClick={() => setShowSignUp(true)}
                       className="px-4 py-2 text-sm bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg text-white font-bold hover:scale-105 transition-transform"
                     >
-                      Sign Up
+                      {t('signUp')}
                     </button>
                   </div>
                 )}
