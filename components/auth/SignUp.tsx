@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { TurnstileWidget } from './TurnstileWidget';
 
 interface SignUpProps {
   isOpen: boolean;
@@ -18,8 +19,17 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
   const [ageTier, setAgeTier] = useState('adult');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleTurnstileSuccess = (token: string) => {
+    setTurnstileToken(token);
+  };
+
+  const handleTurnstileError = () => {
+    setError('Bot protection failed. Please refresh and try again.');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,13 +45,27 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
       return;
     }
 
+    // Check Turnstile token (only if configured)
+    if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError('Please complete the security verification');
+      return;
+    }
+
     setLoading(true);
 
-    const { error: signUpError } = await signUp(email, password, persona, ageTier);
+    const { error: signUpError } = await signUp(
+      email, 
+      password, 
+      persona, 
+      ageTier,
+      turnstileToken || undefined
+    );
 
     if (signUpError) {
       setError(signUpError);
       setLoading(false);
+      // Reset Turnstile on error
+      setTurnstileToken(null);
     } else {
       onClose();
       // Clear form
@@ -50,6 +74,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
       setConfirmPassword('');
       setPersona('neutral');
       setAgeTier('adult');
+      setTurnstileToken(null);
     }
   };
 
@@ -149,6 +174,16 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
           {error && (
             <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-xl text-red-400 text-sm">
               {error}
+            </div>
+          )}
+
+          {/* Cloudflare Turnstile - Invisible Bot Protection */}
+          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            <div className="mb-4">
+              <TurnstileWidget 
+                onSuccess={handleTurnstileSuccess}
+                onError={handleTurnstileError}
+              />
             </div>
           )}
 

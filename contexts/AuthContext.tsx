@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, persona: string, ageTier: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -65,8 +65,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, persona: string, ageTier: string) => {
+  const signUp = async (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => {
     try {
+      // Verify Turnstile token if provided
+      if (turnstileToken) {
+        const verifyResponse = await fetch('/api/auth/verify-turnstile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: turnstileToken }),
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyData.success) {
+          throw new Error('Bot verification failed. Please try again.');
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
