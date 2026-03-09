@@ -12,7 +12,7 @@ interface WallEntry {
 }
 
 export function FiftyFiftyWall() {
-  const { t } = useI18n();
+  const { tp } = useI18n();
   const [entries, setEntries] = useState<WallEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
@@ -61,7 +61,6 @@ export function FiftyFiftyWall() {
 
       const data = await response.json();
       
-      // Update local state
       setEntries(prev => prev.map(entry =>
         entry.id === entryId
           ? { ...entry, votes: data.newVoteCount }
@@ -76,7 +75,7 @@ export function FiftyFiftyWall() {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4 animate-pulse">🔥</div>
-        <p className="text-gray-400">Loading transformations...</p>
+        <p className="text-gray-400">{tp('wallLoading')}</p>
       </div>
     );
   }
@@ -87,10 +86,10 @@ export function FiftyFiftyWall() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-2">
-            50/50 Wall: From Shadow to Light
+            {tp('wallFiftyTitle')}
           </h2>
           <p className="text-gray-400 text-sm">
-            Anonymous transformations from darkness to hope
+            {tp('wallFiftySubtitle')}
           </p>
         </div>
 
@@ -103,7 +102,7 @@ export function FiftyFiftyWall() {
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
-            Recent
+            {tp('wallSortRecent')}
           </button>
           <button
             onClick={() => setSortBy('popular')}
@@ -113,7 +112,7 @@ export function FiftyFiftyWall() {
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
-            Popular
+            {tp('wallSortPopular')}
           </button>
         </div>
       </div>
@@ -122,7 +121,7 @@ export function FiftyFiftyWall() {
       <div className="space-y-8">
         {entries.length === 0 && (
           <div className="text-center py-12 bg-gray-900/30 border border-gray-800 rounded-xl">
-            <p className="text-gray-400">No entries yet. Be the first to share.</p>
+            <p className="text-gray-400">{tp('wallNoEntries')}</p>
           </div>
         )}
 
@@ -136,7 +135,7 @@ export function FiftyFiftyWall() {
               <div className="p-8 bg-gradient-to-br from-gray-900 to-black">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-2xl">🌑</span>
-                  <h3 className="font-bold text-ryvynn-cyan">Shadow</h3>
+                  <h3 className="font-bold text-ryvynn-cyan">{tp('wallShadowLabel')}</h3>
                 </div>
                 <p className="text-gray-300 leading-relaxed">
                   {entry.confession}
@@ -147,7 +146,7 @@ export function FiftyFiftyWall() {
               <div className="p-8 bg-gradient-to-br from-black to-gray-900">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-2xl">✨</span>
-                  <h3 className="font-bold text-ryvynn-purple">Light</h3>
+                  <h3 className="font-bold text-ryvynn-purple">{tp('wallLightLabel')}</h3>
                 </div>
                 <p className="text-gray-300 leading-relaxed">
                   {entry.transformation}
@@ -184,7 +183,7 @@ export function FiftyFiftyWall() {
             onClick={() => loadEntries(true)}
             className="px-8 py-3 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl font-bold text-white hover:scale-105 transition-all"
           >
-            Load More
+            {tp('wallLoadMore')}
           </button>
         </div>
       )}
