@@ -53,7 +53,7 @@ export default function JournalPage() {
     if (!newEntry.trim() || !user || writing) return;
     setWriting(true);
     try {
-      const encryptionKey = process.env.NEXT_PUBLIC_JOURNAL_KEY || 'demo-encryption-key';
+      const encryptionKey = `ryvynn-journal-${user.id}`;
       const encrypted = await encrypt(newEntry, encryptionKey);
       const response = await fetch('/api/journal', {
         method: 'POST',
@@ -74,8 +74,9 @@ export default function JournalPage() {
   };
 
   const handleViewEntry = async (entry: JournalEntry) => {
+    if (!user) return;
     try {
-      const encryptionKey = process.env.NEXT_PUBLIC_JOURNAL_KEY || 'demo-encryption-key';
+      const encryptionKey = `ryvynn-journal-${user.id}`;
       const decrypted = await decrypt(entry.encrypted_content, encryptionKey);
       setDecryptedContent(decrypted);
       setSelectedEntry(entry);

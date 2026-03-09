@@ -61,7 +61,7 @@ export default function EternityPage() {
     setWriting(true);
 
     try {
-      const encryptionKey = process.env.NEXT_PUBLIC_JOURNAL_KEY || 'demo-encryption-key';
+      const encryptionKey = `ryvynn-eternity-${user.id}`;
       const encrypted = await encrypt(newMessage, encryptionKey);
 
       const response = await fetch('/api/eternity', {
