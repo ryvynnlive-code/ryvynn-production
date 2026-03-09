@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { priceId, coupon } = await req.json();
+    const { priceId, coupon, userId, userEmail } = await req.json();
 
     if (!priceId) {
       return NextResponse.json(
@@ -67,6 +67,14 @@ export async function POST(req: NextRequest) {
     });
     formBody.append('line_items[0][price]', priceId);
     formBody.append('line_items[0][quantity]', '1');
+    
+    // Pass user identity so webhook can link Stripe customer → Supabase user
+    if (userId) {
+      formBody.append('metadata[supabase_user_id]', userId);
+    }
+    if (userEmail) {
+      formBody.append('customer_email', userEmail);
+    }
     
     if (coupon) {
       formBody.append('discounts[0][coupon]', coupon);

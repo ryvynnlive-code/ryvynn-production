@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TIERS = [
   {
@@ -98,6 +99,7 @@ const TIERS = [
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const handleCheckout = async (tier: typeof TIERS[0]) => {
     setLoading(tier.id);
@@ -108,6 +110,8 @@ export default function PricingPage() {
         body: JSON.stringify({
           priceId: tier.priceId,
           coupon: tier.coupon,
+          userId: user?.id || null,
+          userEmail: user?.email || null,
         }),
       });
 
