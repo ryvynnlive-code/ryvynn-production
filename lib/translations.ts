@@ -64,9 +64,7 @@ export const translations = {
     dontHaveAccount: "Don't have an account?",
     
     // Persona Options
-    personaNeut
-
-ral: 'Neutral',
+    personaNeutral: 'Neutral',
     personaFeminine: 'Feminine',
     personaMasculine: 'Masculine',
     
