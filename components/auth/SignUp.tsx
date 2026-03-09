@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { TurnstileWidget } from './TurnstileWidget';
 
 interface SignUpProps {
@@ -12,6 +13,7 @@ interface SignUpProps {
 
 export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
   const { signUp } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,7 +30,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
   };
 
   const handleTurnstileError = () => {
-    setError('Bot protection failed. Please refresh and try again.');
+    setError(t('errorBotProtection'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,18 +38,18 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('errorPasswordsNoMatch'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('errorPasswordTooShort'));
       return;
     }
 
     // Check Turnstile token (only if configured)
     if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !turnstileToken) {
-      setError('Please complete the security verification');
+      setError(t('errorSecurityVerification'));
       return;
     }
 
@@ -62,7 +64,12 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
     );
 
     if (signUpError) {
-      setError(signUpError);
+      // Check for specific error types
+      if (signUpError.includes('fetch') || signUpError.includes('network') || signUpError.includes('connection')) {
+        setError(t('errorDatabaseConnection'));
+      } else {
+        setError(signUpError);
+      }
       setLoading(false);
       // Reset Turnstile on error
       setTurnstileToken(null);
@@ -83,7 +90,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
       <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-ryvynn-purple rounded-3xl max-w-md w-full p-8 my-8 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-4xl font-black bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
-            ✨ Sign Up
+            ✨ {t('signUp')}
           </h2>
           <button
             onClick={onClose}
@@ -97,7 +104,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email
+                {t('email')}
               </label>
               <input
                 type="email"
@@ -111,7 +118,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password (min 8 characters)
+                {t('passwordMin')}
               </label>
               <input
                 type="password"
@@ -125,7 +132,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
+                {t('confirmPassword')}
               </label>
               <input
                 type="password"
@@ -139,7 +146,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Guardian Persona
+                {t('guardianPersona')}
               </label>
               <select
                 value={persona}
@@ -147,15 +154,15 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
                 className="w-full bg-black/50 border-2 border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-ryvynn-purple transition-colors"
                 disabled={loading}
               >
-                <option value="neutral">Neutral</option>
-                <option value="feminine">Feminine</option>
-                <option value="masculine">Masculine</option>
+                <option value="neutral">{t('personaNeutral')}</option>
+                <option value="feminine">{t('personaFeminine')}</option>
+                <option value="masculine">{t('personaMasculine')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Age Group
+                {t('ageGroup')}
               </label>
               <select
                 value={ageTier}
@@ -163,10 +170,10 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
                 className="w-full bg-black/50 border-2 border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-ryvynn-purple transition-colors"
                 disabled={loading}
               >
-                <option value="youth">13-17 (Youth)</option>
-                <option value="young_adult">18-29 (Young Adult)</option>
-                <option value="adult">30-54 (Adult)</option>
-                <option value="mature">55+ (Mature)</option>
+                <option value="youth">{t('ageTierYouth')}</option>
+                <option value="young_adult">{t('ageTierYoungAdult')}</option>
+                <option value="adult">{t('ageTierAdult')}</option>
+                <option value="mature">{t('ageTierMature')}</option>
               </select>
             </div>
           </div>
@@ -192,7 +199,7 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
             disabled={loading}
             className="w-full py-3 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl text-white font-black text-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all shadow-[0_0_30px_rgba(139,92,246,0.3)]"
           >
-            {loading ? '⚡ Creating Account...' : '🔥 Create Account'}
+            {loading ? `⚡ ${t('creatingAccount')}` : `🔥 ${t('createAccount')}`}
           </button>
 
           <div className="mt-6 text-center">
@@ -201,13 +208,13 @@ export function SignUp({ isOpen, onClose, onSwitchToSignIn }: SignUpProps) {
               onClick={onSwitchToSignIn}
               className="text-ryvynn-purple hover:text-ryvynn-cyan transition-colors font-medium"
             >
-              Already have an account? Sign In
+              {t('alreadyHaveAccount')} {t('signIn')}
             </button>
           </div>
         </form>
 
         <div className="mt-6 text-xs text-gray-500 border-t border-gray-800 pt-4 text-center">
-          <span className="text-ryvynn-cyan font-bold">🔒 Zero surveillance.</span> Your data is encrypted and you control everything.
+          <span className="text-ryvynn-cyan font-bold">🔒 {t('privacyNotice').split('.')[0]}.</span> {t('privacyNotice').split('.')[1]}.
         </div>
       </div>
     </div>

@@ -67,18 +67,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => {
     try {
+      // Check if Supabase is configured
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        throw new Error('Database connection not configured. Please try again later.');
+      }
+
       // Verify Turnstile token if provided
       if (turnstileToken) {
-        const verifyResponse = await fetch('/api/auth/verify-turnstile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: turnstileToken }),
-        });
+        try {
+          const verifyResponse = await fetch('/api/auth/verify-turnstile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: turnstileToken }),
+          });
 
-        const verifyData = await verifyResponse.json();
+          const verifyData = await verifyResponse.json();
 
-        if (!verifyData.success) {
-          throw new Error('Bot verification failed. Please try again.');
+          if (!verifyData.success) {
+            throw new Error('Bot verification failed. Please try again.');
+          }
+        } catch (fetchError: any) {
+          // If Turnstile verification fails due to network, continue anyway
+          console.warn('Turnstile verification failed:', fetchError);
         }
       }
 
@@ -108,7 +118,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return {};
     } catch (error: any) {
-      return { error: error.message || 'Sign up failed' };
+      // Improve error messages for common issues
+      let errorMessage = error.message || 'Sign up failed';
+      
+      if (error.message?.includes('fetch') || error.message?.includes('NetworkError') || error.message?.includes('Failed to fetch')) {
+        errorMessage = 'Unable to connect to server. Please check your internet connection and try again.';
+      } else if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        errorMessage = 'This email is already registered. Please sign in instead.';
+      } else if (error.message?.includes('invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message?.includes('weak password')) {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      }
+      
+      return { error: errorMessage };
     }
   };
 

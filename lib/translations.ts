@@ -47,6 +47,46 @@ export const translations = {
     language: 'Language',
     switchToSpanish: 'Español',
     switchToEnglish: 'English',
+    
+    // Authentication
+    signUp: 'Sign Up',
+    signIn: 'Sign In',
+    signOut: 'Sign Out',
+    email: 'Email',
+    password: 'Password',
+    passwordMin: 'Password (min 8 characters)',
+    confirmPassword: 'Confirm Password',
+    guardianPersona: 'Guardian Persona',
+    ageGroup: 'Age Group',
+    createAccount: 'Create Account',
+    creatingAccount: 'Creating Account...',
+    alreadyHaveAccount: 'Already have an account?',
+    dontHaveAccount: "Don't have an account?",
+    
+    // Persona Options
+    personaNeut
+
+ral: 'Neutral',
+    personaFeminine: 'Feminine',
+    personaMasculine: 'Masculine',
+    
+    // Age Tier Options
+    ageTierYouth: '13-17 (Youth)',
+    ageTierYoungAdult: '18-29 (Young Adult)',
+    ageTierAdult: '30-54 (Adult)',
+    ageTierMature: '55+ (Mature)',
+    
+    // Error Messages
+    errorPasswordsNoMatch: 'Passwords do not match',
+    errorPasswordTooShort: 'Password must be at least 8 characters',
+    errorBotProtection: 'Bot protection failed. Please refresh and try again.',
+    errorSignUpFailed: 'Sign up failed. Please try again.',
+    errorSignInFailed: 'Sign in failed. Please check your credentials.',
+    errorDatabaseConnection: 'Unable to connect to server. Please check your internet connection and try again.',
+    errorSecurityVerification: 'Please complete the security verification',
+    
+    // Privacy Notice
+    privacyNotice: 'Zero surveillance. Your data is encrypted and you control everything.',
   },
   
   es: {
@@ -94,6 +134,44 @@ export const translations = {
     language: 'Idioma',
     switchToSpanish: 'Español',
     switchToEnglish: 'English',
+    
+    // Authentication
+    signUp: 'Registrarse',
+    signIn: 'Iniciar Sesión',
+    signOut: 'Cerrar Sesión',
+    email: 'Correo Electrónico',
+    password: 'Contraseña',
+    passwordMin: 'Contraseña (mín 8 caracteres)',
+    confirmPassword: 'Confirmar Contraseña',
+    guardianPersona: 'Persona del Guardián',
+    ageGroup: 'Grupo de Edad',
+    createAccount: 'Crear Cuenta',
+    creatingAccount: 'Creando Cuenta...',
+    alreadyHaveAccount: '¿Ya tienes una cuenta?',
+    dontHaveAccount: '¿No tienes una cuenta?',
+    
+    // Persona Options
+    personaNeutral: 'Neutral',
+    personaFeminine: 'Femenino',
+    personaMasculine: 'Masculino',
+    
+    // Age Tier Options
+    ageTierYouth: '13-17 (Juventud)',
+    ageTierYoungAdult: '18-29 (Adulto Joven)',
+    ageTierAdult: '30-54 (Adulto)',
+    ageTierMature: '55+ (Maduro)',
+    
+    // Error Messages
+    errorPasswordsNoMatch: 'Las contraseñas no coinciden',
+    errorPasswordTooShort: 'La contraseña debe tener al menos 8 caracteres',
+    errorBotProtection: 'Protección de bots falló. Por favor actualiza e intenta de nuevo.',
+    errorSignUpFailed: 'Registro falló. Por favor intenta de nuevo.',
+    errorSignInFailed: 'Inicio de sesión falló. Por favor verifica tus credenciales.',
+    errorDatabaseConnection: 'No se puede conectar al servidor. Por favor verifica tu conexión a internet e intenta de nuevo.',
+    errorSecurityVerification: 'Por favor completa la verificación de seguridad',
+    
+    // Privacy Notice
+    privacyNotice: 'Cero vigilancia. Tus datos están encriptados y tú controlas todo.',
   },
 } as const;
 
