@@ -69,9 +69,9 @@ export default function EternityPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          encryptedContent: encrypted,
+          encryptedMessage: encrypted,
           triggerCondition,
-          triggerDate: triggerCondition === 'date' ? triggerDate : null,
+          recipientInfo: triggerCondition === 'date' ? triggerDate : null,
         }),
       });
 
