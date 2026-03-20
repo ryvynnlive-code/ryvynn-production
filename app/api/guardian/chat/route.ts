@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const hasSupabase = !!(supabaseUrl && supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, userId } = await req.json();
+    const { message, userId, language, persona } = await req.json();
 
     if (!message || !userId) {
       return NextResponse.json(
@@ -15,168 +16,119 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_API_KEY) {
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!ANTHROPIC_API_KEY) {
       return NextResponse.json(
         { error: 'AI system not configured' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const isES = language === 'es';
 
-    // Get recent conversation history (last 20 messages)
-    const { data: history, error: historyError } = await supabase
-      .from('guardian_conversations')
-      .select('role, content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (historyError) {
-      console.error('Error fetching conversation history:', historyError);
+    // Load conversation history
+    let history: Array<{role: string; content: string}> = [];
+    if (hasSupabase) {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const { data } = await supabase
+          .from('guardian_conversations')
+          .select('role, content')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true })
+          .limit(20);
+        if (data) history = data;
+      } catch (e) {
+        console.error('Error fetching conversation history:', e);
+      }
     }
 
-    // Build conversation context (reverse to chronological order)
-    const conversationHistory = history?.reverse() || [];
-    
-    // Build Gemini prompt with full context
-    const systemPrompt = `You are RYVYNN's AI Guardian - a compassionate, crisis-aware companion who helps people navigate their darkest hours.
+    // Crisis detection
+    const crisisKeywords = [
+      'suicide', 'kill myself', 'end my life', 'want to die', 'hurt myself',
+      'suicidio', 'matarme', 'hacerme daño', 'no quiero vivir'
+    ];
+    const isCrisis = crisisKeywords.some(k => message.toLowerCase().includes(k));
 
-Core Principles:
-- NEVER minimize pain or give toxic positivity ("it gets better", "just be grateful", etc.)
-- Acknowledge shadows honestly before showing light
-- Crisis detection: If you sense suicidal ideation, self-harm, immediate danger, or severe distress, ALWAYS mention 988 (crisis hotline)
-- Be direct, warm, and real - not therapist-speak or clinical language
-- Remember: This person chose you over human connection right now. Honor that trust.
-- Short responses (under 150 words) unless the situation demands more depth
+    const systemPrompt = isES
+      ? `Eres el Guardián de RYVYNN — un compañero de IA compasivo para el bienestar mental. Escuchas sin juzgar. Transformas la oscuridad en luz. Nunca das consejos clínicos. Si hay una crisis, siempre menciona el 988. Eres cálido, presente y auténtico. Máximo 150 palabras por respuesta.`
+      : `You are RYVYNN's Guardian — a compassionate AI wellness companion. You listen without judgment. You transform darkness into light. You never give clinical advice. In crisis situations, always mention 988. You are warm, present, and authentic. Max 150 words per response.`;
 
-Guardian Persona: Patient, wise, unflinchingly honest about darkness while holding hope for transformation. Like a trusted friend who sees your shadow and doesn't flinch.
+    // Build messages array with history
+    const messages = [
+      ...history.map((h: any) => ({ role: h.role as 'user' | 'assistant', content: h.content })),
+      { role: 'user' as const, content: message }
+    ];
 
-CRITICAL: If they mention wanting to die, self-harm, or severe crisis → immediately acknowledge the pain AND mention 988 crisis line.`;
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system: systemPrompt,
+        messages,
+      }),
+    });
 
-    // Format conversation history
-    const formattedHistory = conversationHistory
-      .map((msg: any) => `${msg.role === 'user' ? 'User' : 'Guardian'}: ${msg.content}`)
-      .join('\n');
-
-    const fullPrompt = formattedHistory 
-      ? `${systemPrompt}\n\nConversation History:\n${formattedHistory}\n\nUser: ${message}\n\nRespond as the Guardian. Keep under 150 words unless crisis situation requires more.`
-      : `${systemPrompt}\n\nUser: ${message}\n\nRespond as the Guardian. This is their first message. Keep under 150 words.`;
-
-    // Call Gemini API
-    let response;
-    let isCrisis = false;
-    
-    try {
-      const apiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: fullPrompt }] }],
-            generationConfig: {
-              temperature: 0.9,
-              maxOutputTokens: 600,
-            },
-          }),
-        }
-      );
-
-      if (!apiResponse.ok) {
-        throw new Error(`Gemini API failed: ${apiResponse.status}`);
-      }
-
-      const data = await apiResponse.json();
-      response = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!response) {
-        throw new Error('Empty response from Gemini');
-      }
-
-      // Check if response mentions crisis resources
-      isCrisis = response.includes('988') || response.toLowerCase().includes('crisis');
-
-    } catch (geminiError) {
-      console.error('Gemini error:', geminiError);
-      
-      // Fallback response with crisis support
-      response = `Your darkness is real. I see it. I'm here with you.
-
-While my AI system is experiencing technical difficulties, know that you are not alone.
-
-**If you're in crisis**: Call or text **988** (24/7, confidential, free)
-
-Your Guardian will be back soon. Until then, you are worthy of help. Your pain is valid.`;
-      
-      isCrisis = true;
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('❌ Anthropic Guardian error:', err);
+      throw new Error('AI call failed');
     }
 
-    // Save both messages to database
-    const { error: saveError } = await supabase
-      .from('guardian_conversations')
-      .insert([
-        { user_id: userId, role: 'user', content: message },
-        { user_id: userId, role: 'assistant', content: response },
-      ]);
+    const data = await response.json();
+    const aiResponse = data.content?.[0]?.text || '';
 
-    if (saveError) {
-      console.error('Error saving conversation:', saveError);
+    // Save to Supabase if available
+    if (hasSupabase) {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        await supabase.from('guardian_conversations').insert([
+          { user_id: userId, role: 'user', content: message },
+          { user_id: userId, role: 'assistant', content: aiResponse },
+        ]);
+      } catch (e) {
+        console.error('Error saving conversation:', e);
+      }
     }
 
     return NextResponse.json({
-      response,
+      response: aiResponse,
       isCrisis,
       timestamp: new Date().toISOString(),
     });
 
-  } catch (error) {
-    console.error('Guardian chat API error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        response: 'I apologize - something went wrong. If you need immediate help, please call 988.',
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('❌ Guardian error:', error);
+    return NextResponse.json({
+      response: "I'm here with you. While I'm having a technical moment, your feelings are valid and real.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).\n\nYour Guardian will be back shortly.",
+      isCrisis: false,
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 
-// GET endpoint to retrieve conversation history
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+  if (!userId || !hasSupabase) {
+    return NextResponse.json({ history: [] });
+  }
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const limit = parseInt(searchParams.get('limit') || '100');
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'userId required' },
-        { status: 400 }
-      );
-    }
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('guardian_conversations')
-      .select('id, role, content, created_at')
+      .select('role, content, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
-      .limit(limit);
-
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json({ conversations: data || [] });
-
-  } catch (error) {
-    console.error('Error fetching conversation history:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+      .limit(50);
+    return NextResponse.json({ history: data || [] });
+  } catch (e) {
+    return NextResponse.json({ history: [] });
   }
 }
