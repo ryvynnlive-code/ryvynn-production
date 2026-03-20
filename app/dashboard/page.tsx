@@ -237,7 +237,6 @@ export default function DashboardPage() {
             <li>• {tf('streakBonus30')}</li>
           </ul>
         </div>
-      </div>
 
         {/* Sanctuary Exit — Ritual of Letting Go */}
         <div className="mt-10 text-center">
