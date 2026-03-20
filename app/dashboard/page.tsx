@@ -5,6 +5,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SanctuaryExit from '@/components/SanctuaryExit';
 
 interface TokenData {
   balance: number;
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [showExit, setShowExit] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -236,6 +238,27 @@ export default function DashboardPage() {
           </ul>
         </div>
       </div>
+
+        {/* Sanctuary Exit — Ritual of Letting Go */}
+        <div className="mt-10 text-center">
+          <button
+            onClick={() => setShowExit(true)}
+            className="text-zinc-600 hover:text-zinc-400 text-xs tracking-widest uppercase transition-colors"
+          >
+            ◦ Release & Exit This Space ◦
+          </button>
+        </div>
+      </div>
+
+      {/* Sanctuary Exit Modal */}
+      {showExit && user && (
+        <SanctuaryExit
+          userId={user.id}
+          isPlusUser={false}
+          onComplete={() => { setShowExit(false); window.location.href = '/'; }}
+          onCancel={() => setShowExit(false)}
+        />
+      )}
     </main>
   );
 }
