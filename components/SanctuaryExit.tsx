@@ -15,7 +15,7 @@ export default function SanctuaryExit({ userId, isPlusUser = false, onComplete, 
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    fetch('/api/sanctuary-exit')
+    fetch('/api/sanctuary_exit')
       .then(r => r.json())
       .then(d => { setReflection(d.reflection); setLoading(false); })
       .catch(() => { setReflection('You carried something real here today. The space releases it now — and you — gently.'); setLoading(false); })
@@ -24,7 +24,7 @@ export default function SanctuaryExit({ userId, isPlusUser = false, onComplete, 
   const handleRelease = async () => {
     setPurging(true)
     try {
-      await fetch('/api/sanctuary-exit', {
+      await fetch('/api/sanctuary_exit', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, isPlusUser }),
