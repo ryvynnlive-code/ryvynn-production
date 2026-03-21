@@ -1,28 +1,28 @@
 'use client';
 
-import type {} from '@/lib/speech-types';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-}
-
-type State = 'idle' | 'listening' | 'saving' | 'done' | 'error';
+type VoiceJournalState = 'idle' | 'listening' | 'saving' | 'done' | 'error';
 
 export function VoiceJournalButton() {
   const { user } = useAuth();
-  const [state, setState] = useState<State>('idle');
+  const [state, setState] = useState<VoiceJournalState>('idle');
   const [transcript, setTranscript] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [supported, setSupported] = useState(false);
+  const [isLateNight, setIsLateNight] = useState(true);
   const transcriptRef = useRef('');
-  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    setSupported(typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window));
+    setSupported(
+      typeof window !== 'undefined' &&
+      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    );
   }, []);
 
-  // Show after 10pm, hide before 6am - late night mode
-  const [isLateNight, setIsLateNight] = useState(true);
   useEffect(() => {
     const check = () => {
       const h = new Date().getHours();
@@ -38,7 +38,6 @@ export function VoiceJournalButton() {
     setState('saving');
     const userId = user?.id || 'anonymous';
     try {
-      // Encrypt client-side if user is logged in
       let content = text;
       if (user) {
         const { encrypt } = await import('@/lib/encryption');
@@ -60,14 +59,17 @@ export function VoiceJournalButton() {
   }, [user]);
 
   const startListening = useCallback(() => {
-    if (!supported) return;
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!supported || typeof window === 'undefined') return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) return;
     const rec = new SpeechRec();
     rec.lang = 'en-US';
     rec.continuous = true;
     rec.interimResults = true;
     rec.onstart = () => setState('listening');
-    rec.onresult = (e: ISpeechRecognitionResultEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
       let full = '';
       for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript;
       setTranscript(full);
@@ -79,9 +81,7 @@ export function VoiceJournalButton() {
     rec.start();
   }, [supported, saveEntry]);
 
-  const stopAndSave = () => {
-    recognitionRef.current?.stop();
-  };
+  const stopAndSave = () => recognitionRef.current?.stop();
 
   if (!supported) return null;
 
@@ -109,38 +109,40 @@ export function VoiceJournalButton() {
   };
 
   return (
-    <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-2"
-         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-
-      {/* Transcript bubble */}
+    <div
+      className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-2"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       {expanded && state === 'listening' && transcript && (
-        <div className="bg-gray-900 border border-ryvynn-purple rounded-2xl px-4 py-3 max-w-[220px] text-sm text-gray-200 shadow-xl animate-fade-in">
+        <div className="bg-gray-900 border border-ryvynn-purple rounded-2xl px-4 py-3 max-w-[220px] text-sm text-gray-200 shadow-xl">
           <p className="text-xs text-ryvynn-purple font-bold mb-1">🎙️ Hearing you...</p>
           <p className="line-clamp-4">{transcript}</p>
         </div>
       )}
 
-      {/* Expand prompt */}
       {expanded && state === 'idle' && (
         <div className="bg-gray-900 border border-ryvynn-cyan/40 rounded-2xl px-4 py-3 max-w-[200px] text-sm shadow-xl">
-          <p className="text-xs text-ryvynn-cyan font-bold mb-1">{isLateNight ? '🌙 Can\'t sleep?' : '📓 Quick Journal'}</p>
+          <p className="text-xs text-ryvynn-cyan font-bold mb-1">
+            {isLateNight ? "🌙 Can't sleep?" : '📓 Quick Journal'}
+          </p>
           <p className="text-gray-300 text-xs">Tap mic, speak freely. Auto-saves encrypted.</p>
-          <button onClick={startListening} className="mt-2 w-full py-1.5 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg text-white text-xs font-bold hover:opacity-90 transition-all">
+          <button
+            onClick={startListening}
+            className="mt-2 w-full py-1.5 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-lg text-white text-xs font-bold hover:opacity-90 transition-all"
+          >
             Start Speaking
           </button>
         </div>
       )}
 
-      {/* Main FAB button */}
       <button
-        onClick={state === 'listening' ? stopAndSave : state === 'idle' ? () => { setExpanded(e => !e); } : undefined}
+        onClick={state === 'listening' ? stopAndSave : () => setExpanded(e => !e)}
         className={`w-14 h-14 rounded-full text-2xl font-bold text-white transition-all duration-200 flex items-center justify-center ${getBtnStyle()}`}
         title={getLabel()}
       >
         {getIcon()}
       </button>
 
-      {/* Label */}
       <span className="text-xs text-gray-500 text-right">{getLabel()}</span>
     </div>
   );
