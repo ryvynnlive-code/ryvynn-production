@@ -1,12 +1,10 @@
 'use client';
 
-import type {} from '@/lib/speech-types';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { usePersona } from '@/contexts/PersonaContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-}
 
 interface Message {
   id: string;
@@ -350,4 +348,5 @@ export default function GuardianPage() {
     </main>
   );
 }
+
 
