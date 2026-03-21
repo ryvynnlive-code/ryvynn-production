@@ -1,25 +1,9 @@
 'use client';
 
+import type {} from '@/lib/speech-types';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-declare global {
-  interface Window {
-    SpeechRecognition: new () => ISpeechRecognition;
-    webkitSpeechRecognition: new () => ISpeechRecognition;
-  }
-}
-interface ISpeechRecognition extends EventTarget {
-  lang: string; continuous: boolean; interimResults: boolean;
-  start(): void; stop(): void; abort(): void;
-  onstart: ((e: Event) => void) | null;
-  onend: ((e: Event) => void) | null;
-  onerror: ((e: ISpeechRecognitionErrorEvent) => void) | null;
-  onresult: ((e: ISpeechRecognitionResultEvent) => void) | null;
-}
-interface ISpeechRecognitionErrorEvent extends Event { error: string; }
-interface ISpeechRecognitionResultEvent extends Event {
-  results: { length: number; [i: number]: { isFinal: boolean; [i: number]: { transcript: string } } };
 }
 
 type State = 'idle' | 'listening' | 'saving' | 'done' | 'error';
