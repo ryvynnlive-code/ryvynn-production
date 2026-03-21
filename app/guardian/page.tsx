@@ -301,9 +301,9 @@ export default function GuardianPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t-2 border-gray-800 p-4 bg-black/60">
+          <div className="border-t-2 border-gray-800 px-4 pt-4 pb-8 bg-black/60 [padding-bottom:max(2rem,env(safe-area-inset-bottom,2rem))]">
             {voiceMode ? (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center gap-4 pt-2">
                 {(transcript || voiceState === 'listening') && (
                   <div className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-300 text-sm min-h-[48px]">
                     {transcript || <span className="text-gray-600 animate-pulse">Listening...</span>}
@@ -312,13 +312,15 @@ export default function GuardianPage() {
                 <p className={`text-sm font-medium ${voiceState === 'listening' ? 'text-red-400' : voiceState === 'speaking' ? 'text-ryvynn-purple' : voiceState === 'processing' ? 'text-yellow-400' : 'text-gray-500'}`}>
                   {getVoiceLabel()}
                 </p>
+                <div className="mb-4">
                 <button
                   onClick={voiceState === 'speaking' ? stopSpeaking : voiceState === 'listening' ? stopListening : startListeningFn}
                   disabled={voiceState === 'processing'}
-                  className={`w-20 h-20 rounded-full text-3xl font-bold text-white transition-all duration-200 ${getMicStyle()}`}
+                  className={`w-24 h-24 rounded-full text-4xl font-bold text-white transition-all duration-200 ${getMicStyle()}`}
                 >
                   {getMicIcon()}
                 </button>
+                </div>
                 <div className="w-full flex gap-2">
                   <input
                     value={input}
@@ -382,3 +384,4 @@ export default function GuardianPage() {
     </main>
   );
 }
+
