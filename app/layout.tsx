@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CrisisBanner } from "@/components/CrisisBanner";
 import { Navigation } from "@/components/Navigation";
 import { AgeGate } from "@/components/persona/AgeGate";
+import { VoiceJournalButton } from "@/components/VoiceJournalButton";
+import { PushNotifications } from "@/components/PushNotifications";
 
 export const metadata: Metadata = {
   title: "RYVYNN - From Our Darkest Hours to Our Brightest Days",
@@ -37,6 +39,8 @@ export default function RootLayout({
                     <CrisisBanner />
                     <Navigation />
                     {children}
+                    <VoiceJournalButton />
+                    <PushNotifications />
                   </SoulTokenProvider>
                 </GeolocationProvider>
               </AgeTierProvider>
@@ -48,3 +52,4 @@ export default function RootLayout({
   );
 }
 // Build: 1773987439
+
