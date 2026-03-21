@@ -1,45 +1,11 @@
 'use client';
 
+import type {} from '@/lib/speech-types';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { usePersona } from '@/contexts/PersonaContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Web Speech API type declarations
-declare global {
-  interface Window {
-    SpeechRecognition: new () => ISpeechRecognition;
-    webkitSpeechRecognition: new () => ISpeechRecognition;
-  }
-}
-interface ISpeechRecognition extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onstart: ((e: Event) => void) | null;
-  onend: ((e: Event) => void) | null;
-  onerror: ((e: ISpeechRecognitionError) => void) | null;
-  onresult: ((e: ISpeechRecognitionEvent) => void) | null;
-}
-interface ISpeechRecognitionError extends Event { error: string; }
-interface ISpeechRecognitionResult { transcript: string; confidence: number; }
-interface ISpeechRecognitionResultList {
-  length: number;
-  item(index: number): ISpeechRecognitionResultItem;
-  [index: number]: ISpeechRecognitionResultItem;
-}
-interface ISpeechRecognitionResultItem {
-  isFinal: boolean;
-  length: number;
-  [index: number]: ISpeechRecognitionResult;
-}
-interface ISpeechRecognitionEvent extends Event {
-  results: ISpeechRecognitionResultList;
-  resultIndex: number;
 }
 
 interface Message {
