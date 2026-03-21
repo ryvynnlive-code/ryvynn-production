@@ -1,29 +1,12 @@
 'use client';
 
+import type {} from '@/lib/speech-types';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useRouter } from 'next/navigation';
 import { encrypt, decrypt } from '@/lib/encryption';
 
-// Web Speech API types
-declare global {
-  interface Window {
-    SpeechRecognition: new () => ISR;
-    webkitSpeechRecognition: new () => ISR;
-  }
-}
-interface ISR extends EventTarget {
-  lang: string; continuous: boolean; interimResults: boolean;
-  start(): void; stop(): void;
-  onstart: ((e: Event) => void) | null;
-  onend: ((e: Event) => void) | null;
-  onerror: ((e: ISRError) => void) | null;
-  onresult: ((e: ISRResult) => void) | null;
-}
-interface ISRError extends Event { error: string; }
-interface ISRResult extends Event {
-  results: { length: number; [i: number]: { isFinal: boolean; [i: number]: { transcript: string } } };
 }
 
 interface JournalEntry {
@@ -52,7 +35,7 @@ export default function JournalPage() {
   const [transcript, setTranscript] = useState('');
   const [isSpeakingEntry, setIsSpeakingEntry] = useState(false);
   const transcriptRef = useRef('');
-  const recognitionRef = useRef<ISR | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
   useEffect(() => {
     setVoiceSupported(
@@ -85,12 +68,12 @@ export default function JournalPage() {
   const startVoiceDictation = useCallback(() => {
     if (!voiceSupported) return;
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const rec = new SpeechRec();
+    const rec = new SpeechRec() as ISpeechRecognition;
     rec.lang = 'en-US';
     rec.continuous = true;
     rec.interimResults = true;
     rec.onstart = () => setVoiceState('listening');
-    rec.onresult = (e: ISRResult) => {
+    rec.onresult = (e: ISpeechRecognitionResultEvent) => {
       let full = '';
       for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript;
       setTranscript(full);
