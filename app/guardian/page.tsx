@@ -31,7 +31,7 @@ export default function GuardianPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef('');
 
   useEffect(() => {
@@ -127,7 +127,7 @@ export default function GuardianPage() {
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.onstart = () => setVoiceState('listening');
-    recognition.onresult = (e: ISpeechRecognitionEvent) => {
+    recognition.onresult = (e: any) => {
       let full = '';
       for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript;
       setTranscript(full);
@@ -138,7 +138,7 @@ export default function GuardianPage() {
       const final = transcriptRef.current;
       if (final.trim()) sendMessage(final.trim());
     };
-    recognition.onerror = (e: ISpeechRecognitionError) => {
+    recognition.onerror = (e: any) => {
       console.error('Speech error:', e.error);
       setVoiceState('idle');
     };
@@ -348,5 +348,6 @@ export default function GuardianPage() {
     </main>
   );
 }
+
 
 
