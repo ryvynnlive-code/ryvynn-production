@@ -89,11 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => {
     try {
-      // Check if Supabase is configured
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error('Database connection not configured. Please try again later.');
-      }
-
       // Verify Turnstile token if provided
       if (turnstileToken) {
         try {
