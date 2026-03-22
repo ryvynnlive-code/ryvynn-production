@@ -55,21 +55,20 @@ export async function POST(req: NextRequest) {
   try {
     const { message, userId, language, persona } = await req.json();
 
-    if (!message || !userId) {
-      return NextResponse.json({ error: 'Message and userId required' }, { status: 400 });
+    // FIX: Allow anonymous users — userId is optional
+    if (!message) {
+      return NextResponse.json({ error: 'Message required' }, { status: 400 });
     }
 
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-    if (!ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: 'AI system not configured' }, { status: 500 });
-    }
 
     const isCrisis = detectCrisis(message);
     const isES = language === 'es';
 
-    // Load conversation history
+    // Load conversation history (only if user is logged in)
     let history: Array<{role: string; content: string}> = [];
-    if (hasSupabase) {
+    if (userId && hasSupabase) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const { data } = await supabase
@@ -88,37 +87,76 @@ export async function POST(req: NextRequest) {
       ? RYVYNN_SYSTEM_PROMPT + '\n\nResponde siempre en español.'
       : RYVYNN_SYSTEM_PROMPT;
 
-    const messages = [
-      ...history.map((h: any) => ({ role: h.role as 'user' | 'assistant', content: h.content })),
-      { role: 'user' as const, content: message }
-    ];
+    let aiResponse = '';
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages,
-      }),
-    });
+    // Try Gemini first (primary), fall back to Anthropic
+    if (GEMINI_API_KEY) {
+      try {
+        // Build Gemini conversation format
+        const geminiContents = [
+          ...history.map((h: any) => ({
+            role: h.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: h.content }]
+          })),
+          { role: 'user', parts: [{ text: message }] }
+        ];
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('❌ Anthropic Guardian error:', err);
-      throw new Error('AI call failed');
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemPrompt }] },
+              contents: geminiContents,
+              generationConfig: { maxOutputTokens: 300, temperature: 0.85 },
+            }),
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        }
+      } catch (e) {
+        console.error('Gemini error, falling back to Anthropic:', e);
+      }
     }
 
-    const data = await response.json();
-    const aiResponse = data.content?.[0]?.text || '';
+    // Fallback to Anthropic if Gemini failed or unavailable
+    if (!aiResponse && ANTHROPIC_API_KEY) {
+      const messages = [
+        ...history.map((h: any) => ({ role: h.role as 'user' | 'assistant', content: h.content })),
+        { role: 'user' as const, content: message }
+      ];
 
-    // Save to Supabase
-    if (hasSupabase) {
+      const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          system: systemPrompt,
+          messages,
+        }),
+      });
+
+      if (anthropicRes.ok) {
+        const anthropicData = await anthropicRes.json();
+        aiResponse = anthropicData.content?.[0]?.text || '';
+      }
+    }
+
+    if (!aiResponse) {
+      throw new Error('All AI providers failed');
+    }
+
+    // Save to Supabase (only if user is logged in)
+    if (userId && hasSupabase) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         await supabase.from('guardian_conversations').insert([
@@ -133,7 +171,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ response: aiResponse, isCrisis, timestamp: new Date().toISOString() });
 
   } catch (error: any) {
-    console.error('❌ Guardian error:', error);
+    console.error('Guardian error:', error);
     return NextResponse.json({
       response: "I hear you… and I'm here. While I'm having a technical moment, your feelings are valid.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).",
       isCrisis: false,
@@ -145,7 +183,10 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
-  if (!userId || !hasSupabase) return NextResponse.json({ history: [] });
+  
+  // FIX: Return 'conversations' key (page expects data.conversations)
+  if (!userId || !hasSupabase) return NextResponse.json({ conversations: [] });
+  
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data } = await supabase
@@ -154,8 +195,8 @@ export async function GET(req: NextRequest) {
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
       .limit(50);
-    return NextResponse.json({ history: data || [] });
+    return NextResponse.json({ conversations: data || [] });
   } catch (e) {
-    return NextResponse.json({ history: [] });
+    return NextResponse.json({ conversations: [] });
   }
 }
