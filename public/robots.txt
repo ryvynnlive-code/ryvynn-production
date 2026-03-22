@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /wall
+Allow: /crisis
+Allow: /pricing
+Allow: /press
+
+# Protect user data routes
+Disallow: /dashboard
+Disallow: /guardian
+Disallow: /journal
+Disallow: /eternity
+Disallow: /api/
+
+Sitemap: https://ryvynn.live/sitemap.xml
