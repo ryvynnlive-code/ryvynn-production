@@ -11,8 +11,15 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZmt4eWxqd2Vtbm5id3pjcmtlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzAyMDU2NSwiZXhwIjoyMDg4NTk2NTY1fQ.zChCd7uhbTN2OdI5DCB8BEE8f6Gb3I_hfRpMkRoagHg';
 
-// Hardcoded price → tier (env vars not always available in webhook context)
+// Hardcoded price → tier (live price IDs from acct_1RnpEdFXY1nWj7h7)
 const PRICE_TIER_MAP: Record<string, string> = {
+  // LIVE prices
+  'price_1TCvSUFXY1nWj7h7PAn2aUcb': 'solo',
+  'price_1TCvSdFXY1nWj7h7UlL16h0R': 'family',
+  'price_1TCvSnFXY1nWj7h7zOhi50a7': 'therapist',
+  'price_1TCvSyFXY1nWj7h7aBMnrWOv': 'enterprise',
+  'price_1T83YxFXY1nWj7h7KLhYLVU3': 'lifetime',
+  // Sandbox fallbacks
   'price_1T3LjdFQvVkmN1b80afextYF': 'solo',
   'price_1T3LjnFQvVkmN1b8lUiEJyDs': 'family',
   'price_1T3LjuFQvVkmN1b81Vg49Wpq': 'therapist',
