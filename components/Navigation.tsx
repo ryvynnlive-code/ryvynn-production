@@ -22,6 +22,7 @@ export function Navigation() {
     { href: '/wall', label: t('wall') },
     { href: '/crisis', label: t('crisis') },
     { href: '/pricing', label: t('pricing') },
+    { href: '/support', label: '🔥 Support' },
   ];
 
   return (
@@ -49,11 +50,19 @@ export function Navigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === item.href
-                        ? 'text-ryvynn-cyan'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={
+                      item.href === '/support'
+                        ? `text-sm font-bold transition-all ${
+                            pathname === item.href
+                              ? 'text-ryvynn-cyan drop-shadow-[0_0_8px_rgba(0,217,255,0.8)]'
+                              : 'bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(0,217,255,0.6)]'
+                          }`
+                        : `text-sm font-medium transition-colors ${
+                            pathname === item.href
+                              ? 'text-ryvynn-cyan'
+                              : 'text-gray-400 hover:text-white'
+                          }`
+                    }
                   >
                     {item.label}
                   </Link>
