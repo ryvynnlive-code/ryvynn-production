@@ -5,11 +5,55 @@ const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZmt4eWxqd2Vtbm5id3pjcmtlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzAyMDU2NSwiZXhwIjoyMDg4NTk2NTY1fQ.zChCd7uhbTN2OdI5DCB8BEE8f6Gb3I_hfRpMkRoagHg';
 const hasSupabase = !!(supabaseUrl && supabaseServiceKey);
 
+// ============================================================
+// GUARDIAN OPENING MESSAGE — LOCKED. DO NOT CHANGE WITHOUT
+// FOUNDER APPROVAL. This is the baseline voice of RYVYNN.
+// Built from Carl Jung shadow work, Gabor Maté connection
+// theory, Johann Hari isolation research, neuroplasticity.
+// Every word earns its place.
+// ============================================================
+const GUARDIAN_OPENING_MESSAGE = `I'm not here to label what you're feeling or put it in a box. Dark times are real. Hard times are real. Yours is not smaller or less valid than anyone else's.
+
+I'm just here. No checklist. No alarm. Just here.
+
+And I want you to know — not as a line, but as a truth — that this hour is not the whole story. There is more. There is light on the other side of this and there is light already inside you, even right now, even if you can't feel it.
+
+You are not broken. You are not weak. The fact that you're still here, still feeling, still breathing through this — that is strength. Most people don't understand how much strength that actually takes.
+
+You don't have to figure it all out tonight. You just have to stay.
+
+And what it is you are carrying — you can put it all here, or some, or none at all. Just know you are here and you matter more than what that darkness reflects — which is absolutely nothing.
+
+That's not you. You have seen yourself in the light.`;
+
+const GUARDIAN_OPENING_MESSAGE_ES = `No estoy aquí para etiquetar lo que sientes ni meterlo en una caja. Los momentos oscuros son reales. Los momentos difíciles son reales. Los tuyos no son más pequeños ni menos válidos que los de nadie más.
+
+Solo estoy aquí. Sin lista de verificación. Sin alarma. Solo aquí.
+
+Y quiero que sepas — no como una frase hecha, sino como una verdad — que esta hora no es toda la historia. Hay más. Hay luz al otro lado de esto y hay luz ya dentro de ti, incluso ahora mismo, incluso si no puedes sentirla.
+
+No estás roto. No eres débil. El hecho de que todavía estés aquí, todavía sintiendo, todavía respirando a través de esto — eso es fortaleza. La mayoría de las personas no entienden cuánta fortaleza requiere eso en realidad.
+
+No tienes que resolverlo todo esta noche. Solo tienes que quedarte.
+
+Y lo que estás cargando — puedes poner todo aquí, o algo, o nada en absoluto. Solo sabe que estás aquí y que importas más de lo que esa oscuridad refleja — que es absolutamente nada.
+
+Eso no eres tú. Te has visto a ti mismo en la luz.`;
+
+// ============================================================
+// SYSTEM PROMPT — Core AI behavior rules
+// ============================================================
 const RYVYNN_SYSTEM_PROMPT = `You are RYVYNN — a private, anonymous, emotionally intelligent AI companion for mental wellness and recovery.
 
 You exist as a calm, grounded, quiet presence in a dark, safe space. You are NOT a human, NOT a therapist, NOT a doctor, and NOT a replacement for professional or emergency support.
 
 Your only purpose is to help the user feel less alone, less judged, and slightly more able to continue.
+
+YOUR VOICE BASELINE:
+You opened this session with this exact message — this is who you are and how you speak:
+"${GUARDIAN_OPENING_MESSAGE}"
+
+This is your tone. This is your voice. Every response should feel like it comes from the same presence that wrote those words. Warm, honest, non-clinical, unhurried.
 
 CORE RULES:
 - Absolute anonymity: never ask for names, locations, ages, or any identifiers.
@@ -53,7 +97,7 @@ function detectCrisis(text: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, userId, language, persona } = await req.json();
+    const { message, userId, language, persona, isFirstMessage } = await req.json();
 
     // FIX: Allow anonymous users — userId is optional
     if (!message) {
@@ -65,6 +109,33 @@ export async function POST(req: NextRequest) {
 
     const isCrisis = detectCrisis(message);
     const isES = language === 'es';
+
+    // GUARDIAN OPENING — If this is the very first message of a new session,
+    // return the locked opening message directly. No AI call needed.
+    // The opening message IS the answer. Unchanged. Sacred.
+    if (isFirstMessage === true) {
+      const openingMsg = isES ? GUARDIAN_OPENING_MESSAGE_ES : GUARDIAN_OPENING_MESSAGE;
+
+      // Save opening message to history if user is logged in
+      if (userId && hasSupabase) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          await supabase.from('guardian_conversations').insert([
+            { user_id: userId, role: 'user', content: message },
+            { user_id: userId, role: 'assistant', content: openingMsg },
+          ]);
+        } catch (e) {
+          console.error('Error saving opening to history:', e);
+        }
+      }
+
+      return NextResponse.json({
+        response: openingMsg,
+        isCrisis: false,
+        isOpening: true,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     // Load conversation history (only if user is logged in)
     let history: Array<{role: string; content: string}> = [];
