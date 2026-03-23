@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+// v8.1.1
 export async function GET() {
   return NextResponse.json({
     status: 'healthy',
