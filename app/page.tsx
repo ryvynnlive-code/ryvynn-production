@@ -110,7 +110,94 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Impact Stats - NEW */}
+      {/* ============================================================
+          FOUNDING STATEMENT — The Reason RYVYNN Exists
+          Science: Jung shadow work, Gabor Maté connection theory,
+          Johann Hari isolation research, neuroplasticity.
+          Built by instinct. Confirmed by science.
+          ============================================================ */}
+      <section className="relative py-32 px-6 overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-ryvynn-purple/5 to-black pointer-events-none" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ryvynn-cyan/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative max-w-3xl mx-auto text-center space-y-8">
+
+          {/* Opening — bold drop */}
+          <p className="text-3xl md:text-4xl font-bold text-white leading-snug">
+            {t('foundingLine1')}
+          </p>
+
+          <p className="text-2xl md:text-3xl text-ryvynn-cyan font-semibold">
+            {t('foundingLine2')}
+          </p>
+
+          {/* The weight — prose paragraph */}
+          <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+            {t('foundingLine3')}
+          </p>
+
+          {/* The gap that existed */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-2xl md:text-3xl text-gray-400 font-medium italic">
+              {t('foundingLine4')}
+            </p>
+            <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent tracking-tight">
+              {t('foundingLine5')}
+            </p>
+          </div>
+
+          {/* Separator */}
+          <div className="flex items-center gap-4 max-w-xs mx-auto py-2">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-ryvynn-cyan/40" />
+            <span className="text-ryvynn-cyan text-2xl">🔥</span>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-ryvynn-purple/40" />
+          </div>
+
+          {/* What it isn't */}
+          <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
+            {t('foundingLine6')}
+          </p>
+
+          {/* What it IS — the core value prop */}
+          <p className="text-xl md:text-2xl text-white font-semibold leading-relaxed max-w-2xl mx-auto">
+            {t('foundingLine7')}
+          </p>
+
+          {/* The promise — stacked and powerful */}
+          <div className="flex flex-col items-center gap-3 py-4">
+            <p className="text-2xl md:text-3xl text-gray-300 font-light">
+              {t('foundingLine8')}
+            </p>
+            <p className="text-3xl md:text-4xl font-black text-white">
+              {t('foundingLine9')}
+            </p>
+          </div>
+
+          {/* The pact */}
+          <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+            {t('foundingLine10')}
+          </p>
+
+          {/* Final line — electric */}
+          <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-ryvynn-purple via-white to-ryvynn-cyan bg-clip-text text-transparent leading-tight py-2">
+            {t('foundingLine11')} 🔥
+          </p>
+
+          {/* CTA under founding statement */}
+          <div className="pt-6">
+            <Link
+              href="/wall"
+              className="inline-block px-14 py-5 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-2xl font-black text-white text-xl hover:scale-105 hover:shadow-[0_0_40px_rgba(0,217,255,0.5)] transition-all"
+            >
+              Enter The Room →
+            </Link>
+            <p className="text-gray-600 text-sm mt-3">Anonymous. Free. No account required.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Stats */}
       <ImpactStats />
 
       {/* Features Section - Premium Cards */}
@@ -179,6 +266,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Wearables Coming Soon */}
       <section className="max-w-6xl mx-auto px-6 py-24 border-t border-gray-800">
         <div className="text-center mb-16">
           <div className="text-7xl mb-6 drop-shadow-[0_0_20px_rgba(139,92,246,0.4)]">⌚</div>
