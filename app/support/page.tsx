@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DONATION_AMOUNTS = [
-  { amount: 5,   label: '$5',   desc: 'Keeps the lights on for one day',      emoji: '🕯️' },
-  { amount: 10,  label: '$10',  desc: 'Funds 50 free crisis sessions',         emoji: '🔥' },
-  { amount: 25,  label: '$25',  desc: 'Pays server costs for a week',          emoji: '⚡' },
-  { amount: 50,  label: '$50',  desc: 'Sponsors a month of free crisis access',emoji: '💎' },
+  { amount: 5,   priceId: 'price_1TEFPCFXY1nWj7h7uZdMTNXr', label: '$5',   desc: 'Keeps the lights on for one day',      emoji: '🕯️' },
+  { amount: 10,  priceId: 'price_1TEFPbFXY1nWj7h7BrjdUovI', label: '$10',  desc: 'Funds 50 free crisis sessions',         emoji: '🔥' },
+  { amount: 25,  priceId: 'price_1TEFPgFXY1nWj7h7F5h6H4oc', label: '$25',  desc: 'Pays server costs for a week',          emoji: '⚡' },
+  { amount: 50,  priceId: 'price_1TEFPlFXY1nWj7h78j3Usui9', label: '$50',  desc: 'Sponsors a month of free crisis access',emoji: '💎' },
 ];
 
 const SHARE_MESSAGES = [
@@ -46,40 +46,44 @@ const WAYS_TO_HELP = [
 export default function SupportPage() {
   const { user } = useAuth();
   const [selectedAmount, setSelectedAmount] = useState(10);
+  const [selectedPriceId, setSelectedPriceId] = useState('price_1TEFPbFXY1nWj7h7BrjdUovI');
   const [customAmount, setCustomAmount] = useState('');
   const [donating, setDonating] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   async function handleDonate() {
     setDonating(true);
-    const finalAmount = customAmount ? parseInt(customAmount) : selectedAmount;
+    const isCustom = !!customAmount && parseInt(customAmount) > 0;
+    const finalAmount = isCustom ? parseInt(customAmount) : selectedAmount;
     if (!finalAmount || finalAmount < 1) { setDonating(false); return; }
 
+    // For custom amounts, find the closest preset or use 0 price ID as base
+    const PRICE_MAP: Record<number, string> = {
+      5:  'price_1TEFPCFXY1nWj7h7uZdMTNXr',
+      10: 'price_1TEFPbFXY1nWj7h7BrjdUovI',
+      25: 'price_1TEFPgFXY1nWj7h7F5h6H4oc',
+      50: 'price_1TEFPlFXY1nWj7h78j3Usui9',
+    };
+    const priceId = isCustom ? PRICE_MAP[10] : selectedPriceId;
+
     try {
-      // Create a one-time payment session via Stripe checkout
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Uses a donation price ID — falls back to amount-based if not set
-          priceId: process.env.NEXT_PUBLIC_DONATION_PRICE_ID || 'price_donation',
-          donationAmount: finalAmount * 100, // cents
+          priceId,
           userId: user?.id,
           userEmail: user?.email,
-          mode: 'payment',
-          isoDonation: true,
         }),
       });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
-        // Fallback: direct Stripe payment link
-        window.open('https://buy.stripe.com/donate', '_blank');
+        alert('Checkout failed — please try again or email ryvynn.live@gmail.com');
       }
     } catch {
-      // Fallback to direct link
-      window.open('https://ryvynn.live', '_blank');
+      alert('Something went wrong. Please try again.');
     } finally {
       setDonating(false);
     }
@@ -138,7 +142,7 @@ export default function SupportPage() {
               {DONATION_AMOUNTS.map((d) => (
                 <button
                   key={d.amount}
-                  onClick={() => { setSelectedAmount(d.amount); setCustomAmount(''); }}
+                  onClick={() => { setSelectedAmount(d.amount); setSelectedPriceId(d.priceId); setCustomAmount(''); }}
                   className={`p-4 rounded-xl border-2 text-center transition-all duration-200 hover:scale-[1.02] ${
                     selectedAmount === d.amount && !customAmount
                       ? 'border-ryvynn-cyan bg-ryvynn-cyan/10 shadow-[0_0_20px_rgba(0,217,255,0.15)]'
