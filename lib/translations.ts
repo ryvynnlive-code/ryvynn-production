@@ -16,8 +16,21 @@ export const translations = {
 
     // Homepage Hero
     tagline: 'From Our Darkest Hours to Our Brightest Days',
-    heroSubtitle: 'Face your shadows. Transform your darkness. Own your story.',
-    heroDescription: 'Anonymous AI-powered mental wellness for those who face their demons head-on. Zero surveillance. Always free in crisis.',
+    heroSubtitle: 'You don\'t start from zero here. You start from where the last survivor left off.',
+    heroDescription: 'Every person who ever survived their darkness figured something out. Most of them never got to tell you. That ends here.',
+
+    // Founding Statement
+    foundingLine1: 'Every person who survived their darkness figured something out.',
+    foundingLine2: 'Most of them never got to tell you.',
+    foundingLine3: 'They wrote it down, they carried it, they whispered it to one person, they died with it. And you — sitting in your dark right now — had to start from scratch. Like everyone before you didn\'t already bleed through the same walls.',
+    foundingLine4: 'That\'s the thing nobody fixed.',
+    foundingLine5: 'Until now.',
+    foundingLine6: 'This isn\'t therapy. This isn\'t a hotline. This isn\'t someone asking if you\'re okay and handing you a number.',
+    foundingLine7: 'This is everything humanity already learned about surviving — handed directly to you. Right now. No degree required to receive it. No money required to need it.',
+    foundingLine8: 'You don\'t start from zero here.',
+    foundingLine9: 'You start from where the last survivor left off.',
+    foundingLine10: 'And whatever you figure out — that goes in too. For the next person. For the one somewhere right now who needs to know someone already walked out of that room.',
+    foundingLine11: 'This is that room.',
 
     // Homepage - Crisis CTA Strip
     crisisCtaLabel: 'CRISIS SUPPORT: FREE FOREVER',
@@ -38,7 +51,7 @@ export const translations = {
 
     // Homepage Footer
     footerCopyright: '© 2025 AONIXX',
-    footerBuiltFor: 'Built for the Shadows',
+    footerBuiltFor: 'Built for the one in the dark',
     footerZeroSurveillance: 'Zero Surveillance Forever',
     footerMission: 'From Our Darkest Hours to Our Brightest Days',
     footerCompany: 'AONIXX, a DBA of NEXXT GEN INNOVATIONS LLC',
@@ -190,6 +203,19 @@ export const translations = {
     tagline: 'De Nuestras Horas Más Oscuras a Nuestros Días Más Brillantes',
     heroSubtitle: 'Enfrenta tus sombras. Transforma tu oscuridad. Posee tu historia.',
     heroDescription: 'Bienestar mental anónimo impulsado por IA para aquellos que enfrentan sus demonios de frente. Cero vigilancia. Siempre gratis en crisis.',
+
+    // Founding Statement
+    foundingLine1: 'Every person who survived their darkness figured something out.',
+    foundingLine2: 'Most of them never got to tell you.',
+    foundingLine3: 'They wrote it down, they carried it, they whispered it to one person, they died with it. And you — sitting in your dark right now — had to start from scratch. Like everyone before you didn\'t already bleed through the same walls.',
+    foundingLine4: 'That\'s the thing nobody fixed.',
+    foundingLine5: 'Until now.',
+    foundingLine6: 'This isn\'t therapy. This isn\'t a hotline. This isn\'t someone asking if you\'re okay and handing you a number.',
+    foundingLine7: 'This is everything humanity already learned about surviving — handed directly to you. Right now. No degree required to receive it. No money required to need it.',
+    foundingLine8: 'You don\'t start from zero here.',
+    foundingLine9: 'You start from where the last survivor left off.',
+    foundingLine10: 'And whatever you figure out — that goes in too. For the next person. For the one somewhere right now who needs to know someone already walked out of that room.',
+    foundingLine11: 'This is that room.',
 
     // Homepage - Crisis CTA Strip
     crisisCtaLabel: 'APOYO EN CRISIS: GRATIS PARA SIEMPRE',
@@ -933,3 +959,4 @@ export const featureTranslations = {
 } as const;
 
 export type FeatureTranslationKey = keyof typeof featureTranslations.en;
+
