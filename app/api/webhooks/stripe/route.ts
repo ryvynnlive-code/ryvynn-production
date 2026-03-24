@@ -29,14 +29,18 @@ function alreadyProcessed(eventId: string): boolean {
   return false;
 }
 
-// Uses NEXT_PUBLIC_ prefix — these are already in Vercel env
-const PRICE_TO_TIER: Record<string, string> = {
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_SOLO!]:       'solo',
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_FAMILY!]:     'family',
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_THERAPIST!]:  'therapist',
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE!]: 'enterprise',
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME!]:   'lifetime',
-};
+// Build price→tier map safely (env vars may be undefined at type-check time)
+function buildPriceMap(): Record<string, string> {
+  const entries: Array<[string | undefined, string]> = [
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_SOLO,       'solo'],
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_FAMILY,     'family'],
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_THERAPIST,  'therapist'],
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE, 'enterprise'],
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME,   'lifetime'],
+  ];
+  return Object.fromEntries(entries.filter((e): e is [string, string] => typeof e[0] === 'string' && e[0].length > 0));
+}
+const PRICE_TO_TIER = buildPriceMap();
 
 const TIER_TOKEN_BONUS: Record<string, number> = {
   solo: 30,
