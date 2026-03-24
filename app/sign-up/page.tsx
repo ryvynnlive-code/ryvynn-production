@@ -45,9 +45,8 @@ export default function SignUpPage() {
 
     if (result.error) {
       setError(result.error);
-    } else if (result.requiresEmailConfirmation) {
-      setMessage(result.message || 'Check your email to confirm your account.');
     } else {
+      // Account created + signed in automatically — redirect to dashboard
       router.push('/dashboard');
     }
   };
