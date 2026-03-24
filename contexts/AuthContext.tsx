@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => Promise<{ error?: string; requiresEmailConfirmation?: boolean; message?: string }>;
+  signUp: (email: string, password: string, persona: string, ageTier: string) => Promise<{ error?: string; message?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -25,17 +25,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check active session
     supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        loadProfile(session.user.id);
-      }
+      if (session?.user) loadProfile(session.user.id);
       setLoading(false);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -59,27 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Profile doesn't exist yet - create it with defaults
-        const { data: newProfile, error: createError } = await supabase
+        const { data: newProfile } = await supabase
           .from('profiles')
-          .upsert({
-            id: userId,
-            persona: 'neutral',
-            age_tier: 'adult',
-            r_rated_mode: false,
-            soul_tokens: 10,
-            streak_days: 0,
-            last_checkin: new Date().toISOString(),
-          }, { onConflict: 'id' })
+          .upsert({ id: userId, persona: 'neutral', age_tier: 'adult', r_rated_mode: false, soul_tokens: 10, streak_days: 0, last_checkin: new Date().toISOString() }, { onConflict: 'id' })
           .select()
           .single();
-
-        if (!createError && newProfile) {
-          setProfile(newProfile);
-        }
+        if (newProfile) setProfile(newProfile);
         return;
       }
-
       if (error) throw error;
       setProfile(data);
     } catch (error) {
@@ -87,109 +70,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => {
+  // Server-side signup: bypasses email confirmation entirely
+  const signUp = async (email: string, password: string, persona: string, ageTier: string) => {
     try {
-      // Verify Turnstile token if provided
-      if (turnstileToken) {
-        try {
-          const verifyResponse = await fetch('/api/auth/verify-turnstile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: turnstileToken }),
-          });
-
-          const verifyData = await verifyResponse.json();
-
-          if (!verifyData.success) {
-            throw new Error('Bot verification failed. Please try again.');
-          }
-        } catch (fetchError: any) {
-          // If Turnstile verification fails due to network, continue anyway
-          console.warn('Turnstile verification failed:', fetchError);
-        }
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, persona, ageTier }),
       });
 
-      if (error) throw error;
+      const result = await res.json();
 
-      // Check if email confirmation is required
-      // When confirmation required: user exists but session is null
-      if (data.user && !data.session) {
-        // Send welcome email (best-effort, non-blocking)
-        fetch('/api/auth/send-welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        }).catch((err) => console.warn('Welcome email fire-and-forget failed:', err));
-
-        return { 
-          requiresEmailConfirmation: true,
-          message: `Check your email (${email}) for a confirmation link, then come back to sign in.`
-        };
+      if (!res.ok) {
+        let msg = result.error || 'Sign up failed';
+        if (msg.includes('already') || res.status === 409) {
+          msg = 'This email is already registered. Please sign in instead.';
+        }
+        return { error: msg };
       }
 
-      if (data.user) {
-        // Create profile - don't throw if it fails (may already exist or RLS issue)
-        // Use upsert to avoid duplicate key errors
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            persona,
-            age_tier: ageTier,
-            r_rated_mode: false,
-            soul_tokens: 10, // Starting tokens
-            streak_days: 0,
-            last_checkin: new Date().toISOString(),
-          }, { onConflict: 'id' });
-
-        if (profileError) {
-          // Log but don't block signup - user is created, profile can be created on first login
-          console.error('Profile creation error (non-fatal):', profileError.message);
-        }
-
-        // Send welcome email (best-effort, non-blocking)
-        fetch('/api/auth/send-welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        }).catch((err) => console.warn('Welcome email fire-and-forget failed:', err));
+      // User created — now sign in immediately to establish session
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        return { error: 'Account created! Please sign in.' };
       }
 
       return {};
-    } catch (error: any) {
-      // Improve error messages for common issues
-      let errorMessage = error.message || 'Sign up failed';
-      
-      if (error.message?.includes('fetch') || error.message?.includes('NetworkError') || error.message?.includes('Failed to fetch')) {
-        errorMessage = 'Unable to connect to server. Please check your internet connection and try again.';
-      } else if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
-        errorMessage = 'This email is already registered. Please sign in instead.';
-      } else if (error.message?.includes('invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (error.message?.includes('weak password')) {
-        errorMessage = 'Password is too weak. Please use a stronger password.';
-      }
-      
-      return { error: errorMessage };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Sign up failed';
+      return { error: msg };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return {};
-    } catch (error: any) {
-      return { error: error.message || 'Sign in failed' };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Sign in failed';
+      return { error: msg };
     }
   };
 
@@ -207,8 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
