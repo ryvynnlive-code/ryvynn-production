@@ -24,7 +24,7 @@ function alreadyProcessed(eventId: string): boolean {
   processedEvents.add(eventId);
   if (processedEvents.size > 10_000) {
     const first = processedEvents.values().next().value;
-    processedEvents.delete(first);
+    if (first !== undefined) processedEvents.delete(first);
   }
   return false;
 }
