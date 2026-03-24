@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, persona: string, ageTier: string) => Promise<{ error?: string; message?: string }>;
+  signUp: (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => Promise<{ error?: string; message?: string; requiresEmailConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -71,12 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Server-side signup: bypasses email confirmation entirely
-  const signUp = async (email: string, password: string, persona: string, ageTier: string) => {
+  const signUp = async (email: string, password: string, persona: string, ageTier: string, turnstileToken?: string) => {
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, persona, ageTier }),
+        body: JSON.stringify({ email, password, persona, ageTier, turnstileToken }),
       });
 
       const result = await res.json();
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // User created — now sign in immediately to establish session
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
-        return { error: 'Account created! Please sign in.' };
+        return { error: 'Account created! Please sign in.', requiresEmailConfirmation: false };
       }
 
       return {};
@@ -125,8 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within AuthProvider');
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
-};
+}
