@@ -274,3 +274,5 @@ export async function POST(request: NextRequest): Promise<NextResponse<AgentResp
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }
+
+// v1.0.1
