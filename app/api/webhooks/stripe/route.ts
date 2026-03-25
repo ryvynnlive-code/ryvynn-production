@@ -32,7 +32,7 @@ function alreadyProcessed(eventId: string): boolean {
   return false;
 }
 
-// ─── Price → Tier mapping (safe builder) ─────────────────────────────────────
+// ─── Price → Tier mapping ────────────────────────────────────────────────────
 
 function buildPriceMap(): Record<string, string> {
   const entries: Array<[string | undefined, string]> = [
@@ -41,6 +41,12 @@ function buildPriceMap(): Record<string, string> {
     [process.env.NEXT_PUBLIC_STRIPE_PRICE_THERAPIST,  'therapist'],
     [process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE, 'enterprise'],
     [process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME,   'lifetime'],
+    // Hardcoded live price IDs as fallback
+    ['price_1TCvSUFXY1nWj7h7PAn2aUcb', 'solo'],
+    ['price_1TCvSdFXY1nWj7h7UlL16h0R', 'family'],
+    ['price_1TCvSnFXY1nWj7h7zOhi50a7', 'therapist'],
+    ['price_1TCvSyFXY1nWj7h7aBMnrWOv', 'enterprise'],
+    ['price_1T83YxFXY1nWj7h7KLhYLVU3', 'lifetime'],
   ];
   return Object.fromEntries(
     entries.filter((e): e is [string, string] => typeof e[0] === 'string' && e[0].length > 0)
@@ -56,36 +62,115 @@ const TIER_TOKEN_BONUS: Record<string, number> = {
   lifetime: 3693,
 };
 
-// ─── Helper: find profile by customer ID, fall back to email ─────────────────
+// ─── Profile lookup — DEFENSIVE: works with or without stripe_customer_id col ─
 
 async function findProfile(
   supabase: ReturnType<typeof getServiceClient>,
   customerId: string,
-  email?: string | null
+  email?: string | null,
+  knownUserId?: string | null
 ): Promise<{ id: string; soul_tokens: number } | null> {
-  // Try stripe_customer_id first
-  const { data: byCustomer } = await supabase
-    .from('profiles')
-    .select('id, soul_tokens')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (byCustomer) return byCustomer;
-
-  // Fall back to email
-  if (email) {
-    const { data: byEmail } = await supabase
+  // 1. Direct user ID from checkout session metadata (most reliable)
+  if (knownUserId) {
+    const { data } = await supabase
       .from('profiles')
       .select('id, soul_tokens')
-      .eq('email', email)
+      .eq('id', knownUserId)
       .single();
-    return byEmail ?? null;
+    if (data) {
+      console.log('[webhook] Found profile by known user ID:', data.id);
+      return data;
+    }
   }
 
+  // 2. Try stripe_customer_id column (may not exist yet — catch error)
+  try {
+    const { data: byCustomer, error } = await supabase
+      .from('profiles')
+      .select('id, soul_tokens')
+      .eq('stripe_customer_id', customerId)
+      .single();
+    if (!error && byCustomer) {
+      console.log('[webhook] Found profile by stripe_customer_id:', byCustomer.id);
+      return byCustomer;
+    }
+  } catch {
+    // Column doesn't exist yet — fall through
+  }
+
+  // 3. Fall back to auth.admin lookup by email (always works, no column deps)
+  if (email) {
+    try {
+      const { data: authData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const user = authData?.users?.find(u => u.email === email);
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, soul_tokens')
+          .eq('id', user.id)
+          .single();
+        if (profileData) {
+          console.log('[webhook] Found profile by email lookup:', profileData.id);
+          return profileData;
+        }
+      }
+    } catch (e) {
+      console.warn('[webhook] Auth admin lookup failed:', e);
+    }
+  }
+
+  console.error('[webhook] No profile found for customer:', customerId, '/ email:', email);
   return null;
 }
 
-// ─── Event Handlers ───────────────────────────────────────────────────────────
+// ─── Safe profile update — works before AND after migration ──────────────────
+
+async function safeProfileUpdate(
+  supabase: ReturnType<typeof getServiceClient>,
+  userId: string,
+  payload: Record<string, unknown>
+): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update(payload)
+    .eq('id', userId);
+
+  if (!error) return;
+
+  // If missing-column error, strip optional new columns and retry
+  const msg = error.message ?? '';
+  if (msg.includes('column') || msg.includes('does not exist') || msg.includes('42703')) {
+    const safePayload: Record<string, unknown> = {};
+    const baseKeys = ['soul_tokens', 'streak_days', 'last_checkin', 'updated_at',
+                      'persona', 'age_tier', 'r_rated_mode'];
+    for (const k of baseKeys) {
+      if (k in payload) safePayload[k] = payload[k];
+    }
+    if (Object.keys(safePayload).length > 0) {
+      const { error: e2 } = await supabase.from('profiles').update(safePayload).eq('id', userId);
+      if (e2) throw e2;
+    }
+    console.warn('[webhook] Profile updated with safe-only columns (migration pending)');
+  } else {
+    throw error;
+  }
+}
+
+// ─── Safe payment_events insert — graceful if table doesn't exist yet ─────────
+
+async function safeLogPaymentEvent(
+  supabase: ReturnType<typeof getServiceClient>,
+  event: Record<string, unknown>
+): Promise<void> {
+  try {
+    await supabase.from('payment_events').insert(event).select();
+  } catch {
+    // Table may not exist yet — non-blocking
+    console.warn('[webhook] payment_events table not yet created — skipping audit log');
+  }
+}
+
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
 async function handleCheckoutComplete(
   session: Stripe.Checkout.Session,
@@ -95,35 +180,40 @@ async function handleCheckoutComplete(
   const priceId = session.line_items?.data[0]?.price?.id;
   const tier = (priceId ? PRICE_TO_TIER[priceId] : null) ?? 'solo';
   const tokenBonus = TIER_TOKEN_BONUS[tier] ?? 30;
-  const email = session.customer_details?.email;
+  const email = session.customer_details?.email ?? session.customer_email;
+  const knownUserId = (session.metadata?.supabase_user_id as string) ?? null;
 
-  const profile = await findProfile(supabase, customerId, email);
+  console.log(`[webhook] checkout.session.completed | tier=${tier} | customer=${customerId}`);
+
+  const profile = await findProfile(supabase, customerId, email, knownUserId);
   if (!profile) {
-    console.error(`[webhook] No profile for customer ${customerId} / email ${email}`);
-    return; // Don't throw — log and move on so Stripe doesn't retry forever
+    // Payment received but can't link user — log and return 200 so Stripe doesn't retry
+    console.error(`[webhook] UNLINKED PAYMENT — customer ${customerId} / email ${email} / tier ${tier}`);
+    await safeLogPaymentEvent(supabase, {
+      stripe_customer_id: customerId,
+      event_type: 'checkout_completed_unlinked',
+      amount: session.amount_total ?? 0,
+      currency: session.currency ?? 'usd',
+    });
+    return;
   }
 
-  // Update profile with Stripe binding + tier + tokens
-  const { error: profileErr } = await supabase
-    .from('profiles')
-    .update({
-      stripe_customer_id: customerId,
-      subscription_tier: tier,
-      subscription_status: 'active',
-      soul_tokens: (profile.soul_tokens ?? 0) + tokenBonus,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', profile.id);
+  // Update profile — safe against missing columns
+  await safeProfileUpdate(supabase, profile.id, {
+    stripe_customer_id: customerId,
+    subscription_tier: tier,
+    subscription_status: 'active',
+    soul_tokens: (profile.soul_tokens ?? 0) + tokenBonus,
+    updated_at: new Date().toISOString(),
+  });
 
-  if (profileErr) throw profileErr;
-
-  // Also upsert into subscriptions table (source of truth for billing)
+  // Upsert subscriptions table (stripe_customer_id IS unique — this works)
   const { error: subErr } = await supabase
     .from('subscriptions')
     .upsert({
       user_id: profile.id,
       stripe_customer_id: customerId,
-      stripe_subscription_id: session.subscription as string ?? null,
+      stripe_subscription_id: (session.subscription as string) ?? null,
       tier,
       status: 'active',
       updated_at: new Date().toISOString(),
@@ -131,16 +221,15 @@ async function handleCheckoutComplete(
 
   if (subErr) console.warn('[webhook] subscriptions upsert warning:', subErr.message);
 
-  // Log payment event
-  await supabase.from('payment_events').insert({
+  // Audit log
+  await safeLogPaymentEvent(supabase, {
     stripe_customer_id: customerId,
-    user_id: profile.id,
     event_type: 'checkout_completed',
     amount: session.amount_total ?? 0,
     currency: session.currency ?? 'usd',
-    stripe_event_id: session.id,
-    created_at: new Date().toISOString(),
-  }).select();
+  });
+
+  console.log(`[webhook] ✅ User ${profile.id} upgraded to ${tier} | +${tokenBonus} tokens`);
 }
 
 async function handleSubscriptionChange(
@@ -153,15 +242,19 @@ async function handleSubscriptionChange(
   const status = subscription.status;
   const isActive = status === 'active';
 
-  // Update profiles
-  await supabase
-    .from('profiles')
-    .update({
-      subscription_tier: isActive ? (tier ?? 'solo') : 'free',
-      subscription_status: isActive ? 'active' : status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_customer_id', customerId);
+  // Update profiles (defensive — stripe_customer_id might not be column yet)
+  try {
+    await supabase
+      .from('profiles')
+      .update({
+        subscription_tier: isActive ? (tier ?? 'solo') : 'free',
+        subscription_status: isActive ? 'active' : status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_customer_id', customerId);
+  } catch {
+    console.warn('[webhook] handleSubscriptionChange: profile update skipped — migration pending');
+  }
 
   // Update subscriptions table
   await supabase
@@ -180,22 +273,25 @@ async function handlePaymentFailed(
 ) {
   const customerId = invoice.customer as string;
 
-  await supabase
-    .from('profiles')
-    .update({
-      subscription_status: 'past_due',
-      updated_at: new Date().toISOString(),
-    })
+  try {
+    await supabase
+      .from('profiles')
+      .update({ subscription_status: 'past_due', updated_at: new Date().toISOString() })
+      .eq('stripe_customer_id', customerId);
+  } catch {
+    console.warn('[webhook] handlePaymentFailed: profile update skipped — migration pending');
+  }
+
+  await supabase.from('subscriptions')
+    .update({ status: 'past_due', updated_at: new Date().toISOString() })
     .eq('stripe_customer_id', customerId);
 
-  await supabase.from('payment_events').insert({
+  await safeLogPaymentEvent(supabase, {
     stripe_customer_id: customerId,
     event_type: 'payment_failed',
     amount: invoice.amount_due,
     currency: invoice.currency,
-    stripe_event_id: invoice.id,
-    created_at: new Date().toISOString(),
-  }).select();
+  });
 }
 
 // ─── Main Handler ─────────────────────────────────────────────────────────────
@@ -248,11 +344,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[webhook] ${event.type} failed:`, message);
+    console.error(`[webhook] ${event.type} fatal:`, message);
+    // Return 500 only for truly unexpected errors
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  return NextResponse.json({ status: 'Webhook endpoint active' }, { status: 200 });
 }
