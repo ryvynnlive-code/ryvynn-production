@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
   try {
@@ -7,47 +8,72 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const raw = process.env.DATABASE_URL || 'NOT_SET';
-    if (raw === 'NOT_SET') return NextResponse.json({ error: 'DATABASE_URL not set' });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const projectRef = 'iofkxyljwemnnbwzcrke';
 
-    // Parse without exposing password
-    let parsed: any = {};
-    try {
-      const u = new URL(raw);
-      parsed = {
-        protocol: u.protocol,
-        username: u.username,
-        host: u.hostname,
-        port: u.port,
-        pathname: u.pathname,
-        hasPassword: u.password.length > 0,
-        passwordLength: u.password.length,
-        isPooler: u.hostname.includes('pooler.supabase.com'),
-        isDirect: u.hostname.includes('.supabase.co') && !u.hostname.includes('pooler'),
-        rawPort: raw.includes(':6543') ? '6543-txn' : raw.includes(':5432') ? '5432-session' : 'unknown',
-      };
+    // Try Supabase Management API with service role key
+    const mgmtRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' ORDER BY column_name`
+      })
+    });
+    const mgmtData = await mgmtRes.json();
 
-      // Try the transformation and show result (no password)
-      let transformed = raw.replace(':6543/', ':5432/');
-      const u2 = new URL(transformed);
-      if (u2.username === 'postgres' && u2.hostname.includes('pooler.supabase.com')) {
-        u2.username = 'postgres.iofkxyljwemnnbwzcrke';
-        transformed = u2.toString();
+    if (mgmtRes.ok) {
+      // Management API worked! Now run migrations
+      const ddlStatements = [
+        `ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`,
+        `ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free'`,
+        `ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive'`,
+        `CREATE TABLE IF NOT EXISTS public.crisis_events (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+          session_id TEXT, risk_level TEXT, signals TEXT[],
+          created_at TIMESTAMPTZ DEFAULT now()
+        )`,
+        `ALTER TABLE public.crisis_events ENABLE ROW LEVEL SECURITY`,
+      ];
+
+      const results = [];
+      for (const sql of ddlStatements) {
+        const r = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${serviceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: sql })
+        });
+        const d = await r.json();
+        results.push({ sql: sql.slice(0, 50), ok: r.ok, response: d });
       }
-      const u3 = new URL(transformed);
-      parsed.transformedUsername = u3.username;
-      parsed.transformedHost = u3.hostname;
-      parsed.transformedPort = u3.port;
-      parsed.transformedPasswordLength = u3.password.length;
-    } catch(e: any) {
-      parsed.parseError = e.message;
-      parsed.rawStart = raw.substring(0, 30) + '...';
+      return NextResponse.json({ method: 'management_api', columns_before: mgmtData, migrations: results });
     }
 
-    // Also check if NEXT_PUBLIC_SUPABASE_URL is set (to confirm Supabase project)
-    parsed.supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT_SET';
+    // Management API failed — try via Supabase admin client RPC
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
-    return NextResponse.json({ debug: parsed });
+    // Check if columns exist via admin client
+    const { data: colData, error: colErr } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id, subscription_tier, subscription_status')
+      .limit(1);
+
+    return NextResponse.json({
+      method: 'fallback_check',
+      mgmt_api_status: mgmtRes.status,
+      mgmt_api_error: mgmtData,
+      profiles_col_check: colErr ? { missing: true, error: colErr.message } : { exists: true },
+    });
+
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
