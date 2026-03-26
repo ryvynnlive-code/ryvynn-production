@@ -26,15 +26,12 @@ async function getEntry(id: string) {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string };
-}): Promise<Metadata> {
-  const entry = await getEntry(params.id);
-  if (!entry) {
-    return { title: 'Transformation Not Found | RYVYNN' };
-  }
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const entry = await getEntry(id);
+  if (!entry) return { title: 'Transformation Not Found | RYVYNN' };
 
   const confessionSnip =
     entry.confession.length > 80
@@ -49,18 +46,11 @@ export async function generateMetadata({
     robots: { index: true, follow: true },
     openGraph: {
       type: 'article',
-      url: `https://ryvynn.live/wall/${params.id}`,
+      url: `https://ryvynn.live/wall/${id}`,
       siteName: 'RYVYNN',
       title: 'Someone turned their darkness into light',
       description,
-      images: [
-        {
-          url: '/assets/dual-flame-logo.png',
-          width: 512,
-          height: 512,
-          alt: 'RYVYNN Dual Flame',
-        },
-      ],
+      images: [{ url: '/assets/dual-flame-logo.png', width: 512, height: 512, alt: 'RYVYNN Dual Flame' }],
     },
     twitter: {
       card: 'summary',
@@ -71,18 +61,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function WallEntryPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const entry = await getEntry(params.id);
+export default async function WallEntryPage({ params }: Props) {
+  const { id } = await params;
+  const entry = await getEntry(id);
   if (!entry) notFound();
 
   return (
     <main className="min-h-screen py-16 px-6 flex flex-col items-center justify-center">
       <div className="max-w-3xl w-full">
-        {/* Header */}
         <div className="text-center mb-12">
           <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">
             From the Miracle Wall
@@ -92,37 +78,25 @@ export default async function WallEntryPage({
           </h1>
         </div>
 
-        {/* 50/50 Card */}
         <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-gray-800 rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)]">
           <div className="grid md:grid-cols-2 divide-y-2 md:divide-y-0 md:divide-x-2 divide-gray-800">
-            {/* Shadow */}
             <div className="p-8 bg-gradient-to-br from-gray-900 to-black">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-2xl">🌑</span>
-                <h2 className="font-bold text-ryvynn-cyan text-sm uppercase tracking-widest">
-                  The Shadow
-                </h2>
+                <h2 className="font-bold text-ryvynn-cyan text-sm uppercase tracking-widest">The Shadow</h2>
               </div>
-              <p className="text-gray-200 leading-relaxed text-lg">
-                {entry.confession}
-              </p>
+              <p className="text-gray-200 leading-relaxed text-lg">{entry.confession}</p>
             </div>
 
-            {/* Light */}
             <div className="p-8 bg-gradient-to-br from-black to-gray-900">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-2xl">✨</span>
-                <h2 className="font-bold text-ryvynn-purple text-sm uppercase tracking-widest">
-                  The Light
-                </h2>
+                <h2 className="font-bold text-ryvynn-purple text-sm uppercase tracking-widest">The Light</h2>
               </div>
-              <p className="text-gray-200 leading-relaxed text-lg">
-                {entry.transformation}
-              </p>
+              <p className="text-gray-200 leading-relaxed text-lg">{entry.transformation}</p>
             </div>
           </div>
 
-          {/* Footer */}
           <div className="border-t-2 border-gray-800 px-8 py-5 flex items-center justify-between bg-black/60">
             <div className="flex items-center gap-2 text-ryvynn-purple font-bold">
               <span className="text-xl">🔥</span>
@@ -134,11 +108,8 @@ export default async function WallEntryPage({
           </div>
         </div>
 
-        {/* CTA */}
         <div className="mt-12 text-center space-y-4">
-          <p className="text-gray-400 text-lg">
-            Your darkness has a path through it too.
-          </p>
+          <p className="text-gray-400 text-lg">Your darkness has a path through it too.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/wall"
