@@ -8,10 +8,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Confession and mode required' }, { status: 400 });
     }
 
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-    if (!ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: 'AI system not configured' }, { status: 500 });
-    }
 
     const isES = language === 'es';
 
@@ -33,7 +31,7 @@ Confession: "${confession}"
 
 Respond with 3-4 sentences that:
 1. Acknowledge the real weight of what they shared
-2. Find something true or strong in the darkness  
+2. Find something true or strong in the darkness
 3. Point toward light without forcing optimism
 
 No clinical advice. No clichés. Pure, honest transformation only.`,
@@ -54,34 +52,58 @@ Respond with exactly 3 things:
     };
 
     const prompt = prompts[mode] || prompts.transform;
+    let transformation = '';
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('❌ Anthropic API error:', err);
-      throw new Error('AI call failed: ' + err);
+    // Try Gemini first (primary — Anthropic credits may be depleted)
+    if (GEMINI_API_KEY) {
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { maxOutputTokens: 400, temperature: 0.9 },
+            }),
+          }
+        );
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          transformation = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        }
+      } catch (e) {
+        console.error('[confession] Gemini error, trying Anthropic fallback:', e);
+      }
     }
 
-    const data = await response.json();
-    const transformation = data.content?.[0]?.text || '';
+    // Fallback to Anthropic
+    if (!transformation && ANTHROPIC_API_KEY) {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 400,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        transformation = data.content?.[0]?.text || '';
+      }
+    }
+
+    if (!transformation) throw new Error('All AI providers failed');
 
     return NextResponse.json({ transformation, mode });
 
   } catch (error: any) {
-    console.error('❌ Confession error:', error.message);
+    console.error('[confession] error:', error.message);
     return NextResponse.json({
       transformation: "Your shadow has been heard. The darkness you carry is real — and so is the courage it took to name it. Something in you still reaches toward light. That reaching is where miracles begin.",
       mode: 'transform',
