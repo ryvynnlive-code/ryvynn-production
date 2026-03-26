@@ -25,26 +25,12 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (profileError) {
-      // Profile not found (PGRST116) — auto-create it with defaults
+      // Profile not found — return defaults (signup flow guarantees profile exists for real users)
       if (profileError.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: userId,
-            persona: 'neutral',
-            age_tier: 'adult',
-            r_rated_mode: false,
-            soul_tokens: 10,
-            streak_days: 0,
-            last_checkin: new Date().toISOString(),
-          }, { onConflict: 'id' })
-          .select('soul_tokens, streak_days, last_checkin')
-          .single();
-        if (createError) throw createError;
         return NextResponse.json({
-          balance: newProfile.soul_tokens,
-          streak: newProfile.streak_days,
-          lastCheckIn: newProfile.last_checkin,
+          balance: 10,
+          streak: 0,
+          lastCheckIn: new Date().toISOString(),
           transactions: [],
         });
       }
@@ -87,26 +73,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (profileError) {
-      // Profile not found (PGRST116) — auto-create it with defaults
+      // Profile not found — return defaults (signup flow guarantees profile exists for real users)
       if (profileError.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: userId,
-            persona: 'neutral',
-            age_tier: 'adult',
-            r_rated_mode: false,
-            soul_tokens: 10,
-            streak_days: 0,
-            last_checkin: new Date().toISOString(),
-          }, { onConflict: 'id' })
-          .select('soul_tokens, streak_days, last_checkin')
-          .single();
-        if (createError) throw createError;
         return NextResponse.json({
-          balance: newProfile.soul_tokens,
-          streak: newProfile.streak_days,
-          lastCheckIn: newProfile.last_checkin,
+          balance: 10,
+          streak: 0,
+          lastCheckIn: new Date().toISOString(),
           transactions: [],
         });
       }
