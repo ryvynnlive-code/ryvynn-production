@@ -25,7 +25,6 @@ interface SoulTokenContextType {
   loading: boolean;
   refresh: () => Promise<void>;
   checkDailyLogin: () => Promise<void>;
-  // Legacy compat — use refresh() or checkDailyLogin() for real mutations
   earnTokens: (amount: number, reason: string) => void;
   spendTokens: (amount: number, reason: string) => boolean;
 }
@@ -74,7 +73,6 @@ export function SoulTokenProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  // Fetch on mount + whenever user changes
   useEffect(() => {
     fetchTokenData();
   }, [fetchTokenData]);
@@ -109,8 +107,8 @@ export function SoulTokenProvider({ children }: { children: ReactNode }) {
         loading,
         refresh: fetchTokenData,
         checkDailyLogin,
-        earnTokens: () => {}, // legacy no-op — mutations go through API
-        spendTokens: () => false, // legacy no-op
+        earnTokens: () => {},
+        spendTokens: () => false,
       }}
     >
       {children}
