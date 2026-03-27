@@ -108,7 +108,7 @@ function detectCrisis(text: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, userId, language, isFirstMessage, persona = 'neutral', emotionalDepth = false } = await req.json();
+    const { message, userId, language, isFirstMessage, persona = 'neutral', emotionalDepth = false, sessionHistory = [] } = await req.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
@@ -150,7 +150,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Load conversation history (logged-in users only)
+    // Session memory:
+    // - Logged-in users: load from Supabase (persistent across sessions)
+    // - Anonymous users: use sessionHistory from request (in-memory, zero storage, gone on tab close)
     let history: Array<{ role: string; content: string }> = [];
     if (userId && hasSupabase) {
       try {
@@ -165,6 +167,9 @@ export async function POST(req: NextRequest) {
       } catch (e) {
         console.error('Error fetching history:', e);
       }
+    } else if (sessionHistory.length > 0) {
+      // Anonymous session — use what the client sent, nothing persisted
+      history = sessionHistory.slice(-10);
     }
 
     // Persona tone modifiers — injected at system prompt level
