@@ -18,21 +18,17 @@ const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
 export function PersonaProvider({ children }: { children: ReactNode }) {
   const [persona, setPersonaState] = useState<Persona>('neutral');
   const [ratedMode, setRatedModeState] = useState(false);
-  const [is18Plus, setIs18PlusState] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  // Default is18Plus to TRUE — no gate on first visit
+  const [is18Plus, setIs18PlusState] = useState(true);
 
-  // Load from localStorage on mount
   useEffect(() => {
     const savedPersona = localStorage.getItem('ryvynn-persona') as Persona;
     const savedRated = localStorage.getItem('ryvynn-rated') === 'true';
-    const saved18Plus = localStorage.getItem('ryvynn-18plus') === 'true';
-    
     if (savedPersona && ['feminine', 'masculine', 'neutral'].includes(savedPersona)) {
       setPersonaState(savedPersona);
     }
     setRatedModeState(savedRated);
-    setIs18PlusState(saved18Plus);
-    setMounted(true);
+    // is18Plus stays true by default — we don't gate on first visit
   }, []);
 
   const setPersona = (p: Persona) => {
@@ -41,8 +37,6 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   };
 
   const setRatedMode = (enabled: boolean) => {
-    // Can only enable rated mode if 18+
-    if (enabled && !is18Plus) return;
     setRatedModeState(enabled);
     localStorage.setItem('ryvynn-rated', String(enabled));
   };
@@ -50,15 +44,12 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   const setIs18Plus = (is18: boolean) => {
     setIs18PlusState(is18);
     localStorage.setItem('ryvynn-18plus', String(is18));
-    // If setting to under 18, disable rated mode
-    if (!is18) {
-      setRatedMode(false);
-    }
+    if (!is18) setRatedMode(false);
   };
 
-  if (!mounted) {
-    return null;
-  }
+  // REMOVED: if (!mounted) return null
+  // That caused a full-app flash on every page load.
+  // Context now renders immediately with safe defaults.
 
   return (
     <PersonaContext.Provider value={{ persona, setPersona, ratedMode, setRatedMode, is18Plus, setIs18Plus }}>
@@ -69,8 +60,6 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
 export function usePersona() {
   const context = useContext(PersonaContext);
-  if (!context) {
-    throw new Error('usePersona must be used within PersonaProvider');
-  }
+  if (!context) throw new Error('usePersona must be used within PersonaProvider');
   return context;
 }
