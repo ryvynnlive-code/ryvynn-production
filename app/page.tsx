@@ -39,6 +39,7 @@ export default function HomePage() {
   const [confIdx, setConfIdx]   = useState(0);
   const [showFloat, setShowFloat]       = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [wallCount, setWallCount]           = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +49,10 @@ export default function HomePage() {
     // Show onboarding on first ever visit
     const seen = localStorage.getItem('ryvynn-onboarded');
     if (!seen) setShowOnboarding(true);
+    // Fetch live wall count for social proof
+    fetch('/api/wall?limit=1').then(r => r.json()).then(d => {
+      if (d.total) setWallCount(d.total);
+    }).catch(() => {});
     return () => { clearTimeout(t1); clearInterval(t2); };
   }, []);
 
@@ -149,6 +154,17 @@ export default function HomePage() {
           Private by design — nothing you type is stored or remembered.
         </span>
       </div>
+
+      {/* Social proof — live count, only shows when wall has entries */}
+      {wallCount && wallCount > 10 && (
+        <div style={{ padding: '8px 20px', textAlign: 'center',
+          borderBottom: '1px solid rgba(255,255,255,.05)',
+          background: 'rgba(124,92,191,.04)' }}>
+          <span style={{ fontSize: 12, color: '#636e84' }}>
+            {wallCount.toLocaleString()} voices on the wall · anonymous · nothing stored
+          </span>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════
           HERO — above the fold. Calm. No barriers. No warnings.
