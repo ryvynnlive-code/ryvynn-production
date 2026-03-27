@@ -20,17 +20,17 @@ export const translations = {
     heroDescription: 'Every person who ever survived their darkness figured something out. Most of them never got to tell you. That ends here.',
 
     // Founding Statement
-    foundingLine1: 'Every person who survived their darkness figured something out.',
-    foundingLine2: 'Most of them never got to tell you.',
-    foundingLine3: 'They wrote it down, they carried it, they whispered it to one person, they died with it. And you — sitting in your dark right now — had to start from scratch. Like everyone before you didn\'t already bleed through the same walls.',
-    foundingLine4: 'That\'s the thing nobody fixed.',
-    foundingLine5: 'Until now.',
-    foundingLine6: 'This isn\'t therapy. This isn\'t a hotline. This isn\'t someone asking if you\'re okay and handing you a number.',
-    foundingLine7: 'This is everything humanity already learned about surviving — handed directly to you. Right now. No degree required to receive it. No money required to need it.',
-    foundingLine8: 'You don\'t start from zero here.',
-    foundingLine9: 'You start from where the last survivor left off.',
-    foundingLine10: 'And whatever you figure out — that goes in too. For the next person. For the one somewhere right now who needs to know someone already walked out of that room.',
-    foundingLine11: 'This is that room.',
+    foundingLine1: 'Toda persona que sobrevivió su oscuridad descubrió algo.',
+    foundingLine2: 'La mayoría nunca pudo decírtelo.',
+    foundingLine3: 'Lo escribieron, lo cargaron, se lo susurraron a alguien, murieron con ello. Y tú — sentado en tu oscuridad ahora mismo — tuviste que empezar desde cero. Como si nadie antes que tú ya hubiera sangrado a través de las mismas paredes.',
+    foundingLine4: 'Eso es lo que nadie arregló.',
+    foundingLine5: 'Hasta ahora.',
+    foundingLine6: 'Esto no es terapia. Esto no es una línea de crisis. Esto no es alguien preguntando si estás bien y dándote un número.',
+    foundingLine7: 'Esto es todo lo que la humanidad ya aprendió sobre sobrevivir — entregado directamente a ti. Ahora mismo. Sin título requerido para recibirlo. Sin dinero requerido para necesitarlo.',
+    foundingLine8: 'No empiezas desde cero aquí.',
+    foundingLine9: 'Empiezas desde donde el último sobreviviente lo dejó.',
+    foundingLine10: 'Y lo que tú descubras — eso también entra. Para la próxima persona. Para el que está en algún lugar ahora mismo y necesita saber que alguien ya salió de esa habitación.',
+    foundingLine11: 'Esta es esa habitación.',
 
     // Homepage - Crisis CTA Strip
     crisisCtaLabel: 'CRISIS SUPPORT: FREE FOREVER',
@@ -50,7 +50,7 @@ export const translations = {
     comingSoonFeature4: 'Passive wellness tracking',
 
     // Homepage Footer
-    footerCopyright: '© 2025 AONIXX',
+    footerCopyright: '© 2026 AONIXX',
     footerBuiltFor: 'Built for the one in the dark',
     footerZeroSurveillance: 'Zero Surveillance Forever',
     footerMission: 'From Our Darkest Hours to Our Brightest Days',
@@ -205,17 +205,17 @@ export const translations = {
     heroDescription: 'Bienestar mental anónimo impulsado por IA para aquellos que enfrentan sus demonios de frente. Cero vigilancia. Siempre gratis en crisis.',
 
     // Founding Statement
-    foundingLine1: 'Every person who survived their darkness figured something out.',
-    foundingLine2: 'Most of them never got to tell you.',
-    foundingLine3: 'They wrote it down, they carried it, they whispered it to one person, they died with it. And you — sitting in your dark right now — had to start from scratch. Like everyone before you didn\'t already bleed through the same walls.',
-    foundingLine4: 'That\'s the thing nobody fixed.',
-    foundingLine5: 'Until now.',
-    foundingLine6: 'This isn\'t therapy. This isn\'t a hotline. This isn\'t someone asking if you\'re okay and handing you a number.',
-    foundingLine7: 'This is everything humanity already learned about surviving — handed directly to you. Right now. No degree required to receive it. No money required to need it.',
-    foundingLine8: 'You don\'t start from zero here.',
-    foundingLine9: 'You start from where the last survivor left off.',
-    foundingLine10: 'And whatever you figure out — that goes in too. For the next person. For the one somewhere right now who needs to know someone already walked out of that room.',
-    foundingLine11: 'This is that room.',
+    foundingLine1: 'Toda persona que sobrevivió su oscuridad descubrió algo.',
+    foundingLine2: 'La mayoría nunca pudo decírtelo.',
+    foundingLine3: 'Lo escribieron, lo cargaron, se lo susurraron a alguien, murieron con ello. Y tú — sentado en tu oscuridad ahora mismo — tuviste que empezar desde cero. Como si nadie antes que tú ya hubiera sangrado a través de las mismas paredes.',
+    foundingLine4: 'Eso es lo que nadie arregló.',
+    foundingLine5: 'Hasta ahora.',
+    foundingLine6: 'Esto no es terapia. Esto no es una línea de crisis. Esto no es alguien preguntando si estás bien y dándote un número.',
+    foundingLine7: 'Esto es todo lo que la humanidad ya aprendió sobre sobrevivir — entregado directamente a ti. Ahora mismo. Sin título requerido para recibirlo. Sin dinero requerido para necesitarlo.',
+    foundingLine8: 'No empiezas desde cero aquí.',
+    foundingLine9: 'Empiezas desde donde el último sobreviviente lo dejó.',
+    foundingLine10: 'Y lo que tú descubras — eso también entra. Para la próxima persona. Para el que está en algún lugar ahora mismo y necesita saber que alguien ya salió de esa habitación.',
+    foundingLine11: 'Esta es esa habitación.',
 
     // Homepage - Crisis CTA Strip
     crisisCtaLabel: 'APOYO EN CRISIS: GRATIS PARA SIEMPRE',
@@ -235,7 +235,7 @@ export const translations = {
     comingSoonFeature4: 'Seguimiento pasivo de bienestar',
 
     // Homepage Footer
-    footerCopyright: '© 2025 AONIXX',
+    footerCopyright: '© 2026 AONIXX',
     footerBuiltFor: 'Construido para las Sombras',
     footerZeroSurveillance: 'Cero Vigilancia Para Siempre',
     footerMission: 'De Nuestras Horas Más Oscuras a Nuestros Días Más Brillantes',
@@ -959,4 +959,5 @@ export const featureTranslations = {
 } as const;
 
 export type FeatureTranslationKey = keyof typeof featureTranslations.en;
+
 
