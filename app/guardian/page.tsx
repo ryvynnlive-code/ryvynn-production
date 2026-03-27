@@ -103,7 +103,16 @@ export default function GuardianPage() {
       const res  = await fetch('/api/guardian/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ userId, message: text.trim(), crisisLevel: signal.level, persona, language, emotionalDepth }),
+        body:    JSON.stringify({
+          userId,
+          message: text.trim(),
+          crisisLevel: signal.level,
+          persona,
+          language,
+          emotionalDepth,
+          // Pass last 10 messages as session context — not stored, just gives Gemini memory within this tab session
+          sessionHistory: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
+        }),
       });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
