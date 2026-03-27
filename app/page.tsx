@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useI18n } from '@/contexts/I18nContext';
 
-async function getDemoResponse(msg: string, language: string): Promise<string | null> {
+// ─── Demo calls the internal Gemini-backed route — never direct browser API calls
+async function getDemoResponse(msg: string): Promise<string | null> {
   try {
     const res = await fetch('/api/guardian/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, language }),
+      body: JSON.stringify({ message: msg }),
     });
     if (!res.ok) throw new Error('err');
     const data = await res.json();
@@ -18,400 +18,475 @@ async function getDemoResponse(msg: string, language: string): Promise<string | 
   } catch { return null; }
 }
 
-const QUOTE_KEYS = [
-  ['hpQ1','hpQ1time','hpQ1tag'],
-  ['hpQ2','hpQ2time','hpQ2tag'],
-  ['hpQ3','hpQ3time','hpQ3tag'],
-  ['hpQ4','hpQ4time','hpQ4tag'],
-] as const;
-
-const WHO_KEYS = ['v2Who1','v2Who2','v2Who3','v2Who4','v2Who5','v2Who6'] as const;
-const CONF_KEYS = ['hpConf1','hpConf2','hpConf3','hpConf4','hpConf5','hpConf6'] as const;
+// ─── Rotating confessions ─────────────────────────────────────────────────────
+const CONFESSIONS = [
+  "I just need somewhere to say it.",
+  "I don't want advice. I just want to not be alone with it.",
+  "There's no one I can actually tell.",
+  "I'm fine in public. I'm not fine.",
+  "I've been holding this for weeks.",
+  "I don't want to be fixed. I want to be heard.",
+];
 
 export default function HomePage() {
-  const { t, language } = useI18n();
-  const [input, setInput]   = useState('');
-  const [reply, setReply]   = useState<string | null>(null);
-  const [typing, setTyping] = useState(false);
-  const [sent, setSent]     = useState(false);
-  const [confIdx, setConfIdx] = useState(0);
+  // Demo state
+  const [input, setInput]       = useState('');
+  const [reply, setReply]       = useState<string | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [sent, setSent]         = useState(false);
+
+  // Confession rotator
+  const [confIdx, setConfIdx]   = useState(0);
   const [showFloat, setShowFloat] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const demoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setShowFloat(true), 5000);
-    const t2 = setInterval(() => setConfIdx(i => (i + 1) % CONF_KEYS.length), 4500);
+    const t1 = setTimeout(() => setShowFloat(true), 8000);
+    const t2 = setInterval(() => setConfIdx(i => (i + 1) % CONFESSIONS.length), 4000);
     return () => { clearTimeout(t1); clearInterval(t2); };
   }, []);
 
-  const sendDemo = useCallback(async (text: string) => {
-    if (!text.trim() || typing) return;
-    setSent(true); setTyping(true); setReply(null);
-    const r = await getDemoResponse(text.trim(), language);
-    setReply(r ?? (language === 'es'
-      ? 'Aquí estoy. Este espacio es completamente tuyo.'
-      : "I'm right here. This space is completely yours."));
-    setTyping(false);
-  }, [typing, language]);
+  const send = useCallback(async (text: string) => {
+    if (!text.trim() || loading) return;
+    setSent(true);
+    setLoading(true);
+    setReply(null);
+    const r = await getDemoResponse(text.trim());
+    setReply(r ?? "I'm right here. Take a breath. What's going on?");
+    setLoading(false);
+  }, [loading]);
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDemo(input); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); }
   };
+
   const reset = () => { setInput(''); setReply(null); setSent(false); };
 
   const scrollToDemo = () =>
-    document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
+    demoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   return (
-    <main className="min-h-screen bg-[#06080f] text-[#dde4f0] overflow-x-hidden" style={{ fontFamily:"'Jost',sans-serif" }}>
+    <main className="min-h-screen bg-[#07080f] text-[#d8e0ee]" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap');
-        .rv-serif{font-family:'Cormorant Garamond',serif}
-        @keyframes rv-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes rv-in{from{opacity:0}to{opacity:1}}
-        @keyframes rv-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,217,255,.4)}65%{box-shadow:0 0 0 14px rgba(0,217,255,0)}}
-        @keyframes rv-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-        @keyframes rv-blink{0%,100%{opacity:.2}50%{opacity:1}}
-        @keyframes rv-slide{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-6px)}}
-        @keyframes rv-glow{0%,100%{opacity:.9}50%{opacity:1;text-shadow:0 0 40px rgba(0,217,255,.45)}}
-        @keyframes rv-float{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        .rv-up1{animation:rv-up .65s ease forwards;opacity:0;animation-delay:.05s}
-        .rv-up2{animation:rv-up .65s ease forwards;opacity:0;animation-delay:.18s}
-        .rv-up3{animation:rv-up .65s ease forwards;opacity:0;animation-delay:.30s}
-        .rv-up4{animation:rv-up .65s ease forwards;opacity:0;animation-delay:.42s}
-        .rv-up5{animation:rv-up .65s ease forwards;opacity:0;animation-delay:.54s}
-        .rv-in{animation:rv-in .4s ease forwards}
-        .rv-bob{animation:rv-bob 3.5s ease-in-out infinite}
-        .rv-slide{animation:rv-slide 4.5s ease-in-out infinite}
-        .rv-glow{animation:rv-glow 3.5s ease-in-out infinite}
-        .rv-pulse{animation:rv-pulse 2.2s infinite}
-        .rv-float-anim{animation:rv-float .45s ease forwards}
-        .rv-blink0{animation:rv-blink 1.3s ease 0s infinite}
-        .rv-blink1{animation:rv-blink 1.3s ease .3s infinite}
-        .rv-blink2{animation:rv-blink 1.3s ease .6s infinite}
-        .rv-section{max-width:1040px;margin:0 auto;padding:80px 20px}
-        .rv-tag{display:inline-block;background:rgba(0,217,255,.08);border:1px solid rgba(0,217,255,.2);color:#00D9FF;border-radius:99px;padding:4px 14px;font-size:11px;letter-spacing:.1em;font-weight:600;text-transform:uppercase;margin-bottom:16px}
-        .rv-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:24px 20px;transition:border-color .2s}
-        .rv-card:hover{border-color:rgba(0,217,255,.25)}
-        .rv-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(0,217,255,.12);border:1.5px solid #00D9FF;border-radius:99px;padding:15px 32px;color:#00D9FF;font-family:'Jost',sans-serif;font-weight:600;font-size:16px;cursor:pointer;text-decoration:none;letter-spacing:.03em;transition:all .18s;box-shadow:0 0 24px rgba(0,217,255,.15)}
-        .rv-btn:hover{background:rgba(0,217,255,.22);transform:scale(1.02)}
-        .rv-ghost{display:inline-block;border:none;background:none;color:#7a8499;font-family:'Jost',sans-serif;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-style:dotted}
-        .rv-ghost:hover{color:#dde4f0}
-        .rv-check::before{content:'✓ ';color:#00D9FF;font-weight:700}
-        .rv-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0}
-        .rv-float-wrap:hover{transform:scale(1.04);box-shadow:0 0 28px rgba(0,217,255,.45)!important}
-        .rv-demo-ta{background:transparent;border:none;outline:none;resize:none;width:100%;font-family:'Jost',sans-serif;font-size:16px;line-height:1.65;color:#dde4f0}
-        .rv-demo-ta::placeholder{color:#3a4455}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+        :root {
+          --cyan: #00C9E8;
+          --purple: #7C5CBF;
+          --dim: #636e84;
+          --dimmer: #3a4352;
+          --card: rgba(255,255,255,0.04);
+          --border: rgba(255,255,255,0.08);
+          --border-cyan: rgba(0,201,232,0.25);
+        }
+        .lora { font-family: 'Lora', Georgia, serif; }
+        .dim  { color: var(--dim); }
+        .dimmer { color: var(--dimmer); }
+        .cyan { color: var(--cyan); }
+        .section { max-width: 680px; margin: 0 auto; padding: 80px 24px; }
+        .section-wide { max-width: 900px; margin: 0 auto; padding: 80px 24px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+        .card-cyan { border-color: var(--border-cyan); }
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: rgba(0,201,232,0.1); border: 1.5px solid var(--cyan);
+          border-radius: 99px; padding: 14px 28px;
+          color: var(--cyan); font-size: 15px; font-weight: 500;
+          cursor: pointer; text-decoration: none; transition: all .15s;
+          box-shadow: 0 0 20px rgba(0,201,232,0.1);
+        }
+        .btn-primary:hover { background: rgba(0,201,232,0.18); transform: translateY(-1px); }
+        .btn-ghost {
+          background: none; border: none; color: var(--dim);
+          font-size: 14px; cursor: pointer; text-decoration: underline;
+          text-underline-offset: 3px; font-family: inherit;
+        }
+        .btn-ghost:hover { color: var(--cyan); }
+        .pulse { animation: lp 2.5s infinite; }
+        @keyframes lp { 0%,100%{box-shadow:0 0 0 0 rgba(0,201,232,.35)} 60%{box-shadow:0 0 0 14px rgba(0,201,232,0)} }
+        .fade-in { animation: fi .5s ease forwards; }
+        @keyframes fi { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .slide-up { animation: su .6s ease forwards; opacity: 0; }
+        @keyframes su { to{opacity:1;transform:translateY(0)} from{opacity:0;transform:translateY(16px)} }
+        .su1 { animation-delay:.05s }
+        .su2 { animation-delay:.15s }
+        .su3 { animation-delay:.25s }
+        .su4 { animation-delay:.35s }
+        .su5 { animation-delay:.45s }
+        .su6 { animation-delay:.55s }
+        .conf-slide { animation: cs 4s ease-in-out infinite; }
+        @keyframes cs { 0%{opacity:0;transform:translateY(6px)} 10%{opacity:1;transform:translateY(0)} 85%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-4px)} }
+        .blink0 { animation: bl 1.2s ease 0s infinite; }
+        .blink1 { animation: bl 1.2s ease .3s infinite; }
+        .blink2 { animation: bl 1.2s ease .6s infinite; }
+        @keyframes bl { 0%,100%{opacity:.2} 50%{opacity:1} }
+        .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+        .demo-ta {
+          background: transparent; border: none; outline: none; resize: none;
+          width: 100%; font-family: inherit; font-size: 16px; line-height: 1.7;
+          color: #d8e0ee; min-height: 90px;
+        }
+        .demo-ta::placeholder { color: var(--dimmer); }
+        @media(max-width:600px){
+          .section,.section-wide{padding:60px 18px}
+          .btn-primary{padding:13px 22px;font-size:14px}
+        }
       `}</style>
 
-      {/* ─── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-5 py-16 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{background:'radial-gradient(ellipse 70% 60% at 50% 45%,rgba(0,217,255,.05) 0%,rgba(139,92,246,.03) 50%,transparent 75%)'}} />
+      {/* ═══════════════════════════════════════════════════════════════════
+          MICRO BAR — one line, no drama, zero color alarm
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        padding: '9px 20px', textAlign: 'center',
+        borderBottom: '1px solid var(--border)',
+        background: 'rgba(255,255,255,.02)',
+      }}>
+        <span style={{ fontSize: 12, letterSpacing: '.05em', color: 'var(--dimmer)' }}>
+          🔒 Nothing you type is stored, logged, or remembered. Ever.
+        </span>
+      </div>
 
-        <div className="rv-up1 mb-5 rv-bob">
-          <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" width={64} height={64}
-            className="object-contain drop-shadow-[0_0_24px_rgba(0,217,255,.35)]" />
-        </div>
+      {/* ═══════════════════════════════════════════════════════════════════
+          HERO — above the fold. Calm. No barriers. No warnings.
+          First 3 seconds = "I am safe here."
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section ref={heroRef} style={{ padding: '80px 24px 60px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        <h1 className="rv-up2 rv-serif font-light text-white leading-tight mb-4"
-          style={{fontSize:'clamp(2.8rem,8vw,6.5rem)',letterSpacing:'-.01em'}}>
-          <span className="rv-glow">{t('v2HeroH1' as any)}</span>
-        </h1>
+          {/* Logo — small, calm, not dominant */}
+          <div className="slide-up su1" style={{ marginBottom: 28 }}>
+            <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" width={48} height={48}
+              style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 16px rgba(0,201,232,.3))' }} />
+          </div>
 
-        <p className="rv-up3 font-light mb-1" style={{fontSize:'clamp(1.05rem,2.5vw,1.3rem)',color:'#9aA0b0',maxWidth:440}}>
-          {t('v2HeroSub' as any)}
-        </p>
-        <p className="rv-up3 font-light mb-8" style={{fontSize:'clamp(1.05rem,2.5vw,1.3rem)',color:'#7a8499',maxWidth:440}}>
-          {t('v2HeroSub2' as any)}
-        </p>
+          {/* Headline */}
+          <h1 className="lora slide-up su2"
+            style={{ fontSize: 'clamp(2.2rem,6vw,3.8rem)', fontWeight: 400, lineHeight: 1.2, color: '#eef2fa', marginBottom: 18 }}>
+            Say what you can't say anywhere else.
+          </h1>
 
-        {/* Trust strip ABOVE the CTA */}
-        <div className="rv-up4 flex flex-wrap justify-center gap-x-5 gap-y-2 mb-8 max-w-lg">
-          {(['v2TrustAnon','v2TrustNoHistory','v2TrustNoTrack','v2TrustNotTherapy'] as const).map(k => (
-            <span key={k} className="rv-check text-sm" style={{color:'#7a8499'}}>{t(k as any)}</span>
-          ))}
-        </div>
+          {/* Sub */}
+          <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.2rem)', lineHeight: 1.7, color: 'var(--dim)', marginBottom: 10, maxWidth: 480, margin: '0 auto 10px' }}>
+            No account. No memory. No one watching.
+          </p>
+          <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.15rem)', lineHeight: 1.7, color: 'var(--dim)', marginBottom: 36, maxWidth: 480, margin: '0 auto 36px' }}>
+            Type whatever's weighing on you — it disappears the second you leave.
+          </p>
 
-        <div className="rv-up5 flex flex-col items-center gap-3 mb-12">
-          <Link href="/guardian" className="rv-btn rv-pulse">{t('v2CtaMain' as any)}</Link>
-          <button className="rv-ghost" onClick={scrollToDemo}>{t('v2CtaDemo' as any)} ↓</button>
-        </div>
+          {/* CTAs */}
+          <div className="slide-up su4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 40 }}>
+            <Link href="/guardian" className="btn-primary pulse" style={{ fontSize: 16, padding: '16px 36px' }}>
+              Start Talking — Nothing Saved
+            </Link>
+            <button className="btn-ghost" onClick={scrollToDemo}>
+              Or try it here first — type anything ↓
+            </button>
+          </div>
 
-        <div className="rv-up5 text-sm px-4 py-2.5 rounded-xl"
-          style={{background:'rgba(255,60,60,.06)',border:'1px solid rgba(255,60,60,.18)',color:'#ffaaaa',maxWidth:420}}>
-          🆘 {language === 'es' ? '¿En crisis? ' : 'In crisis? '}
-          <a href="tel:988" className="font-bold text-white">988</a>
-          {language === 'es' ? ' — gratis, 24/7' : ' — free, 24/7'}
+          {/* Inline trust bullets */}
+          <div className="slide-up su5" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 24px' }}>
+            {[
+              '🔒 Anonymous by default',
+              '🧠 No chat history, ever',
+              '🚫 No tracking, no accounts',
+              '💬 Not therapy — just a place to say it',
+            ].map(t => (
+              <span key={t} style={{ fontSize: 13, color: 'var(--dim)' }}>{t}</span>
+            ))}
+          </div>
         </div>
       </section>
 
-      <hr className="rv-divider" />
+      <hr className="divider" />
 
-      {/* ─── EMBEDDED DEMO ─────────────────────────────────────────────────── */}
-      <section id="demo-section" style={{padding:'64px 20px'}}>
-        <div style={{maxWidth:560,margin:'0 auto'}}>
-          <p className="text-center text-sm mb-5 font-semibold" style={{color:'#00D9FF',letterSpacing:'.08em',textTransform:'uppercase'}}>
-            {t('v2DemoLabel' as any)}
+      {/* ═══════════════════════════════════════════════════════════════════
+          LIVE DEMO — embedded, no scroll required.
+          This is the product. Let them feel it before committing.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section ref={demoRef} style={{ padding: '64px 24px' }}>
+        <div style={{ maxWidth: 600, margin: '0 auto' }}>
+
+          <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--cyan)', marginBottom: 20 }}>
+            Try it right now. Nothing is saved.
           </p>
-          <div style={{background:'rgba(255,255,255,.03)',border:`1px solid ${sent ? 'rgba(0,217,255,.3)' : 'rgba(255,255,255,.09)'}`,borderRadius:20,overflow:'hidden',transition:'border-color .3s'}}>
+
+          <div className={`card card-cyan`} style={{
+            borderColor: sent ? 'rgba(0,201,232,.4)' : 'var(--border-cyan)',
+            transition: 'border-color .3s',
+          }}>
             {!sent ? (
-              <div style={{padding:20}}>
-                <textarea className="rv-demo-ta" style={{minHeight:100}}
-                  placeholder={t('v2DemoPlaceholder' as any)}
-                  value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey} />
-                <div className="flex justify-between items-center mt-3 pt-3" style={{borderTop:'1px solid rgba(255,255,255,.06)'}}>
-                  <span className="text-xs" style={{color:'#3a4455'}}>
-                    {language === 'es' ? 'Enter para enviar' : 'Enter to send'}
-                  </span>
-                  <button onClick={() => sendDemo(input)} disabled={!input.trim()}
-                    className="rv-btn"
-                    style={{padding:'10px 22px',fontSize:14,opacity:input.trim() ? 1 : .35,animation:input.trim() ? 'rv-pulse 2.2s infinite' : 'none'}}>
-                    {t('v2DemoBtn' as any)}
+              /* Input state */
+              <>
+                <textarea
+                  className="demo-ta"
+                  placeholder="Type whatever's on your mind... this goes nowhere."
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>Enter to send</span>
+                  <button
+                    onClick={() => send(input)}
+                    disabled={!input.trim()}
+                    className="btn-primary"
+                    style={{ padding: '10px 22px', fontSize: 14, opacity: input.trim() ? 1 : .35, animation: input.trim() ? 'lp 2.5s infinite' : 'none' }}>
+                    Send
                   </button>
                 </div>
-              </div>
+              </>
             ) : (
-              <div style={{padding:20}}>
-                <div className="mb-4">
-                  <div className="text-[10px] tracking-widest mb-1.5" style={{color:'#3a4455'}}>{language === 'es' ? 'TÚ' : 'YOU'}</div>
-                  <div className="text-sm leading-relaxed px-4 py-2.5 inline-block"
-                    style={{background:'rgba(139,92,246,.15)',border:'1px solid rgba(139,92,246,.25)',color:'#dde4f0',borderRadius:'16px 16px 4px 16px',maxWidth:'85%'}}>
+              /* Response state */
+              <>
+                {/* User bubble */}
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '.08em', color: 'var(--dimmer)', marginBottom: 8, textTransform: 'uppercase' }}>You</div>
+                  <div style={{
+                    display: 'inline-block', background: 'rgba(124,92,191,.15)',
+                    border: '1px solid rgba(124,92,191,.25)', borderRadius: '14px 14px 4px 14px',
+                    padding: '10px 16px', fontSize: 15, lineHeight: 1.65, color: '#d8e0ee', maxWidth: '90%',
+                  }}>
                     {input}
                   </div>
                 </div>
-                {typing ? (
-                  <div className="flex gap-1.5 mt-2 pl-1">
-                    {[0,1,2].map(i => <div key={i} className={`w-2 h-2 rounded-full bg-ryvynn-cyan rv-blink${i}`} />)}
+
+                {/* RYVYNN response */}
+                {loading ? (
+                  <div style={{ display: 'flex', gap: 6, padding: '4px 0' }}>
+                    <div className="blink0" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cyan)' }} />
+                    <div className="blink1" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cyan)' }} />
+                    <div className="blink2" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cyan)' }} />
                   </div>
                 ) : reply ? (
-                  <div className="rv-in">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Image src="/assets/dual-flame-logo.png" alt="" width={14} height={14} className="object-contain opacity-80" />
-                      <span className="text-[10px] tracking-widest font-semibold" style={{color:'#00D9FF'}}>RYVYNN</span>
+                  <div className="fade-in">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <Image src="/assets/dual-flame-logo.png" alt="" width={14} height={14}
+                        style={{ objectFit: 'contain', opacity: .8 }} />
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.08em', color: 'var(--cyan)', textTransform: 'uppercase' }}>RYVYNN</span>
                     </div>
-                    <div className="text-[15px] leading-[1.85] whitespace-pre-wrap text-[#dde4f0] mb-5">{reply}</div>
-                    <div className="pt-4 flex gap-3 flex-wrap" style={{borderTop:'1px solid rgba(255,255,255,.06)'}}>
-                      <Link href="/guardian" className="rv-btn" style={{fontSize:14,padding:'11px 22px'}}>
-                        {t('v2DemoContinueBtn' as any)}
+                    <div style={{ fontSize: 15, lineHeight: 1.8, color: '#d8e0ee', whiteSpace: 'pre-wrap', marginBottom: 20 }}>
+                      {reply}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                      <Link href="/guardian" className="btn-primary" style={{ fontSize: 14, padding: '11px 22px' }}>
+                        Continue in RYVYNN →
                       </Link>
-                      <button onClick={reset} className="rv-ghost text-sm">{t('v2DemoRestartBtn' as any)}</button>
+                      <button onClick={reset} className="btn-ghost">Start over</button>
                     </div>
-                    <p className="mt-3 text-xs italic" style={{color:'#3a4455'}}>{t('v2DemoSessionNote' as any)}</p>
+                    <p style={{ marginTop: 12, fontSize: 12, color: 'var(--dimmer)', fontStyle: 'italic' }}>
+                      This conversation is not saved anywhere. Close the tab and it's gone.
+                    </p>
                   </div>
                 ) : null}
-              </div>
+              </>
             )}
           </div>
         </div>
       </section>
 
-      <hr className="rv-divider" />
+      <hr className="divider" />
 
-      {/* ─── WHY IT'S SAFE ─────────────────────────────────────────────────── */}
-      <section style={{background:'rgba(255,255,255,.015)'}}>
-        <div className="rv-section">
-          <div className="text-center mb-12">
-            <div className="rv-tag">{t('v2SafeTag' as any)}</div>
-            <h2 className="rv-serif font-normal text-white" style={{fontSize:'clamp(1.8rem,3.5vw,2.6rem)',lineHeight:1.25}}>{t('v2SafeH2' as any)}</h2>
-            <p className="mt-3 max-w-lg mx-auto text-base" style={{color:'#7a8499'}}>{t('v2SafeP' as any)}</p>
-          </div>
-          <div className="grid gap-5" style={{gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))'}}>
-            {([
-              ['v2SafeCard1Title','v2SafeCard1Desc','🔒','rgba(0,217,255,.1)','rgba(0,217,255,.2)'],
-              ['v2SafeCard2Title','v2SafeCard2Desc','🧠','rgba(139,92,246,.1)','rgba(139,92,246,.2)'],
-              ['v2SafeCard3Title','v2SafeCard3Desc','💬','rgba(255,255,255,.04)','rgba(255,255,255,.1)'],
-            ] as const).map(([tk,dk,icon,bg,border],i) => (
-              <div key={i} className="rv-card" style={{background:bg,borderColor:border}}>
-                <div className="text-3xl mb-3">{icon}</div>
-                <h3 className="font-semibold text-white mb-2">{t(tk as any)}</h3>
-                <p className="text-sm leading-relaxed" style={{color:'#9aA0b0'}}>{t(dk as any)}</p>
+      {/* ═══════════════════════════════════════════════════════════════════
+          HOW IT WORKS — 3 steps. That's it.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ background: 'rgba(255,255,255,.015)' }}>
+        <div className="section" style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
+          <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 48 }}>
+            Three steps. No setup.
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 24, textAlign: 'left' }}>
+            {[
+              ['01', 'You type', "Open the app. Start typing. No intro, no form, no signup. Just say what you need to say."],
+              ['02', 'It listens', "RYVYNN responds with calm, grounded presence. No judgment. No scripts. No rushing you toward anything."],
+              ['03', 'It disappears', "Close the tab. Everything vanishes. Not archived. Not logged. Gone completely."],
+            ].map(([n, title, desc]) => (
+              <div key={n} className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+                <span className="lora" style={{ position: 'absolute', top: -12, right: 12, fontSize: '5rem', fontWeight: 400, color: 'rgba(0,201,232,.06)', lineHeight: 1 }}>{n}</span>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: 'var(--cyan)', textTransform: 'uppercase', marginBottom: 8 }}>Step {n}</p>
+                <h3 style={{ fontSize: 17, fontWeight: 500, color: '#eef2fa', marginBottom: 10 }}>{title}</h3>
+                <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--dim)', margin: 0 }}>{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <hr className="rv-divider" />
+      <hr className="divider" />
 
-      {/* ─── HOW IT WORKS ──────────────────────────────────────────────────── */}
-      <div className="rv-section">
-        <div className="text-center mb-12">
-          <div className="rv-tag">{t('v2HowTag' as any)}</div>
-          <h2 className="rv-serif font-normal text-white" style={{fontSize:'clamp(1.8rem,3.5vw,2.6rem)',lineHeight:1.25}}>{t('v2HowH2' as any)}</h2>
-        </div>
-        <div className="grid gap-6" style={{gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))'}}>
-          {([['01','v2HowStep1','v2HowStep1Desc'],['02','v2HowStep2','v2HowStep2Desc'],['03','v2HowStep3','v2HowStep3Desc']] as const).map(([n,tk,dk],i) => (
-            <div key={i} className="rv-card relative overflow-hidden">
-              <span className="absolute right-4 rv-serif font-bold select-none" style={{fontSize:'4.5rem',lineHeight:1,color:'rgba(0,217,255,.06)',top:'-8px'}}>{n}</span>
-              <div className="text-xs font-semibold tracking-widest mb-2 text-ryvynn-cyan">STEP {n}</div>
-              <h3 className="font-semibold text-white text-base mb-1.5">{t(tk as any)}</h3>
-              <p className="text-sm leading-relaxed" style={{color:'#7a8499'}}>{t(dk as any)}</p>
+      {/* ═══════════════════════════════════════════════════════════════════
+          THIS IS FOR YOU IF — emotionally specific, not generic
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div className="section">
+        <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>This is for you if</p>
+        <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 36 }}>
+          You recognize yourself in any of these.
+        </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {[
+            "There's something on your mind you haven't been able to say out loud to anyone.",
+            "You've been carrying it alone for a while and you're tired.",
+            "Therapy feels too big, too formal, or too far away right now.",
+            "You need to vent — not be fixed, not be redirected, just heard.",
+            "You've been burned by apps that track, log, or remember too much.",
+            "You're fine in front of everyone. You're not fine.",
+            "You just need a private place to put it down for a minute.",
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--cyan)', fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
+              <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--dim)', margin: 0 }}>{item}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      <hr className="rv-divider" />
-
-      {/* ─── SOCIAL PROOF ──────────────────────────────────────────────────── */}
-      <section style={{background:'rgba(255,255,255,.015)'}}>
-        <div className="rv-section">
-          <div className="text-center mb-10">
-            <div className="rv-tag">{t('v2ProofTag' as any)}</div>
-            <h2 className="rv-serif font-normal text-white" style={{fontSize:'clamp(1.8rem,3.5vw,2.6rem)',lineHeight:1.25}}>{t('v2ProofH2' as any)}</h2>
-          </div>
-          <div className="grid gap-4" style={{gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))'}}>
-            {QUOTE_KEYS.map(([qk,tk,ak],i) => (
-              <div key={i} className="rv-card" style={{borderLeft:'3px solid rgba(0,217,255,.25)'}}>
-                <span className="text-[10px] px-2 py-0.5 rounded-full float-right" style={{color:'#3a4455',background:'rgba(0,0,0,.3)'}}>{t(tk)}</span>
-                <p className="text-sm italic leading-relaxed mb-2.5 text-[#dde4f0]" style={{clear:'both'}}>&ldquo;{t(qk)}&rdquo;</p>
-                <span className="text-xs" style={{color:'#3a4455'}}>— {t(ak)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <hr className="rv-divider" />
-
-      {/* ─── WHO IT'S FOR ──────────────────────────────────────────────────── */}
-      <div className="rv-section">
-        <div className="text-center mb-10">
-          <div className="rv-tag">{t('v2WhoTag' as any)}</div>
-          <h2 className="rv-serif font-normal text-white" style={{fontSize:'clamp(1.8rem,3.5vw,2.6rem)',lineHeight:1.25}}>{t('v2WhoH2' as any)}</h2>
-        </div>
-        <div className="grid max-w-2xl mx-auto" style={{gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))'}}>
-          {WHO_KEYS.map(k => (
-            <div key={k} className="flex gap-3 items-start py-3.5 px-2" style={{borderBottom:'1px solid rgba(255,255,255,.05)'}}>
-              <span className="text-ryvynn-cyan mt-0.5 flex-shrink-0 text-sm">→</span>
-              <span className="text-sm leading-relaxed" style={{color:'#9aA0b0'}}>{t(k as any)}</span>
-            </div>
-          ))}
+        <div style={{ paddingTop: 36, textAlign: 'center' }}>
+          <Link href="/guardian" className="btn-primary">
+            That's me — start talking
+          </Link>
         </div>
       </div>
 
-      <hr className="rv-divider" />
+      <hr className="divider" />
 
-      {/* ─── CONFESSION ROTATOR ────────────────────────────────────────────── */}
-      <section style={{background:'rgba(139,92,246,.04)',borderTop:'1px solid rgba(139,92,246,.1)',borderBottom:'1px solid rgba(139,92,246,.1)'}}>
-        <div className="rv-section text-center" style={{padding:'60px 20px'}}>
-          <p className="text-xs tracking-widest font-semibold mb-6 uppercase" style={{color:'#8B5CF6'}}>
-            {language === 'es' ? 'Lo que la gente guarda dentro' : 'What people carry alone'}
+      {/* ═══════════════════════════════════════════════════════════════════
+          ROTATING CONFESSION — emotional proof, anonymous
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ background: 'rgba(124,92,191,.04)', borderTop: '1px solid rgba(124,92,191,.1)', borderBottom: '1px solid rgba(124,92,191,.1)' }}>
+        <div style={{ maxWidth: 520, margin: '0 auto', padding: '56px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--purple)', textTransform: 'uppercase', marginBottom: 24 }}>
+            What people actually type
           </p>
-          <div style={{maxWidth:520,margin:'0 auto'}}>
-            <span className="text-4xl rv-serif text-ryvynn-purple opacity-30">&ldquo;</span>
-            <p key={confIdx} className="rv-slide rv-serif font-light text-xl leading-relaxed text-[#dde4f0] italic mt-1 mb-4">
-              {t(CONF_KEYS[confIdx])}
+          <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <p key={confIdx} className="lora conf-slide"
+              style={{ fontSize: 'clamp(1.1rem,2.5vw,1.35rem)', fontStyle: 'italic', lineHeight: 1.6, color: '#d8e0ee', margin: 0 }}>
+              &ldquo;{CONFESSIONS[confIdx]}&rdquo;
             </p>
-            <span className="text-xs" style={{color:'#3a4455'}}>
-              {language === 'es' ? '— Anónimo · compartido voluntariamente' : '— Anonymous · shared voluntarily'}
-            </span>
           </div>
-          <div className="flex justify-center gap-3 mt-8 flex-wrap">
-            <Link href="/wall" className="rv-btn" style={{fontSize:14,padding:'11px 24px',borderColor:'rgba(139,92,246,.6)',color:'#8B5CF6',background:'rgba(139,92,246,.08)',boxShadow:'none'}}>
-              {language === 'es' ? 'Leer el muro' : 'Read the wall'}
-            </Link>
-            <Link href="/guardian" className="rv-ghost" style={{fontSize:14}}>
-              {language === 'es' ? 'Comparte el tuyo →' : 'Share yours →'}
-            </Link>
-          </div>
+          <p style={{ marginTop: 20, fontSize: 12, color: 'var(--dimmer)' }}>— Anonymous · shared voluntarily</p>
         </div>
       </section>
 
-      {/* ─── PRICING ───────────────────────────────────────────────────────── */}
-      <div className="rv-section">
-        <div className="text-center mb-12">
-          <div className="rv-tag">{t('v2PricingTag' as any)}</div>
-          <h2 className="rv-serif font-normal text-white" style={{fontSize:'clamp(1.8rem,3.5vw,2.6rem)',lineHeight:1.25}}>
-            {t('v2PricingH2' as any)}<br /><span className="text-ryvynn-cyan">{t('v2PricingH2b' as any)}</span>
-          </h2>
-          <p className="mt-3 text-sm" style={{color:'#7a8499'}}>{t('v2PricingSub' as any)}</p>
-        </div>
-        <div className="grid gap-5 max-w-lg mx-auto" style={{gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))'}}>
-          {/* Free */}
-          <div className="rv-card text-center" style={{border:'1px solid rgba(255,255,255,.1)'}}>
-            <div className="text-2xl font-bold text-white mb-1">$0</div>
-            <div className="text-xs mb-4" style={{color:'#7a8499'}}>{t('v2PricingFreeSub' as any)}</div>
-            <ul className="text-sm text-left space-y-2 mb-5" style={{color:'#9aA0b0',listStyle:'none',padding:0}}>
-              {[t('hpPricingFreeF1'),t('hpPricingFreeF2'),t('hpPricingFreeF3')].map((f,i) => (
-                <li key={i} className="rv-check">{f}</li>
-              ))}
-            </ul>
-            <Link href="/guardian" className="block text-center text-sm font-semibold py-2.5 rounded-full no-underline"
-              style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.1)',color:'#9aA0b0'}}>
-              {t('v2PricingFreeCta' as any)}
-            </Link>
-          </div>
-          {/* Solo */}
-          <div className="rv-card text-center relative" style={{border:'1.5px solid rgba(0,217,255,.45)',boxShadow:'0 0 32px rgba(0,217,255,.1)'}}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-0.5 rounded-full tracking-widest"
-              style={{background:'#00D9FF',color:'#06080f'}}>{t('hpPricingBadgeMostPopular')}</div>
-            <div className="text-2xl font-bold text-white mb-0.5 mt-1">{t('v2PricingSoloPrice' as any)}</div>
-            <div className="text-xs mb-1 text-ryvynn-cyan">{t('v2PricingSoloFirstMonth' as any)}</div>
-            <div className="text-xs mb-4" style={{color:'#7a8499'}}>{language === 'es' ? '· cancela cuando quieras' : '· cancel anytime'}</div>
-            <ul className="text-sm text-left space-y-2 mb-5" style={{color:'#9aA0b0',listStyle:'none',padding:0}}>
-              {[t('hpPricingSoloF1'),t('hpPricingSoloF2'),t('hpPricingSoloF3')].map((f,i) => (
-                <li key={i} className="rv-check">{f}</li>
-              ))}
-            </ul>
-            <Link href="/pricing" className="block text-center text-sm font-semibold py-2.5 rounded-full no-underline"
-              style={{background:'rgba(0,217,255,.14)',border:'1.5px solid rgba(0,217,255,.45)',color:'#00D9FF'}}>
-              {t('v2PricingSoloCta' as any)}
-            </Link>
-          </div>
-        </div>
-        <p className="text-center mt-6 text-xs" style={{color:'#3a4455'}}>{t('v2PricingNote' as any)}</p>
-        <div className="text-center mt-3">
-          <Link href="/pricing" className="rv-ghost text-sm">
-            {language === 'es' ? 'Ver todos los planes →' : 'View all plans →'}
-          </Link>
+      <hr className="divider" />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          TRUST & PRIVACY — plain language, no tech jargon
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div className="section">
+        <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>Privacy</p>
+        <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 12 }}>
+          Built to forget you on purpose.
+        </h2>
+        <p style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--dim)', marginBottom: 36, maxWidth: 520 }}>
+          Most apps store everything you say, learn from it, sell signals from it. We built RYVYNN the opposite way — structurally incapable of remembering.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
+          {[
+            ['🔒', 'No accounts needed', "You don't have to sign up, log in, or give us anything to use RYVYNN."],
+            ['🧠', 'No chat logs', "Your conversations are never written to a database. Close the tab and they cease to exist."],
+            ['🚫', 'No training on your words', "Your messages are never used to train AI models. What you say stays private."],
+            ['🛡', 'Nothing to hand over', "If anyone asked us for your data, we couldn't give it. There's nothing to give."],
+          ].map(([icon, title, desc]) => (
+            <div key={title} className="card" style={{ background: 'rgba(0,201,232,.04)', borderColor: 'rgba(0,201,232,.15)' }}>
+              <div style={{ fontSize: 24, marginBottom: 10 }}>{icon}</div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#eef2fa', marginBottom: 8 }}>{title}</h3>
+              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--dim)', margin: 0 }}>{desc}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <hr className="rv-divider" />
+      <hr className="divider" />
 
-      {/* ─── FINAL CTA ─────────────────────────────────────────────────────── */}
-      <section style={{background:'linear-gradient(180deg,#06080f 0%,rgba(0,217,255,.03) 60%,#06080f 100%)'}}>
-        <div className="rv-section text-center" style={{padding:'80px 20px'}}>
-          <div className="mb-5 flex justify-center rv-bob">
-            <Image src="/assets/dual-flame-logo.png" alt="" width={52} height={52}
-              className="object-contain drop-shadow-[0_0_24px_rgba(0,217,255,.4)]" />
-          </div>
-          <h2 className="rv-serif font-light text-white mb-4" style={{fontSize:'clamp(2.2rem,5.5vw,4.5rem)',lineHeight:1.2}}>
-            {t('v2FinalH2' as any)}
+      {/* ═══════════════════════════════════════════════════════════════════
+          TESTIMONIALS — real, raw, relief-focused (not transformation)
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ background: 'rgba(255,255,255,.015)' }}>
+        <div className="section-wide">
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12, textAlign: 'center' }}>What people say</p>
+          <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 40, textAlign: 'center' }}>
+            Real moments. Real 3 AM.
           </h2>
-          <p className="mb-8 max-w-sm mx-auto leading-relaxed" style={{fontSize:15,color:'#7a8499'}}>
-            {t('v2FinalSub' as any)}
-          </p>
-          <Link href="/guardian" className="rv-btn rv-pulse" style={{fontSize:18,padding:'18px 44px'}}>
-            {t('v2FinalCta' as any)}
-          </Link>
-          <div className="mt-5 text-sm" style={{color:'#3a4455'}}>
-            {t('v2FinalOr' as any)}{' '}
-            <button className="rv-ghost text-sm" onClick={scrollToDemo}>{t('v2FinalDemoLink' as any)}</button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 20 }}>
+            {[
+              { quote: "I don't want advice. I don't want fixing. I needed somewhere to put it. This is that place.", time: "2:47 AM", tag: "Anonymous" },
+              { quote: "I typed something I've never said out loud to anyone. It didn't judge me. It just... stayed.", time: "3:12 AM", tag: "Recovery, 11 months" },
+              { quote: "My therapist has a 4-month waitlist. RYVYNN was there in 30 seconds when I couldn't breathe.", time: "11:48 PM", tag: "Anonymous" },
+              { quote: "I tested it. Cleared my browser, came back. It remembered nothing. That's the only reason I kept returning.", time: "7:33 AM", tag: "Privacy-conscious user" },
+              { quote: "It's not therapy. It's not a hotline. It's just somewhere to put the weight down for a minute.", time: "1:19 AM", tag: "Anonymous" },
+            ].map(({ quote, time, tag }, i) => (
+              <div key={i} className="card" style={{ borderLeft: '2px solid rgba(0,201,232,.2)', position: 'relative' }}>
+                <span style={{ position: 'absolute', top: 12, right: 14, fontSize: 11, color: 'var(--dimmer)', background: 'rgba(0,0,0,.3)', padding: '2px 8px', borderRadius: 99 }}>{time}</span>
+                <p style={{ fontSize: 14, lineHeight: 1.75, fontStyle: 'italic', color: '#d8e0ee', marginBottom: 12, paddingTop: 4 }}>&ldquo;{quote}&rdquo;</p>
+                <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>— {tag}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="text-center py-8 px-5" style={{borderTop:'1px solid rgba(255,255,255,.05)'}}>
-        <div className="flex justify-center mb-3">
-          <Image src="/assets/dual-flame-logo.png" alt="" width={24} height={24} className="object-contain opacity-40" />
+      <hr className="divider" />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          FINAL CTA — calm, not dramatic. Same energy as the hero.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ padding: '80px 24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 520, margin: '0 auto' }}>
+          <div style={{ marginBottom: 20 }}>
+            <Image src="/assets/dual-flame-logo.png" alt="" width={40} height={40}
+              style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 16px rgba(0,201,232,.35))' }} />
+          </div>
+          <h2 className="lora" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 400, color: '#eef2fa', lineHeight: 1.3, marginBottom: 16 }}>
+            You don't have to keep carrying it alone.
+          </h2>
+          <p style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--dim)', marginBottom: 36, maxWidth: 400, margin: '0 auto 36px' }}>
+            No pressure. No account. No memory. Just a place to put it down.
+          </p>
+          <Link href="/guardian" className="btn-primary pulse" style={{ fontSize: 17, padding: '18px 40px' }}>
+            Start Talking Now
+          </Link>
+          <div style={{ marginTop: 18 }}>
+            <button className="btn-ghost" onClick={scrollToDemo}>Try the demo first</button>
+          </div>
         </div>
-        <div className="text-sm max-w-lg mx-auto leading-relaxed" style={{color:'#3a4455'}}>
-          {t('v2FooterLegal' as any)}<br />
-          {t('v2FooterEmergency' as any)}<br />
-          <span className="text-xs opacity-60">{t('v2FooterCopy' as any)}</span>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          FOOTER — minimal. Legal. Calm crisis mention.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <footer style={{ padding: '32px 24px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+        <div style={{ marginBottom: 12 }}>
+          <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" width={22} height={22}
+            style={{ objectFit: 'contain', opacity: .4 }} />
         </div>
+        <p style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--dimmer)', maxWidth: 480, margin: '0 auto 8px' }}>
+          RYVYNN is not a licensed therapist, doctor, or crisis service. AI responses are for support only and do not constitute medical advice.
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--dimmer)', marginBottom: 12 }}>
+          If you're in danger, call or text{' '}
+          <a href="tel:988" style={{ color: '#d8e0ee', fontWeight: 500 }}>988</a>
+          {' '}(US) or your local emergency services.
+        </p>
+        <p style={{ fontSize: 11, color: '#2a3040', marginTop: 16 }}>
+          © 2026 AONIXX, a DBA of NEXXT GEN INNOVATIONS LLC · ryvynn.live
+        </p>
       </footer>
 
-      {/* ─── FLOATING CTA ──────────────────────────────────────────────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════
+          FLOAT — appears after 8s. Calm. Not pushy.
+      ═══════════════════════════════════════════════════════════════════ */}
       {showFloat && (
-        <div className="fixed bottom-5 right-5 z-30 rv-float-anim">
-          <Link href="/guardian"
-            className="rv-float-wrap flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-ryvynn-cyan no-underline rv-pulse"
-            style={{background:'rgba(6,8,15,.97)',border:'1.5px solid #00D9FF',boxShadow:'0 0 20px rgba(0,217,255,.2)',backdropFilter:'blur(20px)',fontFamily:"'Jost',sans-serif",transition:'all .18s'}}>
-            <Image src="/assets/dual-flame-logo.png" alt="" width={18} height={18} className="object-contain" />
-            {t('v2FloatBtn' as any)}
+        <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 30, animation: 'fi .4s ease forwards' }}>
+          <Link href="/guardian" style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(7,8,15,.96)', border: '1.5px solid var(--cyan)',
+            borderRadius: 99, padding: '12px 20px', textDecoration: 'none',
+            boxShadow: '0 0 20px rgba(0,201,232,.18)', backdropFilter: 'blur(20px)',
+            transition: 'all .15s',
+            animation: 'lp 2.5s infinite',
+          }}>
+            <Image src="/assets/dual-flame-logo.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--cyan)', fontFamily: 'inherit' }}>
+              Talk now — nothing saved
+            </span>
           </Link>
         </div>
       )}
