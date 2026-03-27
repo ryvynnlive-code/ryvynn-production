@@ -227,7 +227,7 @@ export const translations = {
     hpDemoSessionNote: '— session ends when you close the tab',
     hpDemoContinueBtn: 'Continue in RYVYNN — Full Experience',
     hpDemoRestartBtn: 'Start over',
-    hpDemoPrivacyNote: '✓ Nothing you just said was stored, logged, or will ever be accessed. That's not a policy — it's the architecture.',
+    hpDemoPrivacyNote: '✓ Nothing you just said was stored, logged, or will ever be accessed. That\'s not a policy — it\'s the architecture.',
     // Social proof
     hpProofTag: 'Real People. Real 3 AM Moments.',
     hpProofH2: 'What they said after.',
@@ -247,7 +247,7 @@ export const translations = {
     // Confession wall teaser
     hpWallTag: 'The Miracle Wall',
     hpWallH2: "Real thoughts people don't say out loud.",
-    hpWallSub: 'Anonymous confessions transform into miracles — stripped of identity, your breakthrough becomes someone else's lifeline.',
+    hpWallSub: 'Anonymous confessions transform into miracles — stripped of identity, your breakthrough becomes someone else\'s lifeline.',
     hpWallConfAnon: '— Anonymous · shared voluntarily',
     hpWallRevealBtn: 'Reveal miracles →',
     hpWallReadBtn: 'Read the wall',
@@ -262,13 +262,13 @@ export const translations = {
     // Blurred previews
     hpPrev1: "Sometimes I feel like I was never meant to be here at all, and then...",
     hpPrev2: "I told my Guardian something I've never told another living soul. It replied with...",
-    hpPrev3: 'Day 47. I almost didn't make it to day 3. Here's what changed...',
+    hpPrev3: 'Day 47. I almost didn\'t make it to day 3. Here\'s what changed...',
     // Void filler
     hpVoidH2a: "For when the thoughts won't stop...",
     hpVoidH2b: 'and talking to anyone else feels impossible.',
     hpVoidP1: "It's 2:47 AM. The room is quiet, but your mind is screaming. You don't need advice. You don't need fixing. You just need somewhere to put it — without it following you forever.",
     hpVoidP2: "RYVYNN was built the opposite of every other AI: your words vanish the second you close the tab. No training data. No profiles. No third-party shares. In 2026, real privacy isn't a feature — it's survival.",
-    hpVoidP3: 'This was built by someone who hit rock bottom and couldn't find this space anywhere. So they built it from nothing. For you.',
+    hpVoidP3: 'This was built by someone who hit rock bottom and couldn\'t find this space anywhere. So they built it from nothing. For you.',
     // How it works
     hpStepsTag: 'Zero Setup',
     hpStepsH2: 'No setup. No bullshit. Just breathe.',
@@ -302,7 +302,7 @@ export const translations = {
     hpPrivacyH2a: 'Your darkness stays yours.',
     hpPrivacyH2b: 'Period.',
     hpPrivacyP: 'In an era where AI companions get exposed for logging intimate conversations, selling emotional profiles, and getting subpoenaed in court cases — RYVYNN is the structural exception.',
-    hpPrivacyQuote: '"Talk like no one's listening.',
+    hpPrivacyQuote: '"Talk like no one\'s listening.',
     hpPrivacyQuote2: 'Because no one is."',
     hpPriv1: "We don't collect chats.",
     hpPriv2: "We don't train on you.",
@@ -327,7 +327,7 @@ export const translations = {
     hpTherapyTag: 'The Mental Health Gap',
     hpTherapyH2a: 'The crisis is now.',
     hpTherapyH2b: 'The waitlist is months.',
-    hpTherapyP1: 'The average therapy session costs $175. Waitlists run 4-6 months. Insurance often won't cover it. You have to give your name, your history, your diagnosis to a system that keeps all of it.',
+    hpTherapyP1: 'The average therapy session costs $175. Waitlists run 4-6 months. Insurance often won\'t cover it. You have to give your name, your history, your diagnosis to a system that keeps all of it.',
     hpTherapyP2: "RYVYNN isn't a therapy replacement. It's the gap between white-knuckling it alone and eventually accessing formal care — the 3 AM lifeline that doesn't make you wait until April.",
     hpStat1label: 'Avg therapy session cost',
     hpStat1value: '$175+',
@@ -364,7 +364,7 @@ export const translations = {
     hpSoul2title: 'AI Guardian Bond',
     hpSoul2desc: 'Your Guardian grows with you. The longer you return, the deeper the connection. Still anonymous. Always yours.',
     hpSoul3title: 'Miracle Wall',
-    hpSoul3desc: 'Your confession transforms into a miracle. Stripped of identity, your breakthrough becomes someone else's lifeline.',
+    hpSoul3desc: 'Your confession transforms into a miracle. Stripped of identity, your breakthrough becomes someone else\'s lifeline.',
     hpSoul4title: 'Digital Eternity Vault',
     hpSoul4desc: 'Encrypted letters to your bloodline — delivered years from now. Your words, your vault, your timeline.',
     // Pricing section
