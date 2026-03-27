@@ -162,13 +162,13 @@ export default function HomePage() {
           {/* Headline */}
           <h1 className="lora slide-up su2"
             style={{ fontSize: 'clamp(2.2rem,6vw,3.8rem)', fontWeight: 400, lineHeight: 1.2, color: '#eef2fa', marginBottom: 18 }}>
-            There's something you haven't been able to say out loud.
+            You don't have to know how to say it.
           </h1>
 
           {/* Sub */}
           <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.18rem)', lineHeight: 1.8, color: 'var(--dim)', maxWidth: 460, margin: '0 auto 36px' }}>
-            Not to a therapist. Not to a friend. Maybe not even to yourself yet.<br />
-            Say it here. No account. No memory. Gone the second you leave.
+            Just start. Whatever comes out is fine.<br />
+            No account. No memory. Gone the second you close this tab.
           </p>
 
           {/* CTAs */}
@@ -176,7 +176,7 @@ export default function HomePage() {
             <Link href="/guardian" className="btn-primary" style={{ fontSize: 16, padding: '16px 36px' }}>
               Start Talking — Nothing Saved
             </Link>
-            <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>No signup. No history. Close the tab and it&apos;s gone.</span>
+            <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>No signup. No judgment. No trace.</span>
           </div>
 
           {/* Inline trust bullets */}
