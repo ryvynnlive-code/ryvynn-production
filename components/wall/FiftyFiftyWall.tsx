@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useI18n } from '@/contexts/I18nContext';
 
 interface WallEntry {
   id: string;
@@ -11,210 +10,161 @@ interface WallEntry {
   created_at: string;
 }
 
-export function FiftyFiftyWall() {
-  const { tp } = useI18n();
+interface Props {
+  onShare: () => void;
+}
+
+function timeAgo(iso: string): string {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (d < 60) return 'just now';
+  if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  if (d < 604800) return `${Math.floor(d / 86400)}d ago`;
+  return `${Math.floor(d / 604800)}w ago`;
+}
+
+export function WallFeed({ onShare }: Props) {
   const [entries, setEntries] = useState<WallEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
-  const [hasMore, setHasMore] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [loading, setLoading]  = useState(true);
+  const [hasMore, setHasMore]  = useState(false);
+  const [offset, setOffset]    = useState(0);
+  const [sort, setSort]        = useState<'recent' | 'popular'>('recent');
+  const [voted, setVoted]      = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setOffset(0);
-    loadEntries(false, 0);
-  }, [sortBy]);
+    load(0);
+  }, [sort]);
 
-  const loadEntries = async (loadMore = false, overrideOffset?: number) => {
+  const load = async (off: number) => {
+    setLoading(true);
     try {
-      const currentOffset = overrideOffset !== undefined ? overrideOffset : offset;
-      const response = await fetch(
-        `/api/wall?limit=10&offset=${currentOffset}&sortBy=${sortBy}`
-      );
-      if (!response.ok) throw new Error('Failed to load wall');
-      const data = await response.json();
-
-      if (loadMore) {
-        setEntries(prev => [...prev, ...data.entries]);
+      const res = await fetch(`/api/wall?limit=12&offset=${off}&sortBy=${sort}`);
+      const data = await res.json();
+      if (off === 0) {
+        setEntries(data.entries ?? []);
       } else {
-        setEntries(data.entries);
+        setEntries(prev => [...prev, ...(data.entries ?? [])]);
       }
-
-      setHasMore(data.hasMore);
-      setOffset(currentOffset + 10);
-    } catch (error) {
-      console.error('Error loading wall:', error);
-    } finally {
-      setLoading(false);
-    }
+      setHasMore(data.hasMore ?? false);
+    } catch { /* silent */ }
+    setLoading(false);
   };
 
-  const handleVote = async (entryId: string) => {
+  const loadMore = () => {
+    const next = offset + 12;
+    setOffset(next);
+    load(next);
+  };
+
+  const upvote = async (id: string) => {
+    if (voted.has(id)) return;
+    setVoted(prev => new Set([...prev, id]));
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, votes: e.votes + 1 } : e));
     try {
-      const response = await fetch('/api/wall', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId }),
-      });
-      if (!response.ok) throw new Error('Failed to vote');
-      const data = await response.json();
-      setEntries(prev =>
-        prev.map(entry =>
-          entry.id === entryId ? { ...entry, votes: data.newVoteCount } : entry
-        )
-      );
-    } catch (error) {
-      console.error('Error voting:', error);
-    }
+      await fetch('/api/wall', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entryId: id }) });
+    } catch { /* silent */ }
   };
 
-  const handleShare = async (entryId: string) => {
-    const url = `${window.location.origin}/wall/${entryId}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'A darkness became light — RYVYNN',
-          text: 'Someone turned their shadow into a miracle. See it here:',
-          url,
-        });
-      } else {
-        await navigator.clipboard.writeText(url);
-        setCopiedId(entryId);
-        setTimeout(() => setCopiedId(null), 2000);
-      }
-    } catch {
-      await navigator.clipboard.writeText(url);
-      setCopiedId(entryId);
-      setTimeout(() => setCopiedId(null), 2000);
-    }
-  };
+  // Use confession text if it differs from transformation, else just show transformation
+  const displayText = (entry: WallEntry) =>
+    entry.transformation && entry.transformation !== entry.confession
+      ? entry.transformation
+      : entry.confession;
 
-  if (loading) {
+  if (loading && entries.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4 animate-pulse">🔥</div>
-        <p className="text-gray-400">{tp('wallLoading')}</p>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--dimmer)', fontSize: 14 }}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!loading && entries.length === 0) {
+    return (
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--dim)', fontSize: 15, marginBottom: 20 }}>
+          Nothing on the wall yet. Be the first to leave something.
+        </p>
+        <button className="btn" onClick={onShare}>Add yours</button>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Header with Sort */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-2">
-            {tp('wallFiftyTitle')}
-          </h2>
-          <p className="text-gray-400 text-sm">{tp('wallFiftySubtitle')}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSortBy('recent')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              sortBy === 'recent'
-                ? 'bg-ryvynn-cyan text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-          >
-            {tp('wallSortRecent')}
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
+
+      {/* Sort */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+        {(['recent', 'popular'] as const).map(s => (
+          <button key={s} onClick={() => setSort(s)}
+            style={{
+              background: sort === s ? 'rgba(0,201,232,.12)' : 'transparent',
+              border: `1px solid ${sort === s ? 'rgba(0,201,232,.35)' : 'rgba(255,255,255,.1)'}`,
+              borderRadius: 99, padding: '6px 16px', fontSize: 13,
+              color: sort === s ? 'var(--cyan)' : 'var(--dim)',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+            }}>
+            {s === 'recent' ? 'Most recent' : 'Most helpful'}
           </button>
-          <button
-            onClick={() => setSortBy('popular')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              sortBy === 'popular'
-                ? 'bg-ryvynn-purple text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-          >
-            {tp('wallSortPopular')}
-          </button>
-        </div>
+        ))}
       </div>
 
       {/* Entries */}
-      <div className="space-y-8">
-        {entries.length === 0 && (
-          <div className="text-center py-12 bg-gray-900/30 border border-gray-800 rounded-xl">
-            <p className="text-gray-400">{tp('wallNoEntries')}</p>
-          </div>
-        )}
-
-        {entries.map((entry) => (
-          <div
-            key={entry.id}
-            className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-gray-800 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {entries.map(entry => (
+          <div key={entry.id}
+            style={{
+              background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)',
+              borderRadius: 16, padding: '22px 24px',
+              transition: 'border-color .2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,201,232,.2)')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)')}
           >
-            <div className="grid md:grid-cols-2 divide-x-2 divide-gray-800">
-              {/* Left: Shadow/Confession */}
-              <div className="p-8 bg-gradient-to-br from-gray-900 to-black">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">🌑</span>
-                  <h3 className="font-bold text-ryvynn-cyan">{tp('wallShadowLabel')}</h3>
-                </div>
-                <p className="text-gray-300 leading-relaxed">{entry.confession}</p>
-              </div>
-
-              {/* Right: Light/Transformation */}
-              <div className="p-8 bg-gradient-to-br from-black to-gray-900">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">✨</span>
-                  <h3 className="font-bold text-ryvynn-purple">{tp('wallLightLabel')}</h3>
-                </div>
-                <p className="text-gray-300 leading-relaxed">{entry.transformation}</p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="border-t-2 border-gray-800 px-8 py-4 flex items-center justify-between bg-black/50">
-              <div className="flex items-center gap-3">
-                {/* Vote */}
-                <button
-                  onClick={() => handleVote(entry.id)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors group"
-                >
-                  <span className="text-xl group-hover:scale-125 transition-transform">🔥</span>
-                  <span className="font-bold text-ryvynn-purple">{entry.votes}</span>
-                </button>
-
-                {/* Share */}
-                <button
-                  onClick={() => handleShare(entry.id)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-sm text-gray-400 hover:text-ryvynn-cyan"
-                >
-                  {copiedId === entry.id ? (
-                    <>
-                      <span>✓</span>
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>↗</span>
-                      <span>Share</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="text-xs text-gray-500">
-                {new Date(entry.created_at).toLocaleDateString()}
-              </div>
+            <p style={{ fontSize: 15, lineHeight: 1.8, color: '#d8e0ee', margin: '0 0 16px', whiteSpace: 'pre-wrap' }}>
+              {displayText(entry)}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>
+                Anonymous · {timeAgo(entry.created_at)}
+              </span>
+              <button
+                onClick={() => upvote(entry.id)}
+                title={voted.has(entry.id) ? 'You marked this helpful' : 'This helped me'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: voted.has(entry.id) ? 'rgba(0,201,232,.08)' : 'transparent',
+                  border: `1px solid ${voted.has(entry.id) ? 'rgba(0,201,232,.3)' : 'rgba(255,255,255,.1)'}`,
+                  borderRadius: 99, padding: '5px 14px',
+                  fontSize: 12, color: voted.has(entry.id) ? 'var(--cyan)' : 'var(--dimmer)',
+                  cursor: voted.has(entry.id) ? 'default' : 'pointer',
+                  fontFamily: 'inherit', transition: 'all .15s',
+                }}>
+                <span>{voted.has(entry.id) ? '✓' : '↑'}</span>
+                <span>{entry.votes} {entry.votes === 1 ? 'person' : 'people'} felt this</span>
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Load More */}
+      {/* Load more */}
       {hasMore && (
-        <div className="text-center mt-8">
-          <button
-            onClick={() => loadEntries(true)}
-            className="px-8 py-3 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl font-bold text-white hover:scale-105 transition-all"
-          >
-            {tp('wallLoadMore')}
+        <div style={{ textAlign: 'center', marginTop: 28 }}>
+          <button className="btn-ghost" onClick={loadMore} disabled={loading}>
+            {loading ? 'Loading...' : 'Load more'}
           </button>
         </div>
       )}
+
+      {/* Bottom share nudge */}
+      <div style={{ marginTop: 48, padding: '28px 24px', background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 16, textAlign: 'center' }}>
+        <p style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 14, lineHeight: 1.7 }}>
+          If something you went through might help someone else — it can live here too.
+        </p>
+        <button className="btn" onClick={onShare}>Add something to the wall</button>
+      </div>
     </div>
   );
 }
