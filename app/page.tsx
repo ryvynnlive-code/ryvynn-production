@@ -37,13 +37,17 @@ export default function HomePage() {
 
   // Confession rotator
   const [confIdx, setConfIdx]   = useState(0);
-  const [showFloat, setShowFloat] = useState(false);
+  const [showFloat, setShowFloat]       = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowFloat(true), 8000);
     const t2 = setInterval(() => setConfIdx(i => (i + 1) % CONFESSIONS.length), 4000);
+    // Show onboarding on first ever visit
+    const seen = localStorage.getItem('ryvynn-onboarded');
+    if (!seen) setShowOnboarding(true);
     return () => { clearTimeout(t1); clearInterval(t2); };
   }, []);
 
@@ -465,6 +469,93 @@ export default function HomePage() {
           © 2026 AONIXX, a DBA of NEXXT GEN INNOVATIONS LLC · ryvynn.live
         </p>
       </footer>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          ONBOARDING — first visit only. 3 choices. Gets them to value fast.
+      ═══════════════════════════════════════════════════════════════════ */}
+      {showOnboarding && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(7,8,15,.95)',
+            backdropFilter: 'blur(12px)', zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+          }}
+        >
+          <div style={{ maxWidth: 480, width: '100%', textAlign: 'center' }}>
+            {/* Flame */}
+            <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" width={52} height={52}
+              style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(0,201,232,.4))', marginBottom: 28 }} />
+
+            {/* Question */}
+            <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,4vw,2.4rem)', fontWeight: 400,
+              color: '#eef2fa', lineHeight: 1.3, marginBottom: 10 }}>
+              What do you need right now?
+            </h2>
+            <p style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 36 }}>
+              No account. No judgment. You choose.
+            </p>
+
+            {/* 3 choices */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Choice 1 — Get it out */}
+              <a href="/guardian"
+                onClick={() => localStorage.setItem('ryvynn-onboarded', '1')}
+                style={{
+                  display: 'block', padding: '18px 24px', textDecoration: 'none',
+                  background: 'rgba(0,201,232,.08)', border: '1.5px solid rgba(0,201,232,.35)',
+                  borderRadius: 16, transition: 'all .15s', cursor: 'pointer',
+                }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#00C9E8', marginBottom: 4 }}>
+                  Get it out
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--dim)' }}>
+                  Talk to Guardian. Private. Anonymous. Nothing saved.
+                </div>
+              </a>
+
+              {/* Choice 2 — Be heard */}
+              <a href="/wall"
+                onClick={() => localStorage.setItem('ryvynn-onboarded', '1')}
+                style={{
+                  display: 'block', padding: '18px 24px', textDecoration: 'none',
+                  background: 'rgba(124,92,191,.08)', border: '1.5px solid rgba(124,92,191,.3)',
+                  borderRadius: 16, transition: 'all .15s', cursor: 'pointer',
+                }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#7C5CBF', marginBottom: 4 }}>
+                  Be heard
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--dim)' }}>
+                  Leave something on the wall. Or read what others left.
+                </div>
+              </a>
+
+              {/* Choice 3 — Just read */}
+              <a href="/wall"
+                onClick={() => localStorage.setItem('ryvynn-onboarded', '1')}
+                style={{
+                  display: 'block', padding: '18px 24px', textDecoration: 'none',
+                  background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.1)',
+                  borderRadius: 16, transition: 'all .15s', cursor: 'pointer',
+                }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: '#d8e0ee', marginBottom: 4 }}>
+                  Just read
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--dim)' }}>
+                  See what other people are carrying. No pressure.
+                </div>
+              </a>
+            </div>
+
+            {/* Skip */}
+            <button
+              onClick={() => { localStorage.setItem('ryvynn-onboarded', '1'); setShowOnboarding(false); }}
+              style={{ marginTop: 20, background: 'none', border: 'none',
+                color: 'var(--dimmer)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Skip — just show me the site
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════
           FLOAT — appears after 8s. Calm. Not pushy.
