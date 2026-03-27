@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SanctuaryExit from '@/components/SanctuaryExit';
+import { GrowingAvatar } from '@/components/GrowingAvatar';
 
 interface TokenData {
   balance: number;
@@ -97,11 +98,20 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen py-12 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-2">
-            🎯 {tf('dashboardTitle')}
-          </h1>
-          <p className="text-gray-400">{tf('dashboardSubtitle')}</p>
+        {/* Avatar + header */}
+        <div className="mb-8 flex items-start gap-6 flex-wrap">
+          <GrowingAvatar
+            streakDays={tokenData.streak}
+            tokens={tokenData.balance}
+            size={100}
+            showLabel
+          />
+          <div className="pt-1">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent mb-1">
+              {tf('dashboardTitle')}
+            </h1>
+            <p className="text-gray-400 text-sm">{tf('dashboardSubtitle')}</p>
+          </div>
         </div>
 
         {/* Stats Grid */}
