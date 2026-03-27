@@ -97,7 +97,7 @@ function detectCrisis(text: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, userId, language, isFirstMessage } = await req.json();
+    const { message, userId, language, isFirstMessage, persona = 'neutral', emotionalDepth = false } = await req.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
@@ -156,9 +156,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const systemPrompt = isES
-      ? RYVYNN_SYSTEM_PROMPT + '\n\nResponde siempre en español.'
-      : RYVYNN_SYSTEM_PROMPT;
+    // Persona tone modifiers — injected at system prompt level
+    const personaMods: Record<string, string> = {
+      feminine:  'Adopt a warm, nurturing tone. Lean into emotional attunement. Validate feelings explicitly before offering perspective. Use gentle language. Do not rush to solutions.',
+      masculine: 'Be direct and grounded. Skip excess softening. Name things clearly. Acknowledge strength. Offer perspective that respects autonomy and agency.',
+      aged:      'Speak with quiet wisdom and patience. Use the perspective of someone who has seen this before and knows it passes. No urgency. Long view. Hold space without fixing.',
+      neutral:   'Remain balanced and universal. Adapt naturally to the emotional weight of what the user shares.',
+    };
+    const personaMod = personaMods[persona] || personaMods.neutral;
+    const depthMod = emotionalDepth
+      ? 'EMOTIONAL DEPTH MODE: Sit longer with the weight. Do not redirect toward resolution. Mirror the feeling fully before any pivot. More tears, less answers.'
+      : '';
+
+    const systemPrompt = [
+      isES ? RYVYNN_SYSTEM_PROMPT + '\n\nResponde siempre en español.' : RYVYNN_SYSTEM_PROMPT,
+      personaMod,
+      depthMod,
+    ].filter(Boolean).join('\n\n');
 
     // Gemini 2.0 Flash — sole AI provider
     const geminiContents = [
@@ -177,7 +191,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           system_instruction: { parts: [{ text: systemPrompt }] },
           contents: geminiContents,
-          generationConfig: { maxOutputTokens: 300, temperature: 0.85 },
+          generationConfig: { maxOutputTokens: 350, temperature: emotionalDepth ? 0.92 : 0.85 },
         }),
       }
     );
