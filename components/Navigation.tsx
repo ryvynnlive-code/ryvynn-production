@@ -22,7 +22,7 @@ export function Navigation() {
     { href: '/wall', label: t('wall') },
     { href: '/crisis', label: t('crisis') },
     { href: '/pricing', label: t('pricing') },
-    { href: '/support', label: '🔥 Donate' },
+    { href: '/support', label: 'Donate' },
     ...(user ? [{ href: '/dashboard', label: tf('dashboard'), protected: true }] : []),
   ];
 
@@ -108,7 +108,7 @@ export function Navigation() {
                   onClick={() => setShowSignUp(true)}
                   className="text-sm font-black px-4 py-2 rounded-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] transition-all duration-200"
                 >
-                  🔥 {t('signUp') || 'START FREE'}
+                  Start Free
                 </button>
               </div>
             )}
@@ -155,7 +155,7 @@ export function Navigation() {
                   onClick={() => { setShowSignUp(true); setMobileOpen(false); }}
                   className="flex-1 text-sm font-black py-2.5 rounded-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-black"
                 >
-                  🔥 START FREE
+                  Start Free
                 </button>
               </div>
             )}
