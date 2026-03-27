@@ -162,13 +162,13 @@ export default function HomePage() {
           {/* Headline */}
           <h1 className="lora slide-up su2"
             style={{ fontSize: 'clamp(2.2rem,6vw,3.8rem)', fontWeight: 400, lineHeight: 1.2, color: '#eef2fa', marginBottom: 18 }}>
-            You don't have to know how to say it.
+            You’re not alone with this right now.
           </h1>
 
           {/* Sub */}
           <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.18rem)', lineHeight: 1.8, color: 'var(--dim)', maxWidth: 460, margin: '0 auto 36px' }}>
-            Just start. Whatever comes out is fine.<br />
-            No account. No memory. Gone the second you close this tab.
+            There’s something heavy you’ve been carrying — and you don’t have to find the right words for it.<br />
+            Just start. No account. No memory. Gone the second you leave.
           </p>
 
           {/* CTAs */}
