@@ -21,7 +21,7 @@ type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
 export default function GuardianPage() {
   const { tf, language } = useI18n();
-  const { persona } = usePersona();
+  const { persona, emotionalDepth } = usePersona();
   const { user, loading: authLoading } = useAuth();
 
   const [messages,       setMessages]       = useState<Message[]>([]);
@@ -103,7 +103,7 @@ export default function GuardianPage() {
       const res  = await fetch('/api/guardian/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ userId, message: text.trim(), crisisLevel: signal.level, persona, language }),
+        body:    JSON.stringify({ userId, message: text.trim(), crisisLevel: signal.level, persona, language, emotionalDepth }),
       });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
@@ -121,7 +121,7 @@ export default function GuardianPage() {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, voiceMode, speak, tf, persona, language, messageCount, showPlusNudge]);
+  }, [loading, user, voiceMode, speak, tf, persona, language, emotionalDepth, messageCount, showPlusNudge]);
 
   function clearSession() {
     setMessages([]); setMessageCount(0); setShowPlusNudge(false); setLastInput(''); setTranscript('');
