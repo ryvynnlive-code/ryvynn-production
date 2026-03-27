@@ -142,7 +142,7 @@ export default function HomePage() {
         background: 'rgba(255,255,255,.02)',
       }}>
         <span style={{ fontSize: 12, letterSpacing: '.05em', color: 'var(--dimmer)' }}>
-          🔒 Nothing you type is stored, logged, or remembered. Ever.
+          Private by design — nothing you type is stored or remembered.
         </span>
       </div>
 
@@ -166,32 +166,28 @@ export default function HomePage() {
           </h1>
 
           {/* Sub */}
-          <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.2rem)', lineHeight: 1.7, color: 'var(--dim)', marginBottom: 10, maxWidth: 480, margin: '0 auto 10px' }}>
-            No account. No memory. No one watching.
-          </p>
-          <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.15rem)', lineHeight: 1.7, color: 'var(--dim)', marginBottom: 36, maxWidth: 480, margin: '0 auto 36px' }}>
-            Type whatever's weighing on you — it disappears the second you leave.
+          <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.18rem)', lineHeight: 1.8, color: 'var(--dim)', maxWidth: 460, margin: '0 auto 36px' }}>
+            No account. No memory. No one watching.<br />
+            Type whatever&apos;s weighing on you. It disappears the second you close this tab.
           </p>
 
           {/* CTAs */}
           <div className="slide-up su4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 40 }}>
-            <Link href="/guardian" className="btn-primary pulse" style={{ fontSize: 16, padding: '16px 36px' }}>
+            <Link href="/guardian" className="btn-primary" style={{ fontSize: 16, padding: '16px 36px' }}>
               Start Talking — Nothing Saved
             </Link>
-            <button className="btn-ghost" onClick={scrollToDemo}>
-              Or try it here first — type anything ↓
-            </button>
+
           </div>
 
           {/* Inline trust bullets */}
           <div className="slide-up su5" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 24px' }}>
             {[
-              '🔒 Anonymous by default',
-              '🧠 No chat history, ever',
-              '🚫 No tracking, no accounts',
-              '💬 Not therapy — just a place to say it',
+              'Anonymous by default',
+              'No chat history, ever',
+              'No tracking, no accounts',
+              'Not therapy — just a place to say it',
             ].map(t => (
-              <span key={t} style={{ fontSize: 13, color: 'var(--dim)' }}>{t}</span>
+              <span key={t} style={{ fontSize: 13, color: 'var(--dim)' }}>✓ {t}</span>
             ))}
           </div>
         </div>
@@ -481,7 +477,7 @@ export default function HomePage() {
             borderRadius: 99, padding: '12px 20px', textDecoration: 'none',
             boxShadow: '0 0 20px rgba(0,201,232,.18)', backdropFilter: 'blur(20px)',
             transition: 'all .15s',
-            animation: 'lp 2.5s infinite',
+            animation: 'none',
           }}>
             <Image src="/assets/dual-flame-logo.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
             <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--cyan)', fontFamily: 'inherit' }}>
@@ -493,3 +489,4 @@ export default function HomePage() {
     </main>
   );
 }
+
