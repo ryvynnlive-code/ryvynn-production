@@ -20,7 +20,7 @@ interface Message {
 type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
 export default function GuardianPage() {
-  const { tf } = useI18n();
+  const { tf, language } = useI18n();
   const { persona } = usePersona();
   const { user, loading: authLoading } = useAuth();
 
@@ -103,7 +103,7 @@ export default function GuardianPage() {
       const res  = await fetch('/api/guardian/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ userId, message: text.trim(), crisisLevel: signal.level, persona }),
+        body:    JSON.stringify({ userId, message: text.trim(), crisisLevel: signal.level, persona, language }),
       });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
@@ -121,7 +121,7 @@ export default function GuardianPage() {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, voiceMode, speak, tf, persona, messageCount, showPlusNudge]);
+  }, [loading, user, voiceMode, speak, tf, persona, language, messageCount, showPlusNudge]);
 
   function clearSession() {
     setMessages([]); setMessageCount(0); setShowPlusNudge(false); setLastInput(''); setTranscript('');
@@ -285,3 +285,4 @@ export default function GuardianPage() {
     </GuardianWrapper>
   );
 }
+
