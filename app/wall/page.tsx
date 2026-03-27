@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { WallFeed } from '@/components/wall/WallFeed';
+import { WallFeed } from '@/components/wall/FiftyFiftyWall';
 
 export default function WallPage() {
   const [showShare, setShowShare] = useState(false);
