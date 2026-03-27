@@ -91,27 +91,78 @@ const TRUST_STRIP: string[] = [
   "🌐 Opens in 3 Seconds",
 ];
 
-// ─── Claude API Demo ───────────────────────────────────────────────────────────
-async function getRYVYNNResponse(msg: string): Promise<string | null> {
+const CONFESSIONS = [
+  "I don't want to die. I just don't want to feel like this anymore.",
+  "I smile all day and fall apart at night.",
+  "I have no one I can actually talk to.",
+  "I feel alone even when I'm surrounded by people.",
+  "I've been pretending I'm fine for so long I forgot what fine feels like.",
+  "Sometimes I disappear into myself and nobody notices.",
+];
+
+const PRICING_TIERS = [
+  {
+    name: "Free Forever",
+    price: "$0",
+    sub: "Always. No card.",
+    color: "#7a8499",
+    border: "rgba(122,132,153,0.3)",
+    features: ["Anonymous Guardian AI", "Crisis routing to 988", "Public miracle wall", "Basic grounding tools"],
+    cta: "Start Now",
+    href: "/guardian",
+    highlight: false,
+  },
+  {
+    name: "Solo",
+    price: "$12.12",
+    sub: "/month · First month $3.69",
+    color: "#00D9FF",
+    border: "rgba(0,217,255,0.5)",
+    badge: "Most Popular",
+    features: ["120 Soul Tokens/mo", "Encrypted Dark Journal", "Digital Eternity Vault", "Daily streaks + milestones", "Extended Guardian sessions", "Shadow → Miracle engine"],
+    cta: "Ignite the Flame",
+    href: "/pricing",
+    highlight: true,
+    coupon: "FIRSTFLAME",
+  },
+  {
+    name: "Family",
+    price: "$36.93",
+    sub: "/month · Up to 6 members",
+    color: "#8B5CF6",
+    border: "rgba(139,92,246,0.5)",
+    features: ["369 Soul Tokens shared", "Family crisis visibility", "Shared Miracle Wall", "Everything in Solo"],
+    cta: "Protect Your Family",
+    href: "/pricing",
+    highlight: false,
+  },
+  {
+    name: "Lifetime",
+    price: "$369.36",
+    sub: "One time. Forever.",
+    color: "#f59e0b",
+    border: "rgba(245,158,11,0.4)",
+    badge: "Founder's Tier",
+    features: ["Everything, forever", "Priority AI access", "Founder badge", "All future features"],
+    cta: "Own It Forever",
+    href: "/pricing",
+    highlight: false,
+  },
+];
+
+// ─── FIX: Demo calls internal /api/guardian/chat — NOT Anthropic directly ──────
+// Previous version called https://api.anthropic.com/v1/messages from browser
+// without auth header → always 401. Now uses the Gemini-backed server route.
+async function getRYVYNNDemoResponse(msg: string): Promise<string | null> {
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/guardian/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `You are RYVYNN — a private, structurally anonymous AI companion built for people in emotional pain.
-Respond with deep warmth, grounding presence, and calm clarity. You are not a therapist. You never diagnose.
-Keep responses to 3-4 short paragraphs. Use grounding techniques when helpful (5-4-3-2-1, box breathing 4-7-8).
-If someone signals crisis or self-harm, acknowledge their pain completely first, then gently mention 988 (US) or local lines.
-Tone: like a trusted friend who has been through darkness themselves — warm, never clinical or corporate.
-Never say "as an AI" — you are RYVYNN. End each response with one gentle, open question.
-This is a DEMO on the landing page. Someone is deciding whether to trust RYVYNN. Make them feel it immediately.`,
-        messages: [{ role: 'user', content: msg }],
-      }),
+      body: JSON.stringify({ message: msg }),
     });
+    if (!res.ok) throw new Error('API error');
     const data = await res.json();
-    return data.content?.[0]?.text ?? null;
+    return data.response ?? null;
   } catch {
     return null;
   }
@@ -119,11 +170,13 @@ This is a DEMO on the landing page. Someone is deciding whether to trust RYVYNN.
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [demoMsg, setDemoMsg]     = useState('');
-  const [demoReply, setDemoReply] = useState<string | null>(null);
-  const [loading, setLoading]     = useState(false);
-  const [showFloat, setShowFloat] = useState(false);
-  const [chatStep, setChatStep]   = useState(0);
+  const [demoMsg, setDemoMsg]       = useState('');
+  const [demoReply, setDemoReply]   = useState<string | null>(null);
+  const [loading, setLoading]       = useState(false);
+  const [showFloat, setShowFloat]   = useState(false);
+  const [chatStep, setChatStep]     = useState(0);
+  const [confIdx, setConfIdx]       = useState(0);
+  const [confBlur, setConfBlur]     = useState(true);
   const demoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -140,10 +193,16 @@ export default function HomePage() {
     return () => ts.forEach(clearTimeout);
   }, []);
 
+  useEffect(() => {
+    const t = setInterval(() => setConfIdx(i => (i + 1) % CONFESSIONS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
   const handleDemo = async () => {
     if (!demoMsg.trim() || loading) return;
     setLoading(true);
-    const reply = await getRYVYNNResponse(demoMsg);
+    setDemoReply(null);
+    const reply = await getRYVYNNDemoResponse(demoMsg);
     setDemoReply(reply ?? "I'm right here. This space is completely yours — take a breath and say what you need to say.");
     setLoading(false);
   };
@@ -167,6 +226,7 @@ export default function HomePage() {
         @keyframes rv-blink    { 0%,100%{opacity:.3} 50%{opacity:1} }
         @keyframes rv-glow     { 0%,100%{text-shadow:0 0 20px rgba(0,217,255,.4)} 50%{text-shadow:0 0 55px rgba(0,217,255,.95),0 0 90px rgba(139,92,246,.5)} }
         @keyframes rv-bob      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+        @keyframes rv-confslide { 0%{opacity:0;transform:translateY(8px)} 10%{opacity:1;transform:translateY(0)} 85%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-8px)} }
         .rv-anim-breathe  { animation: rv-breathe  9s ease-in-out infinite; }
         .rv-anim-breathe2 { animation: rv-breathe 12s ease-in-out infinite reverse; }
         .rv-anim-fadeup1  { animation: rv-fadeup .7s ease forwards; opacity: 0; animation-delay: .1s; }
@@ -184,6 +244,7 @@ export default function HomePage() {
         .rv-anim-blink0   { animation: rv-blink 1.2s ease 0s infinite; }
         .rv-anim-blink1   { animation: rv-blink 1.2s ease .3s infinite; }
         .rv-anim-blink2   { animation: rv-blink 1.2s ease .6s infinite; }
+        .rv-anim-confslide { animation: rv-confslide 4s ease-in-out infinite; }
         .rv-card          { background:rgba(255,255,255,0.04); border:1px solid rgba(0,217,255,0.13); border-radius:20px; padding:28px 24px; }
         .rv-card:hover    { border-color:rgba(0,217,255,0.38); transition:border-color .2s; }
         .rv-tag           { display:inline-block; background:rgba(0,217,255,0.09); border:1px solid rgba(0,217,255,0.2); color:#00D9FF; border-radius:99px; padding:4px 14px; font-size:11px; letter-spacing:.12em; font-weight:600; text-transform:uppercase; margin-bottom:18px; }
@@ -193,6 +254,10 @@ export default function HomePage() {
         .rv-cta-xl        { padding:22px 56px; font-size:20px; }
         .rv-section       { max-width:1080px; margin:0 auto; padding:90px 24px; }
         .rv-float-btn:hover { transform:scale(1.05); box-shadow:0 0 32px rgba(0,217,255,.55)!important; }
+        .rv-blur-text { filter:blur(7px); user-select:none; transition:filter .3s; }
+        .rv-blur-text.revealed { filter:blur(0); }
+        .rv-price-card { background:rgba(255,255,255,0.04); border-radius:24px; padding:32px 28px; transition:all .2s; }
+        .rv-price-card:hover { transform:translateY(-4px); }
       `}</style>
 
       <div className="ryvynn-landing">
@@ -206,7 +271,7 @@ export default function HomePage() {
             style={{ background: 'radial-gradient(ellipse 40% 40% at 50% 80%, rgba(139,92,246,0.06) 0%, transparent 60%)' }} />
 
           {/* Tagline pill */}
-          <div className="rv-tag rv-anim-fadeup1">🔥 From our darkest hours to our brightest days</div>
+          <div className="rv-tag rv-anim-fadeup1">From our darkest hours to our brightest days</div>
 
           {/* Dual Flame logo */}
           <div className="rv-anim-fadeup2 mb-6">
@@ -253,7 +318,7 @@ export default function HomePage() {
             )}
             {chatStep >= 2 && (
               <div className="rv-anim-fadein mb-2">
-                <div className="text-[10px] tracking-widest mb-1 text-ryvynn-cyan">🔥 RYVYNN</div>
+                <div className="text-[10px] tracking-widest mb-1 text-ryvynn-cyan">RYVYNN</div>
                 <div className="text-sm leading-relaxed px-4 py-2 rounded-[16px_16px_16px_4px]"
                   style={{ background: 'rgba(0,217,255,0.07)', border: '1px solid rgba(0,217,255,0.15)', color: '#dde4f0' }}>
                   I get it. That weight — it&apos;s real, and it&apos;s heavy right now. You&apos;re not being dramatic. You&apos;re human.
@@ -334,7 +399,7 @@ export default function HomePage() {
               />
               <div className="flex justify-between items-center mt-3 pt-3"
                 style={{ borderTop: '1px solid rgba(0,217,255,0.13)' }}>
-                <span className="text-xs italic" style={{ color: '#7a8499' }}>Enter to send</span>
+                <span className="text-xs italic" style={{ color: '#7a8499' }}>Enter to send · nothing stored</span>
                 <button
                   onClick={handleDemo}
                   disabled={loading || !demoMsg.trim()}
@@ -357,7 +422,8 @@ export default function HomePage() {
             {demoReply && !loading && (
               <div className="mt-6 rv-card rv-anim-fadein" style={{ borderColor: 'rgba(0,217,255,0.35)' }}>
                 <div className="flex items-center gap-2 mb-3 text-xs font-semibold tracking-widest text-ryvynn-cyan">
-                  🔥 RYVYNN
+                  <Image src="/assets/dual-flame-logo.png" alt="" width={16} height={16} className="inline" />
+                  RYVYNN
                   <span className="font-light text-xs" style={{ color: '#7a8499' }}>— session ends when you close the tab</span>
                 </div>
                 <div className="text-[15px] leading-[1.9] whitespace-pre-wrap text-[#dde4f0]">{demoReply}</div>
@@ -404,69 +470,126 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── VOID FILLER ───────────────────────────────────────────────────── */}
+        {/* ── CONFESSION WALL TEASER ────────────────────────────────────────── */}
         <div className="rv-section text-center">
-          <h2 className="rv-serif font-normal text-white mb-9"
-            style={{ fontSize: 'clamp(2rem,4.5vw,3.5rem)', lineHeight: 1.2 }}>
-            For when the thoughts won&apos;t stop...<br />
-            <span className="text-ryvynn-cyan">and talking to anyone else feels impossible.</span>
+          <div className="rv-tag">The Miracle Wall</div>
+          <h2 className="rv-serif font-normal text-white mb-4"
+            style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
+            Real thoughts people don&apos;t say out loud.
           </h2>
-          <div className="max-w-2xl mx-auto flex flex-col gap-5">
-            {[
-              "It's 2:47 AM. The room is quiet, but your mind is screaming. You don't need advice. You don't need fixing. You just need somewhere to put it — without it following you forever.",
-              "RYVYNN was built the opposite of every other AI: your words vanish the second you close the tab. No training data. No profiles. No third-party shares. In 2026, real privacy isn't a feature — it's survival.",
-              "This was built by someone who hit rock bottom and couldn't find this space anywhere. So they built it from nothing. For you."
-            ].map((p, i) => (
-              <p key={i} className={`leading-[1.9] text-base ${i === 2 ? 'font-medium text-left pl-5' : 'font-light text-center'}`}
-                style={{ color: i === 2 ? '#dde4f0' : '#7a8499', borderLeft: i === 2 ? '3px solid #8B5CF6' : 'none' }}>
-                {p}
-              </p>
-            ))}
+          <p className="max-w-lg mx-auto text-[15px] mb-10" style={{ color: '#7a8499' }}>
+            Anonymous confessions transform into miracles — stripped of identity, your breakthrough becomes someone else&apos;s lifeline.
+          </p>
+
+          {/* Rotating confession */}
+          <div className="max-w-xl mx-auto mb-8 rounded-2xl p-8 relative overflow-hidden"
+            style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.2)' }}>
+            <div className="text-3xl mb-4 text-ryvynn-purple opacity-40">&ldquo;</div>
+            <p key={confIdx} className="rv-anim-confslide text-lg italic leading-relaxed text-[#dde4f0] rv-serif">
+              {CONFESSIONS[confIdx]}
+            </p>
+            <div className="mt-4 text-xs" style={{ color: '#7a8499' }}>— Anonymous · shared voluntarily</div>
+          </div>
+
+          {/* Blurred previews */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="grid gap-3">
+              {[
+                "Sometimes I feel like I was never meant to be here at all, and then...",
+                "I told my Guardian something I've never told another living soul. It replied with...",
+                "Day 47. I almost didn't make it to day 3. Here's what changed...",
+              ].map((preview, i) => (
+                <div key={i} className="rounded-xl px-5 py-4 text-left relative overflow-hidden"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span className={`text-sm text-[#dde4f0] ${confBlur ? 'rv-blur-text' : 'revealed'}`}>
+                    {preview}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setConfBlur(false)}
+              className="mt-5 rv-cta"
+              style={{ borderColor: 'rgba(139,92,246,0.6)', color: '#8B5CF6', boxShadow: '0 0 20px rgba(139,92,246,0.15)' }}>
+              Reveal miracles →
+            </button>
+          </div>
+
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/wall" className="rv-cta" style={{ borderColor: 'rgba(139,92,246,0.5)', color: '#8B5CF6' }}>
+              Read the wall
+            </Link>
+            <Link href="/guardian" className="rv-cta rv-anim-pulse">
+              Share yours anonymously →
+            </Link>
           </div>
         </div>
 
-        {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
+        {/* ── VOID FILLER ───────────────────────────────────────────────────── */}
         <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(0,217,255,0.13)' }}>
-          <div className="rv-section">
-            <div className="text-center mb-14">
-              <div className="rv-tag">Zero Setup</div>
-              <h2 className="rv-serif font-normal text-white"
-                style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
-                No setup. No bullshit. Just breathe.
-              </h2>
-            </div>
-            <div className="grid gap-7" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))' }}>
-              {STEPS.map((step, i) => (
-                <div key={i} className="rv-card relative overflow-hidden">
-                  <span className="absolute top-0 right-4 rv-serif font-bold leading-none select-none"
-                    style={{ fontSize: '4rem', color: 'rgba(0,217,255,0.07)', top: '-8px' }}>{step.n}</span>
-                  <div className="text-xs font-semibold tracking-widest mb-3 text-ryvynn-cyan">STEP {step.n}</div>
-                  <h3 className="text-white font-medium text-lg mb-3">{step.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#7a8499' }}>{step.desc}</p>
-                </div>
+          <div className="rv-section text-center">
+            <h2 className="rv-serif font-normal text-white mb-9"
+              style={{ fontSize: 'clamp(2rem,4.5vw,3.5rem)', lineHeight: 1.2 }}>
+              For when the thoughts won&apos;t stop...<br />
+              <span className="text-ryvynn-cyan">and talking to anyone else feels impossible.</span>
+            </h2>
+            <div className="max-w-2xl mx-auto flex flex-col gap-5">
+              {[
+                "It's 2:47 AM. The room is quiet, but your mind is screaming. You don't need advice. You don't need fixing. You just need somewhere to put it — without it following you forever.",
+                "RYVYNN was built the opposite of every other AI: your words vanish the second you close the tab. No training data. No profiles. No third-party shares. In 2026, real privacy isn't a feature — it's survival.",
+                "This was built by someone who hit rock bottom and couldn't find this space anywhere. So they built it from nothing. For you."
+              ].map((p, i) => (
+                <p key={i} className={`leading-[1.9] text-base ${i === 2 ? 'font-medium text-left pl-5' : 'font-light text-center'}`}
+                  style={{ color: i === 2 ? '#dde4f0' : '#7a8499', borderLeft: i === 2 ? '3px solid #8B5CF6' : 'none' }}>
+                  {p}
+                </p>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── POWER TOOLS ───────────────────────────────────────────────────── */}
+        {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
         <div className="rv-section">
           <div className="text-center mb-14">
-            <div className="rv-tag">What Sets RYVYNN Apart</div>
+            <div className="rv-tag">Zero Setup</div>
             <h2 className="rv-serif font-normal text-white"
               style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
-              A sea of risky companions.<br />
-              <span className="text-ryvynn-cyan">One that&apos;s actually safe.</span>
+              No setup. No bullshit. Just breathe.
             </h2>
           </div>
-          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(270px,1fr))' }}>
-            {TOOLS.map((t, i) => (
-              <div key={i} className="rv-card">
-                <div className="text-3xl mb-4">{t.icon}</div>
-                <h3 className="text-white font-semibold text-base mb-2">{t.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#7a8499' }}>{t.desc}</p>
+          <div className="grid gap-7" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))' }}>
+            {STEPS.map((step, i) => (
+              <div key={i} className="rv-card relative overflow-hidden">
+                <span className="absolute top-0 right-4 rv-serif font-bold leading-none select-none"
+                  style={{ fontSize: '4rem', color: 'rgba(0,217,255,0.07)', top: '-8px' }}>{step.n}</span>
+                <div className="text-xs font-semibold tracking-widest mb-3 text-ryvynn-cyan">STEP {step.n}</div>
+                <h3 className="text-white font-medium text-lg mb-3">{step.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#7a8499' }}>{step.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ── POWER TOOLS ───────────────────────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(0,217,255,0.13)' }}>
+          <div className="rv-section">
+            <div className="text-center mb-14">
+              <div className="rv-tag">What Sets RYVYNN Apart</div>
+              <h2 className="rv-serif font-normal text-white"
+                style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
+                A sea of risky companions.<br />
+                <span className="text-ryvynn-cyan">One that&apos;s actually safe.</span>
+              </h2>
+            </div>
+            <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(270px,1fr))' }}>
+              {TOOLS.map((t, i) => (
+                <div key={i} className="rv-card">
+                  <div className="text-3xl mb-4">{t.icon}</div>
+                  <h3 className="text-white font-semibold text-base mb-2">{t.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#7a8499' }}>{t.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -515,7 +638,7 @@ export default function HomePage() {
             <table className="w-full" style={{ borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid rgba(0,217,255,0.13)', background: 'rgba(0,217,255,0.04)' }}>
-                  {['Feature','🔥 RYVYNN','Replika','BetterHelp / Talkspace','Character.ai'].map((h, i) => (
+                  {['Feature','RYVYNN','Replika','BetterHelp / Talkspace','Character.ai'].map((h, i) => (
                     <th key={i} style={{ padding: '16px 18px', textAlign: i === 0 ? 'left' : 'center',
                       color: i === 1 ? '#00D9FF' : '#7a8499', fontWeight: i === 1 ? 700 : 400,
                       fontSize: i === 1 ? 15 : 12, whiteSpace: 'nowrap', letterSpacing: '.04em' }}>
@@ -581,7 +704,15 @@ export default function HomePage() {
 
         {/* ── DUAL FLAME STORY ──────────────────────────────────────────────── */}
         <div className="rv-section text-center">
-          <div className="text-6xl mb-5 rv-anim-bob">🔥🔥</div>
+          <div className="mb-5 flex justify-center rv-anim-bob">
+            <Image
+              src="/assets/dual-flame-logo.png"
+              alt="Dual Flame"
+              width={80}
+              height={80}
+              className="object-contain drop-shadow-[0_0_40px_rgba(0,217,255,0.5)]"
+            />
+          </div>
           <div className="rv-tag">The Dual Flame</div>
           <h2 className="rv-serif font-normal text-white mb-6"
             style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
@@ -645,10 +776,88 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* ── PRICING ───────────────────────────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(0,217,255,0.13)' }}>
+          <div className="rv-section">
+            <div className="text-center mb-14">
+              <div className="rv-tag">Pricing · Tesla 3-6-9</div>
+              <h2 className="rv-serif font-normal text-white mb-4"
+                style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.2 }}>
+                Free when you need it.<br />
+                <span className="text-ryvynn-cyan">Deeper when you&apos;re ready.</span>
+              </h2>
+              <p className="max-w-lg mx-auto text-[15px]" style={{ color: '#7a8499' }}>
+                Crisis access is free forever. No paywalls between you and safety. Premium unlocks the full healing ecosystem.
+              </p>
+            </div>
+
+            <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))' }}>
+              {PRICING_TIERS.map((tier, i) => (
+                <div
+                  key={i}
+                  className="rv-price-card relative"
+                  style={{
+                    border: `1.5px solid ${tier.border}`,
+                    boxShadow: tier.highlight ? `0 0 40px rgba(0,217,255,0.18)` : 'none',
+                  }}
+                >
+                  {tier.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold tracking-widest"
+                      style={{ background: tier.color, color: '#06080f' }}>
+                      {tier.badge}
+                    </div>
+                  )}
+                  <div className="text-sm font-bold tracking-widest mb-1" style={{ color: tier.color }}>
+                    {tier.name.toUpperCase()}
+                  </div>
+                  <div className="text-3xl font-bold text-white mb-1">{tier.price}</div>
+                  <div className="text-xs mb-5" style={{ color: '#7a8499' }}>{tier.sub}</div>
+                  <ul className="flex flex-col gap-2 mb-7">
+                    {tier.features.map((f, j) => (
+                      <li key={j} className="flex gap-2 items-start text-sm" style={{ color: '#dde4f0' }}>
+                        <span style={{ color: tier.color }} className="mt-0.5 flex-shrink-0">✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {tier.coupon && (
+                    <div className="text-xs mb-3 px-3 py-2 rounded-xl text-center"
+                      style={{ background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.15)', color: '#00D9FF' }}>
+                      Use code <strong>FIRSTFLAME</strong> → $3.69 first month
+                    </div>
+                  )}
+                  <Link
+                    href={tier.href}
+                    className="block text-center rounded-full py-3 text-sm font-semibold no-underline transition-all"
+                    style={{
+                      background: tier.highlight ? `rgba(0,217,255,0.15)` : 'rgba(255,255,255,0.04)',
+                      border: `1.5px solid ${tier.border}`,
+                      color: tier.color,
+                    }}>
+                    {tier.cta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center mt-8 text-xs" style={{ color: '#7a8499' }}>
+              All plans · Cancel anytime · No dark patterns · Crisis tier free forever, no exceptions.
+            </p>
+          </div>
+        </div>
+
         {/* ── FINAL CTA ─────────────────────────────────────────────────────── */}
         <div style={{ background: 'linear-gradient(180deg,#06080f 0%,rgba(0,217,255,0.04) 50%,#06080f 100%)', borderTop: '1px solid rgba(0,217,255,0.13)' }}>
           <div className="rv-section text-center">
-            <div className="text-5xl mb-5 rv-anim-bob">🔥</div>
+            <div className="mb-5 flex justify-center rv-anim-bob">
+              <Image
+                src="/assets/dual-flame-logo.png"
+                alt="Dual Flame"
+                width={64}
+                height={64}
+                className="object-contain drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]"
+              />
+            </div>
             <h2 className="rv-serif font-normal text-white mb-5"
               style={{ fontSize: 'clamp(2.5rem,6vw,5.5rem)', lineHeight: 1.2 }}>
               One message.<br />
@@ -679,9 +888,18 @@ export default function HomePage() {
         {/* ── FOOTER ────────────────────────────────────────────────────────── */}
         <footer className="text-center py-9 px-6"
           style={{ borderTop: '1px solid rgba(0,217,255,0.13)' }}>
-          <div className="text-2xl mb-3">🔥</div>
+          <div className="flex justify-center mb-3">
+            <Image
+              src="/assets/dual-flame-logo.png"
+              alt="RYVYNN Dual Flame"
+              width={28}
+              height={28}
+              className="object-contain opacity-60"
+            />
+          </div>
           <div className="text-sm max-w-xl mx-auto leading-[1.95]" style={{ color: '#7a8499' }}>
-            RYVYNN is <strong>not</strong> a licensed therapist, doctor, or crisis replacement service.<br />
+            RYVYNN is <strong>not</strong> a licensed therapist, doctor, or crisis replacement service.
+            AI responses are supportive in nature and do not constitute medical advice.<br />
             For emergencies: <strong>988 (US)</strong> / local emergency services immediately.<br />
             Built for relief. Privacy-first. Always free at core.<br />
             <span className="text-xs opacity-40">
@@ -704,7 +922,7 @@ export default function HomePage() {
                 fontFamily: "'Jost',sans-serif",
                 transition: 'all .2s',
               }}>
-              <span className="text-lg">🔥</span>
+              <Image src="/assets/dual-flame-logo.png" alt="" width={20} height={20} className="object-contain" />
               Breathe with me?
             </Link>
           </div>
