@@ -2,7 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+html {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #050505 100%);
   min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ─── Mobile — everything gets bigger ─────────────────────────────────────── */
+@media (max-width: 640px) {
+
+  html {
+    font-size: 18px;
+  }
+
+  /* Tailwind text utilities — override fixed px values */
+  .text-xs   { font-size: 0.8rem  !important; }   /* 14.4px (was 12px) */
+  .text-sm   { font-size: 0.95rem !important; }   /* 17.1px (was 14px) */
+  .text-base { font-size: 1.05rem !important; }   /* 18.9px */
+  .text-lg   { font-size: 1.2rem  !important; }   /* 21.6px */
+  .text-xl   { font-size: 1.35rem !important; }   /* 24.3px */
+  .text-2xl  { font-size: 1.6rem  !important; }   /* 28.8px */
+  .text-3xl  { font-size: 1.9rem  !important; }
+  .text-4xl  { font-size: 2.2rem  !important; }
+  .text-5xl  { font-size: 2.7rem  !important; }
+  .text-6xl  { font-size: 3.2rem  !important; }
+  .text-7xl  { font-size: 3.8rem  !important; }
+
+  /* Arbitrary text sizes used in page.tsx */
+  [style*="font-size: 11px"], [style*="font-size:11px"] { font-size: 14px !important; }
+  [style*="font-size: 12px"], [style*="font-size:12px"] { font-size: 15px !important; }
+  [style*="font-size: 13px"], [style*="font-size:13px"] { font-size: 16px !important; }
+  [style*="font-size: 14px"], [style*="font-size:14px"] { font-size: 17px !important; }
+  [style*="font-size: 15px"], [style*="font-size:15px"] { font-size: 17px !important; }
+
+  /* Brighter dim text on mobile — #7a8499 → slightly lighter */
+  [style*="color: #7a8499"], [style*="color:#7a8499"] {
+    color: #9aA0b0 !important;
+  }
+
+  /* rv-tag pill — was 11px tracking-widest, barely visible */
+  .rv-tag {
+    font-size: 0.75rem !important;
+    padding: 6px 16px !important;
+  }
+
+  /* rv-section padding — less horizontal squeeze on small screens */
+  .rv-section {
+    padding: 64px 20px !important;
+  }
+
+  /* rv-card padding — give text room to breathe */
+  .rv-card {
+    padding: 24px 20px !important;
+  }
+
+  /* rv-cta buttons — bigger tap target */
+  .rv-cta {
+    font-size: 15px !important;
+    padding: 14px 24px !important;
+  }
+  .rv-cta-big {
+    padding: 18px 32px !important;
+    font-size: 17px !important;
+  }
+  .rv-cta-xl {
+    padding: 20px 36px !important;
+    font-size: 18px !important;
+  }
+
+  /* Tracking — tighten letter-spacing on small screens so text isn't spaced out */
+  .tracking-wider  { letter-spacing: 0.04em !important; }
+  .tracking-widest { letter-spacing: 0.08em !important; }
+
+  /* Line height — slightly more relaxed for readability */
+  p, li, span { line-height: 1.7; }
+
+  /* Float button — bigger on mobile */
+  .rv-float-btn {
+    padding: 14px 20px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ─── Tablet (641–1023px) — gentle bump ───────────────────────────────────── */
+@media (min-width: 641px) and (max-width: 1023px) {
+  html {
+    font-size: 17px;
+  }
+  .text-xs { font-size: 0.78rem !important; }
+  .text-sm { font-size: 0.92rem !important; }
+  [style*="color: #7a8499"] { color: #8a90a0 !important; }
 }
