@@ -2,64 +2,60 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Persona = 'feminine' | 'masculine' | 'neutral';
+export type Persona = 'feminine' | 'masculine' | 'neutral' | 'aged';
 
 interface PersonaContextType {
   persona: Persona;
   setPersona: (persona: Persona) => void;
   ratedMode: boolean;
-  setRatedMode: (enabled: boolean) => void;
+  setRatedMode: (v: boolean) => void;
+  emotionalDepth: boolean;
+  setEmotionalDepth: (v: boolean) => void;
   is18Plus: boolean;
-  setIs18Plus: (is18: boolean) => void;
+  setIs18Plus: (v: boolean) => void;
+  darkMode: boolean;
+  setDarkMode: (v: boolean) => void;
 }
 
 const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
 
 export function PersonaProvider({ children }: { children: ReactNode }) {
-  const [persona, setPersonaState] = useState<Persona>('neutral');
-  const [ratedMode, setRatedModeState] = useState(false);
-  // Default is18Plus to TRUE — no gate on first visit
-  const [is18Plus, setIs18PlusState] = useState(true);
+  const [persona,        setPersonaState]        = useState<Persona>('neutral');
+  const [ratedMode,      setRatedModeState]      = useState(false);
+  const [emotionalDepth, setEmotionalDepthState] = useState(false);
+  const [is18Plus,       setIs18PlusState]       = useState(true);
+  const [darkMode,       setDarkModeState]       = useState(true);
 
   useEffect(() => {
-    const savedPersona = localStorage.getItem('ryvynn-persona') as Persona;
-    const savedRated = localStorage.getItem('ryvynn-rated') === 'true';
-    if (savedPersona && ['feminine', 'masculine', 'neutral'].includes(savedPersona)) {
-      setPersonaState(savedPersona);
-    }
-    setRatedModeState(savedRated);
-    // is18Plus stays true by default — we don't gate on first visit
+    const p = localStorage.getItem('ryvynn-persona') as Persona;
+    if (p && ['feminine','masculine','neutral','aged'].includes(p)) setPersonaState(p);
+    if (localStorage.getItem('ryvynn-rated') === 'true') setRatedModeState(true);
+    if (localStorage.getItem('ryvynn-emotional-depth') === 'true') setEmotionalDepthState(true);
+    const dm = localStorage.getItem('ryvynn-dark-mode');
+    setDarkModeState(dm === null ? true : dm !== 'false');
   }, []);
 
-  const setPersona = (p: Persona) => {
-    setPersonaState(p);
-    localStorage.setItem('ryvynn-persona', p);
-  };
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    }
+  }, [darkMode]);
 
-  const setRatedMode = (enabled: boolean) => {
-    setRatedModeState(enabled);
-    localStorage.setItem('ryvynn-rated', String(enabled));
-  };
-
-  const setIs18Plus = (is18: boolean) => {
-    setIs18PlusState(is18);
-    localStorage.setItem('ryvynn-18plus', String(is18));
-    if (!is18) setRatedMode(false);
-  };
-
-  // REMOVED: if (!mounted) return null
-  // That caused a full-app flash on every page load.
-  // Context now renders immediately with safe defaults.
+  const setPersona = (p: Persona) => { setPersonaState(p); localStorage.setItem('ryvynn-persona', p); };
+  const setRatedMode = (v: boolean) => { setRatedModeState(v); localStorage.setItem('ryvynn-rated', String(v)); };
+  const setEmotionalDepth = (v: boolean) => { setEmotionalDepthState(v); localStorage.setItem('ryvynn-emotional-depth', String(v)); };
+  const setIs18Plus = (v: boolean) => { setIs18PlusState(v); localStorage.setItem('ryvynn-18plus', String(v)); if (!v) setRatedMode(false); };
+  const setDarkMode = (v: boolean) => { setDarkModeState(v); localStorage.setItem('ryvynn-dark-mode', String(v)); };
 
   return (
-    <PersonaContext.Provider value={{ persona, setPersona, ratedMode, setRatedMode, is18Plus, setIs18Plus }}>
+    <PersonaContext.Provider value={{ persona, setPersona, ratedMode, setRatedMode, emotionalDepth, setEmotionalDepth, is18Plus, setIs18Plus, darkMode, setDarkMode }}>
       {children}
     </PersonaContext.Provider>
   );
 }
 
 export function usePersona() {
-  const context = useContext(PersonaContext);
-  if (!context) throw new Error('usePersona must be used within PersonaProvider');
-  return context;
+  const ctx = useContext(PersonaContext);
+  if (!ctx) throw new Error('usePersona must be used within PersonaProvider');
+  return ctx;
 }
