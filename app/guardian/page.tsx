@@ -31,6 +31,7 @@ export default function GuardianPage() {
   const [lastInput,      setLastInput]       = useState('');
   const [messageCount,   setMessageCount]    = useState(0);
   const [showPlusNudge,  setShowPlusNudge]   = useState(false);
+  const [showReturnHook,  setShowReturnHook]   = useState(false);
   const [voiceMode,      setVoiceMode]       = useState(false);
   const [voiceState,     setVoiceState]      = useState<VoiceState>('idle');
   const [voiceSupported, setVoiceSupported]  = useState(false);
@@ -121,6 +122,7 @@ export default function GuardianPage() {
       const count = messageCount + 1;
       setMessageCount(count);
       if (count >= 5 && !showPlusNudge) setShowPlusNudge(true);
+      if (count >= 8 && !user && !showReturnHook) setShowReturnHook(true);
       if (voiceMode) { speak(data.response, () => setTimeout(() => startListeningFn(), 600)); }
       else { setVoiceState('idle'); }
     } catch {
@@ -130,7 +132,7 @@ export default function GuardianPage() {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, voiceMode, speak, tf, persona, language, emotionalDepth, messageCount, showPlusNudge]);
+  }, [loading, user, voiceMode, speak, tf, persona, language, emotionalDepth, messageCount, showPlusNudge, showReturnHook]);
 
   function clearSession() {
     setMessages([]); setMessageCount(0); setShowPlusNudge(false); setLastInput(''); setTranscript('');
@@ -248,6 +250,10 @@ export default function GuardianPage() {
                   />
                 </div>
               )}
+              {showReturnHook && !user && (
+                <ReturnHook onDismiss={() => setShowReturnHook(false)} />
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -346,6 +352,78 @@ function WallShareNudge({ lastMessage, onDismiss }: { lastMessage: string; onDis
           color: '#636e84', cursor: 'pointer', fontFamily: 'inherit' }}>
         Keep it to myself
       </button>
+    </div>
+  );
+}
+
+// ── ReturnHook ─────────────────────────────────────────────────────────────
+// Appears at message 8 for anonymous users.
+// Not a signup pitch — just a way to bookmark this exact space.
+// Uses browser Notification API for opt-in reminder. No email. No account.
+function ReturnHook({ onDismiss }: { onDismiss: () => void }) {
+  const [step, setStep] = useState<'ask' | 'notify' | 'done'>('ask');
+
+  const requestNotify = async () => {
+    if (!('Notification' in window)) { setStep('done'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      // Schedule a gentle reminder via setTimeout (tab must stay open)
+      // Real push requires VAPID — this is the no-setup version
+      localStorage.setItem('ryvynn-return-reminder', '1');
+      new Notification('RYVYNN', {
+        body: 'Guardian is here whenever you need it. Nothing saved. Always private.',
+        icon: '/assets/dual-flame-logo.png',
+      });
+    }
+    setStep('done');
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText('https://ryvynn.live/guardian').catch(() => {});
+    setStep('done');
+  };
+
+  if (step === 'done') return (
+    <div style={{ borderRadius: 14, padding: '14px 18px',
+      background: 'rgba(0,201,232,.05)', border: '1px solid rgba(0,201,232,.15)',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <p style={{ fontSize: 13, color: '#636e84', margin: 0 }}>
+        ✓ You know where to come back.
+      </p>
+      <button onClick={onDismiss}
+        style={{ background: 'none', border: 'none', color: '#3a4352', cursor: 'pointer', fontSize: 18 }}>×</button>
+    </div>
+  );
+
+  return (
+    <div style={{ borderRadius: 14, padding: '18px 20px',
+      background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)' }}>
+      <p style={{ fontSize: 14, color: '#eef2fa', fontWeight: 500, marginBottom: 6 }}>
+        Want to find your way back here?
+      </p>
+      <p style={{ fontSize: 12, color: '#636e84', lineHeight: 1.65, marginBottom: 16 }}>
+        No account needed. Just bookmark it or get a quiet reminder.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button onClick={requestNotify}
+          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 99,
+            background: 'rgba(0,201,232,.12)', border: '1px solid rgba(0,201,232,.3)',
+            color: '#00C9E8', cursor: 'pointer', fontFamily: 'inherit' }}>
+          Remind me later
+        </button>
+        <button onClick={copyLink}
+          style={{ fontSize: 12, padding: '8px 16px', borderRadius: 99,
+            background: 'transparent', border: '1px solid rgba(255,255,255,.1)',
+            color: '#636e84', cursor: 'pointer', fontFamily: 'inherit' }}>
+          Copy link
+        </button>
+        <button onClick={onDismiss}
+          style={{ fontSize: 12, padding: '8px 14px', borderRadius: 99,
+            background: 'none', border: 'none', color: '#3a4352',
+            cursor: 'pointer', fontFamily: 'inherit' }}>
+          I&apos;m good
+        </button>
+      </div>
     </div>
   );
 }
