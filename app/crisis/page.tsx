@@ -45,6 +45,18 @@ export default function CrisisPage() {
       description: 'Substance abuse and mental health support',
       url: 'https://samhsa.gov/find-help/national-helpline',
     },
+    {
+      name: 'Crisis Text Line',
+      contact: 'Text HOME to 741741',
+      description: 'Text-based crisis support — no talking required, 24/7',
+      url: 'https://crisistextline.org',
+    },
+    {
+      name: 'NAMI Helpline',
+      contact: 'Call 1-800-950-6264',
+      description: 'Mental health information and support, Mon–Fri 10am–10pm ET',
+      url: 'https://nami.org/help',
+    },
   ];
 
   const internationalResources = [
@@ -146,6 +158,18 @@ export default function CrisisPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* RYVYNN Guardian option — stay here, not ready to call */}
+        <div className="bg-ryvynn-purple/10 border border-ryvynn-purple/30 rounded-lg p-6 mb-8">
+          <h3 className="font-bold text-ryvynn-purple mb-2">Not ready to call or text?</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            You can stay here. Talk to the Guardian — anonymously, no account, nothing saved.
+            It won&apos;t replace real support, but it can help you get through the next hour.
+          </p>
+          <a href="/guardian" className="inline-block px-5 py-2.5 bg-ryvynn-purple/20 border border-ryvynn-purple/40 text-ryvynn-purple rounded-lg text-sm font-medium hover:bg-ryvynn-purple/30 transition-colors">
+            Talk to Guardian now →
+          </a>
         </div>
 
         {/* Privacy Note */}
