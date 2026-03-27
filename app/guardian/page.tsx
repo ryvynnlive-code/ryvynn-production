@@ -223,16 +223,10 @@ export default function GuardianPage() {
               {loading && <div className="flex justify-start"><MiracleReveal miracle="" loading={true} persona={persona} onSessionClose={clearSession} /></div>}
 
               {showPlusNudge && (
-                <div className="bg-gradient-to-r from-[#00D9FF]/8 to-[#8B5CF6]/8 border border-[#00D9FF]/15 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-white text-sm font-semibold">Feeling the calm? 🔥</p>
-                    <p className="text-gray-500 text-xs mt-0.5">First month $3.69 with FIRSTFLAME → then $12.12/mo</p>
-                  </div>
-                  <div className="flex items-center gap-2 ml-3 shrink-0">
-                    <a href="/pricing" className="px-3 py-1.5 bg-gradient-to-r from-[#00D9FF] to-[#8B5CF6] text-black text-xs font-bold rounded-lg">Ignite</a>
-                    <button onClick={() => setShowPlusNudge(false)} className="text-gray-600 text-lg leading-none">×</button>
-                  </div>
-                </div>
+                <WallShareNudge
+                  lastMessage={messages.filter(m => m.role === 'user').slice(-1)[0]?.content ?? ''}
+                  onDismiss={() => setShowPlusNudge(false)}
+                />
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -284,5 +278,62 @@ export default function GuardianPage() {
       </main>
     </GuardianWrapper>
   );
-}
 
+// ── WallShareNudge ─────────────────────────────────────────────────────────
+// Appears after 3+ messages. Offers to leave what was said on the wall
+// for someone who might be going through the same thing.
+// Default is "keep it to yourself" — sharing is the opt-in.
+function WallShareNudge({ lastMessage, onDismiss }: { lastMessage: string; onDismiss: () => void }) {
+  const [sharing, setSharing] = useState(false);
+  const [shared, setShared]   = useState(false);
+
+  const shareToWall = async () => {
+    if (!lastMessage.trim() || sharing) return;
+    setSharing(true);
+    try {
+      await fetch('/api/wall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          confession: lastMessage,
+          transformation: lastMessage,
+          isAnonymous: true,
+        }),
+      });
+      setShared(true);
+    } catch {
+      setSharing(false);
+    }
+  };
+
+  if (shared) {
+    return (
+      <div className="rounded-xl p-4 flex items-center justify-between" style={{ background: 'rgba(0,201,232,.06)', border: '1px solid rgba(0,201,232,.15)' }}>
+        <p className="text-sm" style={{ color: '#636e84' }}>✓ Left on the wall. Someone might need it.</p>
+        <button onClick={onDismiss} className="text-gray-600 text-lg leading-none ml-3">×</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)' }}>
+      <p className="text-white text-sm mb-1">Would this help someone else?</p>
+      <p className="text-xs mb-3" style={{ color: '#636e84' }}>
+        You can leave what you just said on the wall — anonymously, no name, no account. Or keep it here and it disappears when you leave.
+      </p>
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={shareToWall}
+          disabled={sharing}
+          className="text-xs px-3 py-1.5 rounded-lg font-medium"
+          style={{ background: 'rgba(0,201,232,.12)', border: '1px solid rgba(0,201,232,.3)', color: '#00C9E8', cursor: 'pointer' }}>
+          {sharing ? 'Posting...' : 'Leave it for someone else'}
+        </button>
+        <button onClick={onDismiss} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'none', border: '1px solid rgba(255,255,255,.1)', color: '#636e84', cursor: 'pointer' }}>
+          Keep it to myself
+        </button>
+      </div>
+    </div>
+  );
+}
+}
