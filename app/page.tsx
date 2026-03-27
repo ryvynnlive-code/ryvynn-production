@@ -162,21 +162,21 @@ export default function HomePage() {
           {/* Headline */}
           <h1 className="lora slide-up su2"
             style={{ fontSize: 'clamp(2.2rem,6vw,3.8rem)', fontWeight: 400, lineHeight: 1.2, color: '#eef2fa', marginBottom: 18 }}>
-            Say what you can't say anywhere else.
+            There's something you haven't been able to say out loud.
           </h1>
 
           {/* Sub */}
           <p className="slide-up su3" style={{ fontSize: 'clamp(1rem,2.5vw,1.18rem)', lineHeight: 1.8, color: 'var(--dim)', maxWidth: 460, margin: '0 auto 36px' }}>
-            No account. No memory. No one watching.<br />
-            Type whatever&apos;s weighing on you. It disappears the second you close this tab.
+            Not to a therapist. Not to a friend. Maybe not even to yourself yet.<br />
+            Say it here. No account. No memory. Gone the second you leave.
           </p>
 
           {/* CTAs */}
-          <div className="slide-up su4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 40 }}>
+          <div className="slide-up su4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 40 }}>
             <Link href="/guardian" className="btn-primary" style={{ fontSize: 16, padding: '16px 36px' }}>
               Start Talking — Nothing Saved
             </Link>
-
+            <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>No signup. No history. Close the tab and it&apos;s gone.</span>
           </div>
 
           {/* Inline trust bullets */}
@@ -489,4 +489,5 @@ export default function HomePage() {
     </main>
   );
 }
+
 
