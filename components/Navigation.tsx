@@ -96,21 +96,23 @@ export function Navigation() {
                 </button>
               </div>
             ) : (
-              /* Logged Out State — PROMINENT CTA */
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowSignIn(true)}
-                  className="hidden sm:block text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5"
-                >
-                  {t('signIn')}
-                </button>
-                <button
-                  onClick={() => setShowSignUp(true)}
-                  className="text-sm font-black px-4 py-2 rounded-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] transition-all duration-200"
-                >
-                  Start Free
-                </button>
-              </div>
+              /* Logged Out — hidden on homepage so nav doesn't compete with CTA */
+              pathname === '/' ? null : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowSignIn(true)}
+                    className="hidden sm:block text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5"
+                  >
+                    {t('signIn')}
+                  </button>
+                  <button
+                    onClick={() => setShowSignUp(true)}
+                    className="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-700 text-gray-300 hover:border-ryvynn-cyan hover:text-white transition-all"
+                  >
+                    Start Free
+                  </button>
+                </div>
+              )
             )}
 
             {/* Mobile Hamburger */}
@@ -143,7 +145,7 @@ export function Navigation() {
                 {item.label}
               </Link>
             ))}
-            {!user && (
+            {!user && pathname !== '/' && (
               <div className="flex gap-3 mt-2 pt-3 border-t border-gray-800">
                 <button
                   onClick={() => { setShowSignIn(true); setMobileOpen(false); }}
@@ -153,7 +155,7 @@ export function Navigation() {
                 </button>
                 <button
                   onClick={() => { setShowSignUp(true); setMobileOpen(false); }}
-                  className="flex-1 text-sm font-black py-2.5 rounded-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple text-black"
+                  className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:border-ryvynn-cyan hover:text-white transition-all"
                 >
                   Start Free
                 </button>
