@@ -820,10 +820,10 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  {tier.coupon && (
+                  {tier.badge === 'Most Popular' && (
                     <div className="text-xs mb-3 px-3 py-2 rounded-xl text-center"
                       style={{ background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.15)', color: '#00D9FF' }}>
-                      Use code <strong>FIRSTFLAME</strong> → $3.69 first month
+                      First month <strong>$3.69</strong> — discount applied at checkout
                     </div>
                   )}
                   <Link
