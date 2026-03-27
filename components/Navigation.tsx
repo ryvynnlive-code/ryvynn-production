@@ -23,7 +23,10 @@ export function Navigation() {
     { href: '/crisis', label: t('crisis') },
     { href: '/pricing', label: t('pricing') },
     { href: '/support', label: 'Donate' },
-    ...(user ? [{ href: '/dashboard', label: tf('dashboard'), protected: true }] : []),
+    ...(user ? [
+      { href: '/dashboard', label: tf('dashboard'), protected: true },
+      { href: '/settings', label: 'Settings' },
+    ] : []),
   ];
 
   return (
