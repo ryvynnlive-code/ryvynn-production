@@ -8,52 +8,55 @@ import { SoulTokenProvider } from "@/contexts/SoulTokenContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CrisisBanner } from "@/components/CrisisBanner";
 import { Navigation } from "@/components/Navigation";
-import { AgeGate } from "@/components/persona/AgeGate";
 import { VoiceJournalButton } from "@/components/VoiceJournalButton";
 import { PushNotifications } from "@/components/PushNotifications";
+
+// AgeGate intentionally removed from layout.
+// Compliance note lives in page footer only.
+// A blocking gate as first screen kills conversion for users in distress.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ryvynn.live"),
   title: {
-    default: "RYVYNN — From Our Darkest Hours to Our Brightest Days",
+    default: "RYVYNN — Say what's on your mind. It disappears when you leave.",
     template: "%s | RYVYNN",
   },
   description:
-    "Anonymous AI-powered mental wellness. Zero surveillance. Face your shadows, find your light. Free crisis support, always.",
+    "Anonymous AI support. No login, no memory, no tracking. Say what you need to say — it vanishes when you close the tab. Free. Always.",
   robots: { index: true, follow: true },
   keywords: [
-    "mental health AI",
-    "anonymous therapy",
-    "crisis support",
-    "mental wellness",
-    "privacy first mental health",
-    "AI companion",
-    "depression support",
+    "anonymous mental health",
+    "private AI support",
+    "no login therapy",
+    "crisis support free",
+    "mental wellness anonymous",
+    "zero surveillance AI",
     "anxiety help",
-    "sobriety support",
+    "depression support anonymous",
     "free crisis line",
+    "emotional support AI",
   ],
   openGraph: {
     type: "website",
     url: "https://ryvynn.live",
     siteName: "RYVYNN",
-    title: "RYVYNN — From Our Darkest Hours to Our Brightest Days",
+    title: "RYVYNN — You're not alone right now.",
     description:
-      "Anonymous AI mental wellness. Zero surveillance. Free crisis support forever. Your darkness has a path through it.",
+      "Say what's on your mind. No account. No memory. No one watching. It disappears when you leave.",
     images: [
       {
         url: "/assets/dual-flame-logo.png",
         width: 512,
         height: 512,
-        alt: "RYVYNN Dual Flame",
+        alt: "RYVYNN",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "RYVYNN — Anonymous AI Mental Wellness",
+    title: "RYVYNN — Anonymous AI support that forgets on purpose.",
     description:
-      "Zero surveillance. Free crisis support. Your darkness has a path through it.",
+      "No login. No memory. No tracking. Just say what you need to say.",
     images: ["/assets/dual-flame-logo.png"],
   },
   icons: {
@@ -76,7 +79,6 @@ export default function RootLayout({
               <AgeTierProvider>
                 <GeolocationProvider>
                   <SoulTokenProvider>
-                    <AgeGate />
                     <CrisisBanner />
                     <Navigation />
                     {children}
@@ -92,4 +94,3 @@ export default function RootLayout({
     </html>
   );
 }
-// Build: 1773987439
