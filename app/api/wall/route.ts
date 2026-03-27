@@ -58,12 +58,16 @@ export async function POST(req: NextRequest) {
 
     // Award 3 soul tokens for sharing (logged-in users)
     if (userId) {
-      await supabase.rpc('award_tokens', {
-        user_uuid: userId,
-        amount: 3,
-        transaction_type: 'confession',
-        description: 'Shared to the wall',
-      }).catch(e => console.error('[wall] token award:', e));
+      try {
+        await supabase.rpc('award_tokens', {
+          user_uuid: userId,
+          amount: 3,
+          transaction_type: 'confession',
+          description: 'Shared to the wall',
+        });
+      } catch (tokenErr) {
+        console.error('[wall] token award:', tokenErr);
+      }
     }
 
     return NextResponse.json({ success: true, entryId: data.id, tokensEarned: userId ? 3 : 0 });
