@@ -6,23 +6,26 @@ import { AgeTierProvider } from "@/contexts/AgeTierContext";
 import { GeolocationProvider } from "@/contexts/GeolocationContext";
 import { SoulTokenProvider } from "@/contexts/SoulTokenContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CrisisBanner } from "@/components/CrisisBanner";
 import { Navigation } from "@/components/Navigation";
 import { VoiceJournalButton } from "@/components/VoiceJournalButton";
 import { PushNotifications } from "@/components/PushNotifications";
 
-// AgeGate intentionally removed from layout.
-// Compliance note lives in page footer only.
-// A blocking gate as first screen kills conversion for users in distress.
+// CrisisBanner removed from global layout.
+// A red "🆘 In Crisis? Call 988" bar as the FIRST thing on every page
+// raises anxiety before a single word of support is offered.
+// Crisis routing lives inline in the Guardian page and crisis page only.
+//
+// AgeGate removed from global layout.
+// Compliance note lives in page footer text only.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ryvynn.live"),
   title: {
-    default: "RYVYNN — Say what's on your mind. It disappears when you leave.",
+    default: "RYVYNN — You're not alone right now.",
     template: "%s | RYVYNN",
   },
   description:
-    "Anonymous AI support. No login, no memory, no tracking. Say what you need to say — it vanishes when you close the tab. Free. Always.",
+    "Say what's on your mind. No account. No memory. No one watching. It disappears when you close the tab. Free. Always.",
   robots: { index: true, follow: true },
   keywords: [
     "anonymous mental health",
@@ -42,21 +45,13 @@ export const metadata: Metadata = {
     siteName: "RYVYNN",
     title: "RYVYNN — You're not alone right now.",
     description:
-      "Say what's on your mind. No account. No memory. No one watching. It disappears when you leave.",
-    images: [
-      {
-        url: "/assets/dual-flame-logo.png",
-        width: 512,
-        height: 512,
-        alt: "RYVYNN",
-      },
-    ],
+      "Say what's on your mind. No account. No memory. No one watching. It disappears when you close the tab.",
+    images: [{ url: "/assets/dual-flame-logo.png", width: 512, height: 512, alt: "RYVYNN" }],
   },
   twitter: {
     card: "summary",
     title: "RYVYNN — Anonymous AI support that forgets on purpose.",
-    description:
-      "No login. No memory. No tracking. Just say what you need to say.",
+    description: "No login. No memory. No tracking. Just say what you need to say.",
     images: ["/assets/dual-flame-logo.png"],
   },
   icons: {
@@ -65,11 +60,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-black text-white antialiased">
@@ -79,7 +70,6 @@ export default function RootLayout({
               <AgeTierProvider>
                 <GeolocationProvider>
                   <SoulTokenProvider>
-                    <CrisisBanner />
                     <Navigation />
                     {children}
                     <VoiceJournalButton />
