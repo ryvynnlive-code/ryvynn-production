@@ -990,9 +990,11 @@ export const personaTranslations = {
     feminine: 'Feminine',
     masculine: 'Masculine',
     neutral: 'Neutral',
+    aged: 'Aged',
     feminineDesc: 'Warm, nurturing, empathetic guidance',
     masculineDesc: 'Direct, strength-focused, action-driven',
     neutralDesc: 'Balanced, universal, ungendered support',
+    agedDesc: 'Wise, patient, long-view perspective',
 
     // 18+ Toggle
     ageGateTitle: 'Age Verification',
@@ -1055,9 +1057,11 @@ export const personaTranslations = {
     feminine: 'Femenino',
     masculine: 'Masculino',
     neutral: 'Neutral',
+    aged: 'Veterano',
     feminineDesc: 'Guía cálida, nutritiva, empática',
     masculineDesc: 'Directo, enfocado en fuerza, orientado a la acción',
     neutralDesc: 'Apoyo equilibrado, universal, sin género',
+    agedDesc: 'Perspectiva sabia, paciente y de largo plazo',
 
     // 18+ Toggle
     ageGateTitle: 'Verificación de Edad',
