@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useI18n } from '@/contexts/I18nContext';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -30,6 +31,8 @@ const CONFESSIONS = [
 
 export default function HomePage() {
   // Demo state
+  const { language, t } = useI18n();
+  const isES = language === 'es';
   const [input, setInput]       = useState('');
   const [reply, setReply]       = useState<string | null>(null);
   const [loading, setLoading]   = useState(false);
@@ -194,9 +197,9 @@ export default function HomePage() {
           {/* CTAs */}
           <div className="slide-up su4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 40 }}>
             <Link href="/guardian" className="btn-primary" style={{ fontSize: 16, padding: '16px 36px' }}>
-              Start Talking — Nothing Saved
+              {isES ? 'Empieza a Hablar — Nada Guardado' : 'Start Talking — Nothing Saved'}
             </Link>
-            <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>No signup. No judgment. No trace.</span>
+            <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>{isES ? 'Sin registro. Sin juicio. Sin rastro.' : 'No signup. No judgment. No trace.'}</span>
           </div>
 
           {/* Inline trust bullets */}
@@ -223,7 +226,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 600, margin: '0 auto' }}>
 
           <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--cyan)', marginBottom: 20 }}>
-            Try it right now. Nothing is saved.
+            {isES ? 'Pruébalo ahora mismo. Nada se guarda.' : 'Try it right now. Nothing is saved.'}
           </p>
 
           <div className={`card card-cyan`} style={{
@@ -285,7 +288,7 @@ export default function HomePage() {
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                       <Link href="/guardian" className="btn-primary" style={{ fontSize: 14, padding: '11px 22px' }}>
-                        Continue in RYVYNN →
+                        {isES ? 'Continuar en RYVYNN →' : 'Continue in RYVYNN →'}
                       </Link>
                       <button onClick={reset} className="btn-ghost">Start over</button>
                     </div>
@@ -307,9 +310,9 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════════ */}
       <section style={{ background: 'rgba(255,255,255,.015)' }}>
         <div className="section" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>{isES ? 'Cómo funciona' : 'How it works'}</p>
           <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 48 }}>
-            Three steps. No setup.
+            {isES ? 'Tres pasos. Sin configuración.' : 'Three steps. No setup.'}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 24, textAlign: 'left' }}>
             {[
@@ -334,7 +337,7 @@ export default function HomePage() {
           THIS IS FOR YOU IF — emotionally specific, not generic
       ═══════════════════════════════════════════════════════════════════ */}
       <div className="section">
-        <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>This is for you if</p>
+        <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>{isES ? 'Esto es para ti si' : 'This is for you if'}</p>
         <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 36 }}>
           You recognize yourself in any of these.
         </h2>
@@ -389,10 +392,10 @@ export default function HomePage() {
       <div className="section">
         <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.1em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 12 }}>Privacy</p>
         <h2 className="lora" style={{ fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, color: '#eef2fa', marginBottom: 12 }}>
-          Built to forget you on purpose.
+          {isES ? 'Construido para olvidarte a propósito.' : 'Built to forget you on purpose.'}
         </h2>
         <p style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--dim)', marginBottom: 36, maxWidth: 520 }}>
-          Most apps store everything you say, learn from it, sell signals from it. We built RYVYNN the opposite way — structurally incapable of remembering.
+          {isES ? 'La mayoría de las apps almacenan todo lo que dices, aprenden de ello, venden señales. Construimos RYVYNN al revés — estructuralmente incapaz de recordar.' : 'Most apps store everything you say, learn from it, sell signals from it. We built RYVYNN the opposite way — structurally incapable of remembering.'}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
           {[
@@ -451,7 +454,7 @@ export default function HomePage() {
               style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 16px rgba(0,201,232,.35))' }} />
           </div>
           <h2 className="lora" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 400, color: '#eef2fa', lineHeight: 1.3, marginBottom: 16 }}>
-            You don't have to keep carrying it alone.
+            {isES ? 'No tienes que seguir cargándolo solo.' : "You don't have to keep carrying it alone."}
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--dim)', marginBottom: 36, maxWidth: 400, margin: '0 auto 36px' }}>
             No pressure. No account. No memory. Just a place to put it down.
