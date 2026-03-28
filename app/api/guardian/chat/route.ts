@@ -108,6 +108,80 @@ ANONYMITY: Never ask for names, locations, ages, or any personal identifiers.
 
 GOAL: Help the user feel heard and steady. Not overwhelmed. Not fixed. Just heard.`;
 
+// ============================================================
+// GEMINI MODEL FALLBACK CHAIN
+// Primary: gemini-2.0-flash (fastest, best)
+// Fallback 1: gemini-1.5-flash (different quota pool)
+// Fallback 2: gemini-1.5-flash-8b (lightest, highest free quota)
+// ============================================================
+const GEMINI_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b',
+];
+
+async function callGeminiWithFallback(
+  apiKey: string,
+  systemPrompt: string,
+  contents: Array<{ role: string; parts: Array<{ text: string }> }>,
+  maxTokens: number,
+  temperature: number
+): Promise<string> {
+  let lastError = '';
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents,
+            generationConfig: { maxOutputTokens: maxTokens, temperature },
+          }),
+        }
+      );
+
+      if (res.status === 429) {
+        console.warn(`Gemini ${model} quota exceeded, trying next model...`);
+        lastError = `429 quota on ${model}`;
+        // Small delay before next attempt
+        await new Promise(r => setTimeout(r, 300));
+        continue;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`Gemini ${model} error:`, res.status, errText);
+        lastError = `${res.status} on ${model}`;
+        continue;
+      }
+
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!text) {
+        lastError = `empty response from ${model}`;
+        continue;
+      }
+
+      // Success — log which model handled it
+      if (model !== GEMINI_MODELS[0]) {
+        console.log(`Guardian served by fallback model: ${model}`);
+      }
+      return text;
+
+    } catch (err) {
+      console.error(`Gemini ${model} fetch error:`, err);
+      lastError = String(err);
+      continue;
+    }
+  }
+
+  throw new Error(`All Gemini models failed. Last error: ${lastError}`);
+}
+
 const crisisKeywords = [
   /suicide|kill myself|want to die|end it all|unalive|better off dead|goodbye world|final note/i,
   /overdose|cutting|self.harm|don.t want to be here/i,
@@ -120,7 +194,15 @@ function detectCrisis(text: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, userId, language, isFirstMessage, persona = 'neutral', emotionalDepth = false, sessionHistory = [] } = await req.json();
+    const {
+      message,
+      userId,
+      language,
+      isFirstMessage,
+      persona = 'neutral',
+      emotionalDepth = false,
+      sessionHistory = [],
+    } = await req.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
@@ -128,8 +210,11 @@ export async function POST(req: NextRequest) {
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not set in environment');
       return NextResponse.json({
-        response: "I'm here with you. I'm having a brief technical moment — please try again in a few seconds.\n\n**If you're in crisis right now**: Call or text **988** (24/7, free, confidential).",
+        response: language === 'es'
+          ? 'Estoy aquí contigo. Tengo un momento técnico breve — por favor intenta de nuevo en unos segundos.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
+          : "I'm here with you. I'm having a brief technical moment — please try again in a few seconds.\n\n**If you're in crisis right now**: Call or text **988** (24/7, free, confidential).",
         isCrisis: false,
         timestamp: new Date().toISOString(),
       });
@@ -162,9 +247,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Session memory:
-    // - Logged-in users: load from Supabase (persistent across sessions)
-    // - Anonymous users: use sessionHistory from request (in-memory, zero storage, gone on tab close)
+    // Session memory
     let history: Array<{ role: string; content: string }> = [];
     if (userId && hasSupabase) {
       try {
@@ -180,11 +263,10 @@ export async function POST(req: NextRequest) {
         console.error('Error fetching history:', e);
       }
     } else if (sessionHistory.length > 0) {
-      // Anonymous session — use what the client sent, nothing persisted
       history = sessionHistory.slice(-10);
     }
 
-    // Persona tone modifiers — injected at system prompt level
+    // Persona tone modifiers
     const personaMods: Record<string, string> = {
       feminine:  'You are the female Guardian voice. Warm but never sappy. Grounded. You sit with people, not above them. Short responses. Real words.',
       masculine: 'Speak like a steady older brother or trusted mentor. Direct. No excess softening. Name things plainly. Respect their strength.',
@@ -202,7 +284,6 @@ export async function POST(req: NextRequest) {
       depthMod,
     ].filter(Boolean).join('\n\n');
 
-    // Gemini 2.0 Flash — sole AI provider
     const geminiContents = [
       ...history.map((h) => ({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -211,29 +292,14 @@ export async function POST(req: NextRequest) {
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: geminiContents,
-          generationConfig: { maxOutputTokens: 180, temperature: emotionalDepth ? 0.9 : 0.82 },
-        }),
-      }
+    // Call with automatic model fallback on 429
+    const aiResponse = await callGeminiWithFallback(
+      GEMINI_API_KEY,
+      systemPrompt,
+      geminiContents,
+      180,
+      emotionalDepth ? 0.9 : 0.82
     );
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Gemini error:', geminiRes.status, errText);
-      throw new Error(`Gemini ${geminiRes.status}`);
-    }
-
-    const geminiData = await geminiRes.json();
-    const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    if (!aiResponse) throw new Error('Gemini returned empty response');
 
     // Save to Supabase (logged-in users only)
     if (userId && hasSupabase) {
@@ -250,10 +316,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ response: aiResponse, isCrisis, timestamp: new Date().toISOString() });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Guardian error:', error);
+    const isES = (await req.json().catch(() => ({})) as { language?: string }).language === 'es';
     return NextResponse.json({
-      response: "I hear you… and I'm here. I'm having a brief technical moment.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).",
+      response: isES
+        ? 'Estoy aquí. Tengo un momento técnico breve — por favor intenta de nuevo.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
+        : "I hear you — I'm here. Having a brief technical moment.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).",
       isCrisis: false,
       timestamp: new Date().toISOString(),
     });
@@ -275,7 +344,7 @@ export async function GET(req: NextRequest) {
       .order('created_at', { ascending: true })
       .limit(50);
     return NextResponse.json({ conversations: data || [] });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ conversations: [] });
   }
 }
