@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
     if (coupon) console.log(`🎟️ Coupon: ${coupon}`);
 
     // Auto-detect checkout mode by querying Stripe price object
-    // This prevents the subscription/payment mode mismatch bug
     let checkoutMode = requestedMode;
     if (!checkoutMode) {
       try {
@@ -32,7 +31,6 @@ export async function POST(req: NextRequest) {
           checkoutMode = priceData.type === 'recurring' ? 'subscription' : 'payment';
           console.log(`📋 Auto-detected mode: ${checkoutMode} (price type: ${priceData.type})`);
         } else {
-          // Fallback: subscription plans have recurring prices
           checkoutMode = 'subscription';
           console.log('⚠️ Could not fetch price, defaulting to subscription');
         }
@@ -48,7 +46,18 @@ export async function POST(req: NextRequest) {
     formBody.append('mode', checkoutMode);
     formBody.append('success_url', `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`);
     formBody.append('cancel_url', `${baseUrl}/pricing`);
+
+    // ✅ Accept card + ACH electronic check (us_bank_account)
+    // Card listed first = Stripe shows it as default; ACH appears as alternate option
     formBody.append('payment_method_types[]', 'card');
+    formBody.append('payment_method_types[]', 'us_bank_account');
+
+    // ✅ ACH: enable Plaid instant verification + manual fallback
+    // Removes need for micro-deposits in most cases (Plaid covers ~12,000 US banks)
+    formBody.append('payment_method_options[us_bank_account][financial_connections][permissions][]', 'payment_method');
+    formBody.append('payment_method_options[us_bank_account][financial_connections][permissions][]', 'balances');
+    formBody.append('payment_method_options[us_bank_account][verification_method]', 'automatic');
+
     formBody.append('line_items[0][price]', priceId);
     formBody.append('line_items[0][quantity]', '1');
 
@@ -86,6 +95,8 @@ export async function POST(req: NextRequest) {
         userMessage += 'Invalid coupon code.';
       } else if (errorText.includes('test mode') || errorText.includes('live mode')) {
         userMessage += 'Configuration mismatch. Please contact support.';
+      } else if (errorText.includes('us_bank_account')) {
+        userMessage += 'ACH payments not yet enabled. Please pay by card or contact support.';
       } else {
         userMessage += 'Please try again or contact support.';
       }
