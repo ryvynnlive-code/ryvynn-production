@@ -546,7 +546,7 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '22px 26px', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Flame size={20} /><span style={{ fontSize: 11, color: 'rgba(255,255,255,0.16)', letterSpacing: '0.05em' }}>RYVYNN · AONIXX · NEXXT GEN INNOVATIONS LLC</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Flame size={20} /><span style={{ fontSize: 11, color: 'rgba(255,255,255,0.16)', letterSpacing: '0.05em' }}>NEXXT GEN INNOVATIONS LLC · DBA AONIXX · DBA RYVYNN</span></div>
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.16)', fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>From our darkest hours to our brightest days.</span>
         </div>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
