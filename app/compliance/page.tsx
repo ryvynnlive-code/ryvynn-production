@@ -54,7 +54,7 @@ const riskItems = [
     area: 'Trademark / IP',
     status: 'IN PROGRESS',
     color: 'blue',
-    detail: 'USPTO filing active. All IP held by NEXXT GEN LLC.',
+    detail: 'USPTO filing active. All IP held by NEXXT GEN INNOVATIONS LLC. DBAs: AONIXX · RYVYNN.',
   },
   {
     area: 'Privacy Policy / ToS',
@@ -105,7 +105,7 @@ const actions = [
     priority: 'MEDIUM',
     title: 'IP Ownership Clarity — Foundation Licensing',
     body:
-      'All intellectual property is owned by NEXXT GEN INNOVATIONS LLC. AONIXX is a registered DBA (umbrella brand). RYVYNN is the consumer sub-brand and product. The RYVYNN Foundation, when formed, must license from the LLC — not own or co-own IP. This structure protects equity value and prevents complications in future VC rounds or government contract bids. Do not file any separate DBA for RYVYNN until licensing terms are drafted.',
+      'All intellectual property — code, brand, product, and content — is owned by NEXXT GEN INNOVATIONS LLC. The company operates under two registered DBAs: AONIXX (umbrella brand) and RYVYNN (consumer-facing brand). Both are styled in all capitals. Correct legal attribution: NEXXT GEN INNOVATIONS LLC, operating as AONIXX and RYVYNN. The RYVYNN Foundation, when formed, must license from the LLC — not hold or co-own IP. This protects equity value and government contract eligibility.',
   },
   {
     num: '07',
@@ -350,7 +350,7 @@ export default function CompliancePage() {
           </div>
           <div className="space-y-4 text-[15px] text-gray-300 leading-relaxed">
             <p>
-              <strong className="text-white">Legal Structure:</strong> All intellectual property — code, brand, product, content — is owned by <strong className="text-white">NEXXT GEN INNOVATIONS LLC</strong>. AONIXX is a registered DBA functioning as the umbrella brand. RYVYNN is the consumer sub-brand and product. Correct legal attribution is: <em className="text-white">"AONIXX, a DBA of NEXXT GEN INNOVATIONS LLC."</em> No separate RYVYNN entity or DBA exists or should be created until equity fundraising is imminent and counsel has reviewed the conversion.
+              <strong className="text-white">Legal Structure:</strong> All intellectual property — code, brand, product, content — is owned by <strong className="text-white">NEXXT GEN INNOVATIONS LLC</strong>. The company operates under two registered DBAs: <strong className="text-white">AONIXX</strong> (umbrella brand) and <strong className="text-white">RYVYNN</strong> (consumer-facing brand). Both are styled in all capitals. Correct legal attribution: <em className="text-white">NEXXT GEN INNOVATIONS LLC, operating as AONIXX and RYVYNN.</em> The RYVYNN Foundation, when formed, must license IP from the LLC — not hold or co-own it.
             </p>
             <p>
               <strong className="text-white">Federal Registration:</strong> SAM.gov active. CAGE Code 0YQ06. DUNS and EIN confirmed. NAICS 621420 enables direct bidding on SAMHSA, VA, HHS, and DoD mental health contracts — a material revenue pathway that depends on the LLC remaining the sole contracting entity.
