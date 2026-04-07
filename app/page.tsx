@@ -544,9 +544,18 @@ export default function HomePage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '22px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Flame size={20} /><span style={{ fontSize: 11, color: 'rgba(255,255,255,0.16)', letterSpacing: '0.05em' }}>RYVYNN · AONIXX · NEXXT GEN INNOVATIONS LLC</span></div>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.16)', fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>From our darkest hours to our brightest days.</span>
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '22px 26px', maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Flame size={20} /><span style={{ fontSize: 11, color: 'rgba(255,255,255,0.16)', letterSpacing: '0.05em' }}>RYVYNN · AONIXX · NEXXT GEN INNOVATIONS LLC</span></div>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.16)', fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>From our darkest hours to our brightest days.</span>
+        </div>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          <a href="/privacy-policy" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Privacy Policy</a>
+          <a href="/terms-of-service" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Terms of Service</a>
+          <a href="/compliance" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Legal &amp; Compliance</a>
+          <a href="/research" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Evidence Framework</a>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.04em' }}>RYVYNN is an AI companion — not a licensed therapist or healthcare provider.</span>
+        </div>
       </footer>
 
       {/* FLOAT */}
