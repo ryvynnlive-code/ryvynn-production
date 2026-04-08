@@ -125,8 +125,6 @@ const GEMINI_MODELS = [
 
 // ============================================================
 // GUARDIAN COUNCIL — 5 parallel models + synthesis
-// Premium users and crisis messages get full Council mode
-// Free users get standard single-model fallback
 // ============================================================
 const COUNCIL_MODELS = [
   'gemini-2.0-flash',
@@ -136,22 +134,8 @@ const COUNCIL_MODELS = [
   'gemini-1.5-pro',
 ];
 
-const COUNCIL_SYNTHESIS_PROMPT = `You are the Guardian — the final voice of RYVYNN.
+const COUNCIL_SYNTHESIS_PROMPT = `You are the Guardian. Five AI perspectives have responded to a person in pain. Read all five. Write ONE final response. Take the warmest acknowledgment, the most accurate reflection, and the best next step. Cut everything clinical or repetitive. Max 3 lines. Sound like one calm human voice. Be decisive. Be Guardian.`;
 
-Five AI perspectives have each responded to a person in pain. Your job is to read all five, find the truth in each one, and write ONE final response.
-
-Your synthesis rules:
-- Take the warmest acknowledgment from any response
-- Take the most accurate emotional reflection  
-- Take the best single question or next step (if any)
-- Cut everything that sounds clinical, repetitive, or generic
-- The final response must sound like ONE calm human voice — not a committee
-- Max 3 lines. 4th-5th grade reading level. No jargon.
-- If this is a crisis message, follow crisis protocol absolutely.
-
-You are not summarizing. You are choosing. Be decisive. Be human. Be Guardian.`;
-
-// Call one model — returns null on failure (used for parallel Council calls)
 async function callGeminiSingle(
   apiKey: string,
   model: string,
@@ -182,7 +166,6 @@ async function callGeminiSingle(
   }
 }
 
-// Guardian Council — runs all 5 models in parallel, synthesizes into one response
 async function runGuardianCouncil(
   apiKey: string,
   systemPrompt: string,
@@ -190,81 +173,40 @@ async function runGuardianCouncil(
   isCrisis: boolean,
   isES: boolean
 ): Promise<string> {
-  console.log('[Council] Activating Guardian Council — 5 parallel models');
+  console.log('[Council] Activating Guardian Council');
 
-  // Run all 5 models simultaneously
   const councilResults = await Promise.all(
     COUNCIL_MODELS.map((model, i) =>
-      callGeminiSingle(
-        apiKey,
-        model,
-        systemPrompt,
-        contents,
-        150, // shorter per-model — synthesis will be the real response
-        0.75 + (i * 0.03) // slight temperature variance per model for diversity
-      )
+      callGeminiSingle(apiKey, model, systemPrompt, contents, 150, 0.75 + i * 0.03)
     )
   );
 
-  // Collect successful responses
   const validResponses = councilResults.filter(r => r.text !== null);
   console.log(`[Council] ${validResponses.length}/5 models responded`);
 
   if (validResponses.length === 0) {
-    // All failed — fallback to single model
-    console.warn('[Council] All models failed — using fallback');
     return callGeminiWithFallback(apiKey, systemPrompt, contents, 180, 0.82);
   }
-
   if (validResponses.length === 1) {
-    // Only one response — return it directly, no synthesis needed
     return validResponses[0].text!;
   }
 
-  // Build synthesis prompt with all responses
+  const separator = '\n\n---\n\n';
   const perspectivesText = validResponses
-    .map((r, i) => `PERSPECTIVE ${i + 1} (${r.model}):
-${r.text}`)
-    .join('
+    .map((r, i) => 'PERSPECTIVE ' + (i + 1) + ' (' + r.model + '):\n' + r.text)
+    .join(separator);
 
----
+  const userMsg = (contents[contents.length - 1]?.parts?.[0]?.text) || '';
+  const crisisNote = isCrisis ? ' CRITICAL: Crisis message. Follow crisis protocol. Life may be at risk.' : '';
+  const langNote = isES ? ' Respond in Spanish.' : '';
 
-');
+  const synthesisContents = [{
+    role: 'user',
+    parts: [{ text: 'Person said: "' + userMsg + '"\n\nFive perspectives:\n\n' + perspectivesText + crisisNote + langNote + '\n\nWrite the ONE final Guardian response.' }]
+  }];
 
-  const crisisNote = isCrisis
-    ? '
-
-CRITICAL: This is a CRISIS message. Your synthesis MUST follow crisis protocol. Life may be at risk.'
-    : '';
-
-  const langNote = isES ? '
-
-Responde en español.' : '';
-
-  const synthesisContents = [
-    {
-      role: 'user',
-      parts: [{
-        text: `The person said:
-"${(contents[contents.length - 1]?.parts?.[0]?.text) || ''}"
-
-Here are the five perspectives:
-
-${perspectivesText}${crisisNote}${langNote}
-
-Now write the ONE final Guardian response.`
-      }]
-    }
-  ];
-
-  // Synthesis call — use best available model
   const synthesisResult = await callGeminiSingle(
-    apiKey,
-    'gemini-2.0-flash',
-    COUNCIL_SYNTHESIS_PROMPT,
-    synthesisContents,
-    200,
-    0.7
+    apiKey, 'gemini-2.0-flash', COUNCIL_SYNTHESIS_PROMPT, synthesisContents, 200, 0.7
   );
 
   if (synthesisResult.text) {
@@ -272,9 +214,8 @@ Now write the ONE final Guardian response.`
     return synthesisResult.text;
   }
 
-  // Synthesis failed — return best single response
-  const bestResponse = validResponses.find(r => r.model === 'gemini-2.0-flash') || validResponses[0];
-  return bestResponse.text!;
+  const best = validResponses.find(r => r.model === 'gemini-2.0-flash') || validResponses[0];
+  return best.text!;
 }
 
 async function callGeminiWithFallback(
@@ -450,8 +391,7 @@ export async function POST(req: NextRequest) {
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    // Determine if Council mode should activate
-    // Council = premium users OR crisis messages (always)
+    // Council mode: premium users + crisis always get 5-model synthesis
     let isPremium = false;
     if (userId && hasSupabase) {
       try {
@@ -461,31 +401,18 @@ export async function POST(req: NextRequest) {
           .select('subscription_tier')
           .eq('id', userId)
           .single();
-        isPremium = !!(profile && profile.subscription_tier && profile.subscription_tier !== 'free');
+        isPremium = !!(profile?.subscription_tier && profile.subscription_tier !== 'free');
       } catch { /* non-critical */ }
     }
 
     const useCouncil = isCrisis || isPremium;
-
     let aiResponse: string;
+
     if (useCouncil) {
-      console.log(`[Guardian] Council mode — reason: ${isCrisis ? 'CRISIS' : 'premium'}`);
-      aiResponse = await runGuardianCouncil(
-        GEMINI_API_KEY,
-        systemPrompt,
-        geminiContents,
-        isCrisis,
-        isES
-      );
+      console.log('[Guardian] Council mode — ' + (isCrisis ? 'CRISIS' : 'premium'));
+      aiResponse = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
     } else {
-      // Free tier — standard single model with fallback
-      aiResponse = await callGeminiWithFallback(
-        GEMINI_API_KEY,
-        systemPrompt,
-        geminiContents,
-        180,
-        emotionalDepth ? 0.9 : 0.82
-      );
+      aiResponse = await callGeminiWithFallback(GEMINI_API_KEY, systemPrompt, geminiContents, 180, emotionalDepth ? 0.9 : 0.82);
     }
 
     // Save to Supabase (logged-in users only)
