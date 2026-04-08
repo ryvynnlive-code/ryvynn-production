@@ -116,8 +116,10 @@ GOAL: Help the user feel heard and steady. Not overwhelmed. Not fixed. Just hear
 // ============================================================
 const GEMINI_MODELS = [
   'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
   'gemini-1.5-flash',
   'gemini-1.5-flash-8b',
+  'gemini-1.5-pro',
 ];
 
 async function callGeminiWithFallback(
@@ -147,8 +149,9 @@ async function callGeminiWithFallback(
       if (res.status === 429) {
         console.warn(`Gemini ${model} quota exceeded, trying next model...`);
         lastError = `429 quota on ${model}`;
-        // Small delay before next attempt
-        await new Promise(r => setTimeout(r, 300));
+        // Progressive backoff: 300ms, 600ms, 900ms, 1200ms, 1500ms
+        const modelIndex = GEMINI_MODELS.indexOf(model);
+        await new Promise(r => setTimeout(r, 300 * (modelIndex + 1)));
         continue;
       }
 
