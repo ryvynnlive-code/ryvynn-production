@@ -16,15 +16,9 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can view own profile') THEN
-    CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can update own profile') THEN
-    CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can insert own profile') THEN
-    CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can view own profile') THEN CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can update own profile') THEN CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can insert own profile') THEN CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS journal_entries (
@@ -36,18 +30,10 @@ CREATE TABLE IF NOT EXISTS journal_entries (
 );
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can view own journal entries') THEN
-    CREATE POLICY "Users can view own journal entries" ON journal_entries FOR SELECT USING (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can create own journal entries') THEN
-    CREATE POLICY "Users can create own journal entries" ON journal_entries FOR INSERT WITH CHECK (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can update own journal entries') THEN
-    CREATE POLICY "Users can update own journal entries" ON journal_entries FOR UPDATE USING (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can delete own journal entries') THEN
-    CREATE POLICY "Users can delete own journal entries" ON journal_entries FOR DELETE USING (auth.uid() = user_id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can view own journal entries') THEN CREATE POLICY "Users can view own journal entries" ON journal_entries FOR SELECT USING (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can create own journal entries') THEN CREATE POLICY "Users can create own journal entries" ON journal_entries FOR INSERT WITH CHECK (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can update own journal entries') THEN CREATE POLICY "Users can update own journal entries" ON journal_entries FOR UPDATE USING (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='journal_entries' AND policyname='Users can delete own journal entries') THEN CREATE POLICY "Users can delete own journal entries" ON journal_entries FOR DELETE USING (auth.uid() = user_id); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS eternity_messages (
@@ -61,15 +47,9 @@ CREATE TABLE IF NOT EXISTS eternity_messages (
 );
 ALTER TABLE eternity_messages ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can view own eternity messages') THEN
-    CREATE POLICY "Users can view own eternity messages" ON eternity_messages FOR SELECT USING (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can create own eternity messages') THEN
-    CREATE POLICY "Users can create own eternity messages" ON eternity_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can update own eternity messages') THEN
-    CREATE POLICY "Users can update own eternity messages" ON eternity_messages FOR UPDATE USING (auth.uid() = user_id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can view own eternity messages') THEN CREATE POLICY "Users can view own eternity messages" ON eternity_messages FOR SELECT USING (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can create own eternity messages') THEN CREATE POLICY "Users can create own eternity messages" ON eternity_messages FOR INSERT WITH CHECK (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='eternity_messages' AND policyname='Users can update own eternity messages') THEN CREATE POLICY "Users can update own eternity messages" ON eternity_messages FOR UPDATE USING (auth.uid() = user_id); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS wall_entries (
@@ -83,12 +63,8 @@ CREATE TABLE IF NOT EXISTS wall_entries (
 );
 ALTER TABLE wall_entries ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='wall_entries' AND policyname='Anyone can view wall entries') THEN
-    CREATE POLICY "Anyone can view wall entries" ON wall_entries FOR SELECT USING (TRUE);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='wall_entries' AND policyname='Authenticated users can create wall entries') THEN
-    CREATE POLICY "Authenticated users can create wall entries" ON wall_entries FOR INSERT WITH CHECK (auth.uid() IS NOT NULL OR is_anonymous = TRUE);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='wall_entries' AND policyname='Anyone can view wall entries') THEN CREATE POLICY "Anyone can view wall entries" ON wall_entries FOR SELECT USING (TRUE); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='wall_entries' AND policyname='Authenticated users can create wall entries') THEN CREATE POLICY "Authenticated users can create wall entries" ON wall_entries FOR INSERT WITH CHECK (auth.uid() IS NOT NULL OR is_anonymous = TRUE); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS subscriptions (
@@ -106,9 +82,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 );
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='subscriptions' AND policyname='Users can view own subscription') THEN
-    CREATE POLICY "Users can view own subscription" ON subscriptions FOR SELECT USING (auth.uid() = user_id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='subscriptions' AND policyname='Users can view own subscription') THEN CREATE POLICY "Users can view own subscription" ON subscriptions FOR SELECT USING (auth.uid() = user_id); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS token_transactions (
@@ -121,9 +95,7 @@ CREATE TABLE IF NOT EXISTS token_transactions (
 );
 ALTER TABLE token_transactions ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='token_transactions' AND policyname='Users can view own token transactions') THEN
-    CREATE POLICY "Users can view own token transactions" ON token_transactions FOR SELECT USING (auth.uid() = user_id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='token_transactions' AND policyname='Users can view own token transactions') THEN CREATE POLICY "Users can view own token transactions" ON token_transactions FOR SELECT USING (auth.uid() = user_id); END IF;
 END $$;
 
 CREATE TABLE IF NOT EXISTS guardian_conversations (
@@ -135,12 +107,8 @@ CREATE TABLE IF NOT EXISTS guardian_conversations (
 );
 ALTER TABLE guardian_conversations ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='guardian_conversations' AND policyname='Users can view own conversations') THEN
-    CREATE POLICY "Users can view own conversations" ON guardian_conversations FOR SELECT USING (auth.uid() = user_id);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='guardian_conversations' AND policyname='Users can create own conversations') THEN
-    CREATE POLICY "Users can create own conversations" ON guardian_conversations FOR INSERT WITH CHECK (auth.uid() = user_id);
-  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='guardian_conversations' AND policyname='Users can view own conversations') THEN CREATE POLICY "Users can view own conversations" ON guardian_conversations FOR SELECT USING (auth.uid() = user_id); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='guardian_conversations' AND policyname='Users can create own conversations') THEN CREATE POLICY "Users can create own conversations" ON guardian_conversations FOR INSERT WITH CHECK (auth.uid() = user_id); END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_journal_user_id ON journal_entries(user_id);
@@ -156,7 +124,6 @@ CREATE INDEX IF NOT EXISTS idx_guardian_user_id ON guardian_conversations(user_i
 CREATE INDEX IF NOT EXISTS idx_guardian_created_at ON guardian_conversations(created_at DESC);
 
 CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ language 'plpgsql';
-
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 DROP TRIGGER IF EXISTS update_journal_updated_at ON journal_entries;
@@ -175,40 +142,34 @@ CREATE OR REPLACE FUNCTION increment_wall_votes(entry_id UUID) RETURNS INTEGER A
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
-  
-  if (secret !== 'RYVYNN_FLAME_IGNITE_2026') {
+  if (searchParams.get('secret') !== 'RYVYNN_FLAME_IGNITE_2026') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Accept fresh PAT as query param OR use env var
+  const pat = searchParams.get('pat') || process.env.SUPABASE_PAT || 'sbp_e2a6d643985d64c8085ff5cb883b0ba76497792e';
   const supabaseUrl = 'https://api.supabase.com/v1/projects/iofkxyljwemnnbwzcrke/database/query';
-  const pat = process.env.SUPABASE_PAT || 'sbp_e2a6d643985d64c8085ff5cb883b0ba76497792e';
 
   try {
     const res = await fetch(supabaseUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${pat}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${pat}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: SCHEMA }),
     });
 
     const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = text; }
+    let data; try { data = JSON.parse(text); } catch { data = text; }
 
     if (res.ok) {
-      // Verify tables
       const verifyRes = await fetch(supabaseUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${pat}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY(ARRAY['profiles','journal_entries','eternity_messages','wall_entries','subscriptions','token_transactions','guardian_conversations']) ORDER BY table_name;` }),
       });
       const verifyData = await verifyRes.json();
-      return NextResponse.json({ success: true, tables: verifyData, raw: data });
+      return NextResponse.json({ success: true, tables: verifyData, message: 'RYVYNN schema live' });
     } else {
-      return NextResponse.json({ success: false, error: data, status: res.status }, { status: 500 });
+      return NextResponse.json({ success: false, error: data, status: res.status, hint: 'PAT may be expired. Generate new at supabase.com/dashboard/account/tokens and pass as ?pat=NEW_PAT' }, { status: 500 });
     }
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
