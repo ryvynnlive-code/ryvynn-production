@@ -391,26 +391,32 @@ export async function POST(req: NextRequest) {
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    // Council mode: premium users + crisis always get 5-model synthesis
-    let isPremium = false;
-    if (userId && hasSupabase) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('subscription_tier')
-          .eq('id', userId)
-          .single();
-        isPremium = !!(profile?.subscription_tier && profile.subscription_tier !== 'free');
-      } catch { /* non-critical */ }
-    }
-
-    const useCouncil = isCrisis || isPremium;
+    // Council mode: ALL users get 5-agent named therapeutic council
+    // (v3 upgrade — council is no longer premium-gated)
     let aiResponse: string;
 
-    if (useCouncil) {
-      console.log('[Guardian] Council mode — ' + (isCrisis ? 'CRISIS' : 'premium'));
-      aiResponse = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+    {
+      console.log('[Guardian] Council v3 active — named therapeutic agents');
+      const councilResult = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+      aiResponse = councilResult.finalResponse;
+      // Save agent evaluations (fire-and-forget)
+      if (userId && hasSupabase) {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const convId = `council-${Date.now()}`;
+        supabase.from('agent_evaluations').insert(councilResult.agentEvaluations.map(a => ({
+          user_id: userId, conversation_id: convId, agent_name: a.agentKey,
+          agent_display_name: a.agentName, therapeutic_modality: a.modality,
+          response_text: a.response, confidence_score: a.confidence,
+          safety_score: a.safety, relevance_score: a.relevance, final_score: a.score,
+          crisis_signal: a.crisisSignal, entry_point: 'guardian',
+        }))).then(() => {}).catch(() => {});
+        supabase.from('synthesis_decisions').insert({
+          user_id: userId, conversation_id: convId, synthesis_method: councilResult.synthesisMethod,
+          final_response: councilResult.finalResponse, consensus_score: councilResult.consensusScore,
+          crisis_detected: councilResult.crisisDetected, crisis_severity: councilResult.crisisSeverity,
+          agent_count: 5, entry_point: 'guardian',
+        }).then(() => {}).catch(() => {});
+      }
     } else {
       aiResponse = await callGeminiWithFallback(GEMINI_API_KEY, systemPrompt, geminiContents, 180, emotionalDepth ? 0.9 : 0.82);
     }
@@ -428,7 +434,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ response: aiResponse, isCrisis, timestamp: new Date().toISOString() });
+    return NextResponse.json({
+      response: aiResponse,
+      isCrisis,
+      timestamp: new Date().toISOString(),
+    });
 
   } catch (error: unknown) {
     console.error('Guardian error:', error);
