@@ -466,8 +466,6 @@ export async function POST(req: NextRequest) {
           agent_count: 5, entry_point: 'guardian',
         }).then(() => {}).catch(() => {});
       }
-    } else {
-      aiResponse = await callGeminiWithFallback(GEMINI_API_KEY, systemPrompt, geminiContents, 180, emotionalDepth ? 0.9 : 0.82);
     }
 
     // Save to Supabase (logged-in users only)
