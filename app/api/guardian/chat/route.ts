@@ -242,18 +242,10 @@ Guardian voice: ${systemPrompt.slice(0, 200)}`;
   const crisisSeverity = !crisisDetected ? 'none' : ss > 80 ? 'critical' : ss > 60 ? 'high' : ss > 40 ? 'medium' : 'low';
 
   // Synthesis Oracle — uses Guardian voice
-  const agentText = evals.map(a => `[${a.agentName.toUpperCase()}]:
-${a.response}`).join('
-
-');
-  const oracleUserMsg = `Person said: "${userMsg}"
-
-Agent responses:
-${agentText}${crisisDetected ? '
-
-CRITICAL: Crisis detected. Lead with safety. Include 988 and Crisis Text Line 741741.' : ''}
-
-Write the ONE final Guardian response.`;
+  const agentText = evals.map(a => '[' + a.agentName.toUpperCase() + ']:' + '\n' + a.response).join('\n\n');
+  const sep = '\n\n';
+  const crisisNote = crisisDetected ? sep + 'CRITICAL: Crisis detected. Lead with safety. Include 988 and Crisis Text Line 741741.' : '';
+  const oracleUserMsg = 'Person said: "' + userMsg + '"' + sep + 'Agent responses:' + '\n' + agentText + crisisNote + sep + 'Write the ONE final Guardian response.';
   const oracleContents = [{ role: 'user', parts: [{ text: oracleUserMsg }] }];
 
   let finalResponse = '';
