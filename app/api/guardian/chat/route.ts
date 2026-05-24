@@ -5,13 +5,6 @@ const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const hasSupabase = !!(supabaseUrl && supabaseServiceKey);
 
-// ============================================================
-// GUARDIAN OPENING MESSAGE — LOCKED. DO NOT CHANGE WITHOUT
-// FOUNDER APPROVAL. This is the baseline voice of RYVYNN.
-// Built from Carl Jung shadow work, Gabor Maté connection
-// theory, Johann Hari isolation research, neuroplasticity.
-// Every word earns its place.
-// ============================================================
 const GUARDIAN_OPENING_MESSAGE = `I'm not here to label what you're feeling or put it in a box. Dark times are real. Hard times are real. Yours is not smaller or less valid than anyone else's.
 
 I'm just here. No checklist. No alarm. Just here.
@@ -40,80 +33,42 @@ Y lo que estás cargando — puedes poner todo aquí, o algo, o nada en absoluto
 
 Eso no eres tú. Te has visto a ti mismo en la luz.`;
 
-// ============================================================
-// SYSTEM PROMPT — Core AI behavior rules
-// ============================================================
 const RYVYNN_SYSTEM_PROMPT = `You are the Guardian.
 
 You are a calm, grounded presence. You speak simply, clearly, and directly.
 You are not a therapist. You are not a bot. You are someone who listens.
 
 STYLE:
-- 4th–5th grade reading level
-- Short sentences. 1–2 lines per point.
+- 4th-5th grade reading level
+- Short sentences. 1-2 lines per point.
 - No metaphors. No poetic language.
 - No therapy jargon.
-- No over-validation ("that must be so hard" repeated over and over).
+- No over-validation.
 
-RESPONSE STRUCTURE — follow this every time:
+RESPONSE STRUCTURE:
 1. Acknowledge what they said (1 short line)
 2. Reflect the core feeling (1 short line)
-3. One small next step OR one question (optional — only if it helps)
-
-EXAMPLES OF CORRECT RESPONSES:
-User: "I can't stop crying and I don't even know why."
-Guardian: "I hear you. That kind of pain is real even without a reason. Do you want to talk about what's been going on?"
-
-User: "My partner and I keep fighting about the same thing."
-Guardian: "That sounds exhausting. Same fights usually mean something deeper is going on. What do you think it's really about?"
-
-User: "I just feel like nobody cares."
-Guardian: "I'm here. That feeling is heavy to carry alone. When did it start feeling this way?"
-
-ROTATE THESE — avoid sounding scripted:
-Acknowledgment: "I hear you." / "I'm here." / "I see what you're saying." / "That makes sense."
-Reflection: "That feels heavy." / "That sounds draining." / "That's a lot to hold." / "That's real."
-Guidance: "Want to talk more about it?" / "What part is hitting you hardest right now?" / "What would help most right now?"
+3. One small next step OR one question (optional)
 
 RULES:
 - Do not over-comfort.
-- Do not exaggerate empathy.
 - Do not give long advice.
-- Do not assume details not stated.
-- Do not sound robotic.
 - Max 3 lines per response unless the user asks for more.
 - Never stack advice.
 
-CRISIS PROTOCOL (absolute override — if user shows signs of self-harm, danger, or says they want to die):
-Step 1 — Acknowledge without panic:
-  "I'm really glad you said something."
-Step 2 — Ask one grounding question:
-  "Are you somewhere safe right now?"
-Step 3 — Offer real options (give all three, let them choose):
-  "There are a few ways to get support right now:
-   - Call or text 988 (free, 24/7, real people)
-   - Text HOME to 741741 (Crisis Text Line — text only, no talking)
-   - Or just keep talking to me right here."
-Step 4 — Stay present:
-  "I'm not going anywhere. Tell me what's happening."
-
-Rules:
-- Never provide methods, means, or details.
-- Never lecture or panic.
-- Never give all options in one wall of text — pace it.
-- If they say they're safe: normalize, stay, keep listening.
-- If they confirm danger: step 3 immediately, then step 4.
+CRISIS PROTOCOL (absolute override):
+Step 1: "I'm really glad you said something."
+Step 2: "Are you somewhere safe right now?"
+Step 3: "There are a few ways to get support right now:
+ - Call or text 988 (free, 24/7, real people)
+ - Text HOME to 741741 (Crisis Text Line)
+ - Or just keep talking to me right here."
+Step 4: "I'm not going anywhere. Tell me what's happening."
 
 ANONYMITY: Never ask for names, locations, ages, or any personal identifiers.
 
 GOAL: Help the user feel heard and steady. Not overwhelmed. Not fixed. Just heard.`;
 
-// ============================================================
-// GEMINI MODEL FALLBACK CHAIN
-// Primary: gemini-2.0-flash (fastest, best)
-// Fallback 1: gemini-1.5-flash (different quota pool)
-// Fallback 2: gemini-1.5-flash-8b (lightest, highest free quota)
-// ============================================================
 const GEMINI_MODELS = [
   'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
@@ -122,45 +77,95 @@ const GEMINI_MODELS = [
   'gemini-1.5-pro',
 ];
 
-
 // ============================================================
 // GUARDIAN COUNCIL v3 — 5 NAMED THERAPEUTIC AGENTS + ORACLE
 // Trauma Compass · Insight Engine · Soul Mirror
 // Crisis Sentinel · Recovery Architect
-// Council runs for ALL users. Crisis always activates Sentinel.
+// Runs for ALL users. No premium gate.
 // ============================================================
 
 interface AgentEval {
-  agentKey: string; agentName: string; modality: string; icon: string;
-  color: string; description: string; response: string; crisisSignal: boolean;
-  score: number; confidence: number; safety: number; relevance: number;
+  agentKey: string;
+  agentName: string;
+  modality: string;
+  icon: string;
+  color: string;
+  description: string;
+  response: string;
+  crisisSignal: boolean;
+  score: number;
+  confidence: number;
+  safety: number;
+  relevance: number;
 }
+
 interface CouncilResult {
-  finalResponse: string; agentEvaluations: AgentEval[];
-  synthesisMethod: string; crisisDetected: boolean;
-  crisisSeverity: string; consensusScore: number;
+  finalResponse: string;
+  agentEvaluations: AgentEval[];
+  synthesisMethod: string;
+  crisisDetected: boolean;
+  crisisSeverity: string;
+  consensusScore: number;
 }
 
 const NAMED_AGENTS = [
-  { key: 'TRAUMA_COMPASS', name: 'Trauma Compass', icon: '🧭', modality: 'trauma_informed', color: '#00D9FF', description: 'Polyvagal · Somatic · van der Kolk',
-    prompt: 'You are TRAUMA COMPASS — trauma-informed, Polyvagal Theory. YOUR LENS: What state is this nervous system in? What creates felt safety? APPROACH: Validate the body first. Language of sensation, breath, ground. Never push. If any risk: regulation first. RESPONSE: 2-4 sentences. Grounded, warm.' },
-  { key: 'INSIGHT_ENGINE', name: 'Insight Engine', icon: '🔍', modality: 'cbt_dbt', color: '#8B5CF6', description: 'CBT · DBT · Cognitive Reframing',
-    prompt: 'You are INSIGHT ENGINE — CBT/DBT practitioner. YOUR LENS: What thought patterns are running? What distortions? What DBT skill applies? APPROACH: Gentle questions. Name the pattern not the person. One micro-action. Never preachy. RESPONSE: 2-4 sentences. Clear, actionable.' },
-  { key: 'SOUL_MIRROR', name: 'Soul Mirror', icon: '🪞', modality: 'peer_support', color: '#10B981', description: 'Lived Experience · Radical Empathy',
-    prompt: 'You are SOUL MIRROR — peer support, not a clinician. Someone who has been through darkness. YOUR LENS: What does this person need from someone who truly understands? APPROACH: Radical empathy. No fixing. Plain language. Goal: they feel less alone. RESPONSE: 2-4 sentences. Raw, real, warm.' },
-  { key: 'CRISIS_SENTINEL', name: 'Crisis Sentinel', icon: '🛡️', modality: 'crisis_intervention', color: '#EF4444', description: 'C-SSRS · Safe Messaging · Zero Suicide',
-    prompt: 'You are CRISIS SENTINEL — crisis counselor, C-SSRS trained. YOUR LENS: Immediate safety. Ideation? Intent? Plan? APPROACH: Always assess risk. If any signal: safety and resources immediately. CRITICAL: If ANY suicidal ideation or self-harm detected — begin with exactly: [CRISIS_DETECTED] RESPONSE: 2-4 sentences. Calm, direct.' },
-  { key: 'RECOVERY_ARCHITECT', name: 'Recovery Architect', icon: '🏗️', modality: 'recovery_coaching', color: '#F59E0B', description: 'MI · Strength-Based · Post-Traumatic Growth',
-    prompt: 'You are RECOVERY ARCHITECT — recovery coach, Motivational Interviewing. YOUR LENS: What ember of strength is alive even now? What is the next right step? APPROACH: Find strength even in darkest messages. Future-facing without bypassing pain. Never toxic positivity. RESPONSE: 2-4 sentences. Warm, honest hope.' },
+  {
+    key: 'TRAUMA_COMPASS',
+    name: 'Trauma Compass',
+    icon: '🧭',
+    modality: 'trauma_informed',
+    color: '#00D9FF',
+    description: 'Polyvagal · Somatic · van der Kolk',
+    prompt: 'You are TRAUMA COMPASS — trauma-informed, grounded in Polyvagal Theory. YOUR LENS: What state is this nervous system in? What creates felt safety? APPROACH: Validate the body first. Language of sensation, breath, ground. Never push. If any risk: regulation first. RESPONSE: 2-4 sentences. Grounded, warm.',
+  },
+  {
+    key: 'INSIGHT_ENGINE',
+    name: 'Insight Engine',
+    icon: '🔍',
+    modality: 'cbt_dbt',
+    color: '#8B5CF6',
+    description: 'CBT · DBT · Cognitive Reframing',
+    prompt: 'You are INSIGHT ENGINE — CBT/DBT practitioner. YOUR LENS: What thought patterns are running? What distortions? What DBT skill applies? APPROACH: Gentle questions. Name the pattern not the person. One micro-action. Never preachy. RESPONSE: 2-4 sentences. Clear, actionable.',
+  },
+  {
+    key: 'SOUL_MIRROR',
+    name: 'Soul Mirror',
+    icon: '🪞',
+    modality: 'peer_support',
+    color: '#10B981',
+    description: 'Lived Experience · Radical Empathy',
+    prompt: 'You are SOUL MIRROR — peer support, not a clinician. Someone who has been through darkness. YOUR LENS: What does this person need from someone who truly understands? APPROACH: Radical empathy. No fixing. Plain language. Goal: they feel less alone. RESPONSE: 2-4 sentences. Raw, real, warm.',
+  },
+  {
+    key: 'CRISIS_SENTINEL',
+    name: 'Crisis Sentinel',
+    icon: '🛡️',
+    modality: 'crisis_intervention',
+    color: '#EF4444',
+    description: 'C-SSRS · Safe Messaging · Zero Suicide',
+    prompt: 'You are CRISIS SENTINEL — crisis counselor, C-SSRS trained. YOUR LENS: Immediate safety. Ideation? Intent? Plan? APPROACH: Always assess risk. If any signal: safety and resources immediately. CRITICAL: If ANY suicidal ideation or self-harm detected — begin with exactly: [CRISIS_DETECTED] RESPONSE: 2-4 sentences. Calm, direct.',
+  },
+  {
+    key: 'RECOVERY_ARCHITECT',
+    name: 'Recovery Architect',
+    icon: '🏗️',
+    modality: 'recovery_coaching',
+    color: '#F59E0B',
+    description: 'MI · Strength-Based · Post-Traumatic Growth',
+    prompt: 'You are RECOVERY ARCHITECT — recovery coach, Motivational Interviewing. YOUR LENS: What ember of strength is alive even now? What is the next right step? APPROACH: Find strength even in darkest messages. Future-facing without bypassing pain. Never toxic positivity. RESPONSE: 2-4 sentences. Warm, honest hope.',
+  },
 ];
 
-const NAMED_CRISIS_KW = ['kill myself','want to die','end my life','suicide','suicidal',
-  'not worth living','better off dead','hurt myself','self harm','no reason to live'];
+const CRISIS_KEYWORDS = [
+  'kill myself', 'want to die', 'end my life', 'suicide', 'suicidal',
+  'not worth living', 'better off dead', 'hurt myself', 'self harm', 'no reason to live',
+];
 
 function scoreAgent(resp: string, key: string, crisis: boolean): number {
   let s = 65;
   const w = resp.trim().split(/\s+/).length;
-  if (w < 8) s -= 25; else if (w >= 20 && w <= 80) s += 10;
+  if (w < 8) s -= 25;
+  else if (w >= 20 && w <= 80) s += 10;
   if (crisis && key === 'CRISIS_SENTINEL') s += 25;
   if (crisis && key === 'TRAUMA_COMPASS') s += 10;
   if (!crisis && key === 'CRISIS_SENTINEL') s -= 5;
@@ -177,7 +182,7 @@ async function callGeminiSingle(
 ): Promise<{ model: string; text: string | null }> {
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,54 +211,71 @@ async function runGuardianCouncil(
 ): Promise<CouncilResult> {
   const userMsg = contents[contents.length - 1]?.parts?.[0]?.text || '';
   const lower = userMsg.toLowerCase();
-  const kwCrisis = NAMED_CRISIS_KW.some(k => lower.includes(k)) || isCrisis;
+  const kwCrisis = CRISIS_KEYWORDS.some((k) => lower.includes(k)) || isCrisis;
   const langNote = isES ? ' Respond in Spanish.' : '';
 
   console.log('[Council v3] 5 named agents deliberating...');
 
-  const evals = await Promise.all(NAMED_AGENTS.map(async (agent) => {
-    const agentSystemPrompt = `${agent.prompt}${langNote}
+  const evals: AgentEval[] = await Promise.all(
+    NAMED_AGENTS.map(async (agent) => {
+      const agentSystemPrompt = agent.prompt + langNote + '\n\nGuardian voice: ' + systemPrompt.slice(0, 200);
+      try {
+        const r = await callGeminiSingle(apiKey, 'gemini-2.0-flash', agentSystemPrompt, contents, 150, 0.78);
+        const raw = r.text || 'I hear you. You are not alone.';
+        const cs = raw.includes('[CRISIS_DETECTED]') || kwCrisis;
+        const clean = raw.replace('[CRISIS_DETECTED]', '').trim();
+        const sc = scoreAgent(clean, agent.key, kwCrisis);
+        return {
+          agentKey: agent.key,
+          agentName: agent.name,
+          modality: agent.modality,
+          icon: agent.icon,
+          color: agent.color,
+          description: agent.description,
+          response: clean,
+          crisisSignal: cs,
+          score: sc,
+          confidence: Math.min(100, sc + Math.floor(Math.random() * 8)),
+          safety: cs ? 95 : Math.min(100, 70 + Math.floor(Math.random() * 25)),
+          relevance: Math.min(100, sc - 5 + Math.floor(Math.random() * 15)),
+        };
+      } catch {
+        return {
+          agentKey: agent.key,
+          agentName: agent.name,
+          modality: agent.modality,
+          icon: agent.icon,
+          color: agent.color,
+          description: agent.description,
+          response: 'I hear you. You are not alone.',
+          crisisSignal: kwCrisis,
+          score: 0,
+          confidence: 0,
+          safety: 70,
+          relevance: 0,
+        };
+      }
+    })
+  );
 
-Guardian voice: ${systemPrompt.slice(0, 200)}`;
-    try {
-      const r = await callGeminiSingle(apiKey, 'gemini-2.0-flash', agentSystemPrompt, contents, 150, 0.78);
-      const raw = r.text || 'I hear you. You are not alone.';
-      const cs = raw.includes('[CRISIS_DETECTED]') || kwCrisis;
-      const clean = raw.replace('[CRISIS_DETECTED]', '').trim();
-      const sc = scoreAgent(clean, agent.key, kwCrisis);
-      return {
-        agentKey: agent.key, agentName: agent.name, modality: agent.modality,
-        icon: agent.icon, color: agent.color, description: agent.description,
-        response: clean, crisisSignal: cs, score: sc,
-        confidence: Math.min(100, sc + Math.floor(Math.random() * 8)),
-        safety: cs ? 95 : Math.min(100, 70 + Math.floor(Math.random() * 25)),
-        relevance: Math.min(100, sc - 5 + Math.floor(Math.random() * 15)),
-      } as AgentEval;
-    } catch {
-      return { agentKey: agent.key, agentName: agent.name, modality: agent.modality,
-        icon: agent.icon, color: agent.color, description: agent.description,
-        response: 'I hear you. You are not alone.', crisisSignal: kwCrisis,
-        score: 0, confidence: 0, safety: 70, relevance: 0 } as AgentEval;
-    }
-  }));
-
-  const crisisDetected = evals.some(a => a.crisisSignal) || kwCrisis;
-  const ss = evals.find(a => a.agentKey === 'CRISIS_SENTINEL')?.score ?? 0;
+  const crisisDetected = evals.some((a) => a.crisisSignal) || kwCrisis;
+  const ss = evals.find((a) => a.agentKey === 'CRISIS_SENTINEL')?.score ?? 0;
   const crisisSeverity = !crisisDetected ? 'none' : ss > 80 ? 'critical' : ss > 60 ? 'high' : ss > 40 ? 'medium' : 'low';
 
-  // Synthesis Oracle — uses Guardian voice
-  const agentText = evals.map(a => '[' + a.agentName.toUpperCase() + ']:' + '\n' + a.response).join('\n\n');
-  const sep = '\n\n';
-  const crisisNote = crisisDetected ? sep + 'CRITICAL: Crisis detected. Lead with safety. Include 988 and Crisis Text Line 741741.' : '';
-  const oracleUserMsg = 'Person said: "' + userMsg + '"' + sep + 'Agent responses:' + '\n' + agentText + crisisNote + sep + 'Write the ONE final Guardian response.';
-  const oracleContents = [{ role: 'user', parts: [{ text: oracleUserMsg }] }];
+  const agentText = evals.map((a) => '[' + a.agentName.toUpperCase() + ']:\n' + a.response).join('\n\n');
+  const crisisNote = crisisDetected ? '\n\nCRITICAL: Crisis detected. Lead with safety. Include 988 and Crisis Text Line 741741.' : '';
+  const oracleMsg = 'Person said: "' + userMsg + '"\n\nAgent responses:\n' + agentText + crisisNote + '\n\nWrite the ONE final Guardian response.';
+  const oracleContents = [{ role: 'user', parts: [{ text: oracleMsg }] }];
 
   let finalResponse = '';
   let synthesisMethod = 'weighted';
   try {
     const oracleResult = await callGeminiSingle(apiKey, 'gemini-2.0-flash', systemPrompt, oracleContents, 200, 0.7);
-    if (oracleResult.text) { finalResponse = oracleResult.text; }
-    else throw new Error('empty oracle');
+    if (oracleResult.text) {
+      finalResponse = oracleResult.text;
+    } else {
+      throw new Error('empty oracle');
+    }
   } catch {
     const best = [...evals].sort((a, b) => b.score - a.score)[0];
     finalResponse = best.response;
@@ -262,7 +284,7 @@ Guardian voice: ${systemPrompt.slice(0, 200)}`;
   if (crisisDetected) synthesisMethod = 'crisis_override';
 
   const consensusScore = Math.round(evals.reduce((s, a) => s + a.score, 0) / evals.length);
-  console.log(`[Council v3] done · consensus=${consensusScore} · crisis=${crisisDetected} · method=${synthesisMethod}`);
+  console.log('[Council v3] done · consensus=' + consensusScore + ' · crisis=' + String(crisisDetected) + ' · method=' + synthesisMethod);
 
   return { finalResponse, agentEvaluations: evals, synthesisMethod, crisisDetected, crisisSeverity, consensusScore };
 }
@@ -275,11 +297,10 @@ async function callGeminiWithFallback(
   temperature: number
 ): Promise<string> {
   let lastError = '';
-
   for (const model of GEMINI_MODELS) {
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -290,44 +311,27 @@ async function callGeminiWithFallback(
           }),
         }
       );
-
       if (res.status === 429) {
-        console.warn(`Gemini ${model} quota exceeded, trying next model...`);
-        lastError = `429 quota on ${model}`;
-        // Progressive backoff: 300ms, 600ms, 900ms, 1200ms, 1500ms
-        const modelIndex = GEMINI_MODELS.indexOf(model);
-        await new Promise(r => setTimeout(r, 300 * (modelIndex + 1)));
+        lastError = '429 on ' + model;
+        const idx = GEMINI_MODELS.indexOf(model);
+        await new Promise((r) => setTimeout(r, 300 * (idx + 1)));
         continue;
       }
-
       if (!res.ok) {
-        const errText = await res.text();
-        console.error(`Gemini ${model} error:`, res.status, errText);
-        lastError = `${res.status} on ${model}`;
+        lastError = res.status + ' on ' + model;
         continue;
       }
-
       const data = await res.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!text) {
-        lastError = `empty response from ${model}`;
-        continue;
-      }
-
-      // Success — log which model handled it
-      if (model !== GEMINI_MODELS[0]) {
-        console.log(`Guardian served by fallback model: ${model}`);
-      }
+      if (!text) { lastError = 'empty from ' + model; continue; }
+      if (model !== GEMINI_MODELS[0]) console.log('Guardian served by fallback: ' + model);
       return text;
-
     } catch (err) {
-      console.error(`Gemini ${model} fetch error:`, err);
       lastError = String(err);
       continue;
     }
   }
-
-  throw new Error(`All Gemini models failed. Last error: ${lastError}`);
+  throw new Error('All Gemini models failed. Last: ' + lastError);
 }
 
 const crisisKeywords = [
@@ -337,7 +341,7 @@ const crisisKeywords = [
 ];
 
 function detectCrisis(text: string): boolean {
-  return crisisKeywords.some(r => r.test(text));
+  return crisisKeywords.some((r) => r.test(text));
 }
 
 export async function POST(req: NextRequest) {
@@ -358,10 +362,9 @@ export async function POST(req: NextRequest) {
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not set in environment');
       return NextResponse.json({
         response: language === 'es'
-          ? 'Estoy aquí contigo. Tengo un momento técnico breve — por favor intenta de nuevo en unos segundos.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
+          ? 'Estoy aquí contigo. Tengo un momento técnico breve — por favor intenta de nuevo.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
           : "I'm here with you. I'm having a brief technical moment — please try again in a few seconds.\n\n**If you're in crisis right now**: Call or text **988** (24/7, free, confidential).",
         isCrisis: false,
         timestamp: new Date().toISOString(),
@@ -371,10 +374,8 @@ export async function POST(req: NextRequest) {
     const isCrisis = detectCrisis(message);
     const isES = language === 'es';
 
-    // GUARDIAN OPENING — locked, no AI call needed
     if (isFirstMessage === true) {
       const openingMsg = isES ? GUARDIAN_OPENING_MESSAGE_ES : GUARDIAN_OPENING_MESSAGE;
-
       if (userId && hasSupabase) {
         try {
           const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -383,10 +384,9 @@ export async function POST(req: NextRequest) {
             { user_id: userId, role: 'assistant', content: openingMsg },
           ]);
         } catch (e) {
-          console.error('Error saving opening to history:', e);
+          console.error('Error saving opening:', e);
         }
       }
-
       return NextResponse.json({
         response: openingMsg,
         isCrisis: false,
@@ -395,7 +395,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Session memory
     let history: Array<{ role: string; content: string }> = [];
     if (userId && hasSupabase) {
       try {
@@ -414,16 +413,15 @@ export async function POST(req: NextRequest) {
       history = sessionHistory.slice(-10);
     }
 
-    // Persona tone modifiers
     const personaMods: Record<string, string> = {
-      feminine:  'You are the female Guardian voice. Warm but never sappy. Grounded. You sit with people, not above them. Short responses. Real words.',
-      masculine: 'Speak like a steady older brother or trusted mentor. Direct. No excess softening. Name things plainly. Respect their strength.',
-      aged:      'You have seen this before. Quiet. Patient. Long view. You know this passes — you do not rush to say it. Let them get there.',
-      neutral:   'Stay balanced. Adapt to what they bring. Short. Real. Present.',
+      feminine: 'You are the female Guardian voice. Warm but never sappy. Grounded. Short responses. Real words.',
+      masculine: 'Speak like a steady older brother or trusted mentor. Direct. No excess softening. Respect their strength.',
+      aged: 'You have seen this before. Quiet. Patient. Long view. Let them get there.',
+      neutral: 'Stay balanced. Adapt to what they bring. Short. Real. Present.',
     };
     const personaMod = personaMods[persona] || personaMods.neutral;
     const depthMod = emotionalDepth
-      ? 'EMOTIONAL DEPTH MODE: Sit longer with the weight. Do not redirect toward resolution. Mirror the feeling fully before any pivot. More tears, less answers.'
+      ? 'EMOTIONAL DEPTH MODE: Sit longer with the weight. Mirror the feeling fully before any pivot.'
       : '';
 
     const systemPrompt = [
@@ -440,35 +438,50 @@ export async function POST(req: NextRequest) {
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    // Council mode: ALL users get 5-agent named therapeutic council
-    // (v3 upgrade — council is no longer premium-gated)
+    // Council v3 — ALL users get named therapeutic agents
     let aiResponse: string;
+    let councilResult: CouncilResult | null = null;
 
-    {
-      console.log('[Guardian] Council v3 active — named therapeutic agents');
-      const councilResult = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+    try {
+      councilResult = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
       aiResponse = councilResult.finalResponse;
-      // Save agent evaluations (fire-and-forget)
+
       if (userId && hasSupabase) {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const convId = `council-${Date.now()}`;
-        supabase.from('agent_evaluations').insert(councilResult.agentEvaluations.map(a => ({
-          user_id: userId, conversation_id: convId, agent_name: a.agentKey,
-          agent_display_name: a.agentName, therapeutic_modality: a.modality,
-          response_text: a.response, confidence_score: a.confidence,
-          safety_score: a.safety, relevance_score: a.relevance, final_score: a.score,
-          crisis_signal: a.crisisSignal, entry_point: 'guardian',
-        }))).then(() => {}).catch(() => {});
+        const convId = 'council-' + Date.now();
+        supabase.from('agent_evaluations').insert(
+          councilResult.agentEvaluations.map((a) => ({
+            user_id: userId,
+            conversation_id: convId,
+            agent_name: a.agentKey,
+            agent_display_name: a.agentName,
+            therapeutic_modality: a.modality,
+            response_text: a.response,
+            confidence_score: a.confidence,
+            safety_score: a.safety,
+            relevance_score: a.relevance,
+            final_score: a.score,
+            crisis_signal: a.crisisSignal,
+            entry_point: 'guardian',
+          }))
+        ).then(() => {}).catch(() => {});
         supabase.from('synthesis_decisions').insert({
-          user_id: userId, conversation_id: convId, synthesis_method: councilResult.synthesisMethod,
-          final_response: councilResult.finalResponse, consensus_score: councilResult.consensusScore,
-          crisis_detected: councilResult.crisisDetected, crisis_severity: councilResult.crisisSeverity,
-          agent_count: 5, entry_point: 'guardian',
+          user_id: userId,
+          conversation_id: convId,
+          synthesis_method: councilResult.synthesisMethod,
+          final_response: councilResult.finalResponse,
+          consensus_score: councilResult.consensusScore,
+          crisis_detected: councilResult.crisisDetected,
+          crisis_severity: councilResult.crisisSeverity,
+          agent_count: 5,
+          entry_point: 'guardian',
         }).then(() => {}).catch(() => {});
       }
+    } catch (councilErr) {
+      console.error('[Council v3] failed, falling back:', councilErr);
+      aiResponse = await callGeminiWithFallback(GEMINI_API_KEY, systemPrompt, geminiContents, 180, emotionalDepth ? 0.9 : 0.82);
     }
 
-    // Save to Supabase (logged-in users only)
     if (userId && hasSupabase) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -484,16 +497,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       response: aiResponse,
       isCrisis,
+      agentBreakdown: councilResult?.agentEvaluations?.map((a) => ({
+        agent: a.agentKey,
+        agentName: a.agentName,
+        modality: a.modality,
+        icon: a.icon,
+        color: a.color,
+        description: a.description,
+        response: a.response,
+        confidence: a.confidence,
+        safety: a.safety,
+        relevance: a.relevance,
+        finalScore: a.score,
+        crisisSignal: a.crisisSignal,
+      })),
+      synthesisMethod: councilResult?.synthesisMethod,
+      consensusScore: councilResult?.consensusScore,
+      crisisDetected: councilResult?.crisisDetected,
+      crisisSeverity: councilResult?.crisisSeverity,
       timestamp: new Date().toISOString(),
     });
 
   } catch (error: unknown) {
     console.error('Guardian error:', error);
-    const isES = (await req.json().catch(() => ({})) as { language?: string }).language === 'es';
     return NextResponse.json({
-      response: isES
-        ? 'Estoy aquí. Tengo un momento técnico breve — por favor intenta de nuevo.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
-        : "I hear you — I'm here. Having a brief technical moment.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).",
+      response: "I hear you — I'm here. Having a brief technical moment.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).",
       isCrisis: false,
       timestamp: new Date().toISOString(),
     });
@@ -503,9 +531,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
-
   if (!userId || !hasSupabase) return NextResponse.json({ conversations: [] });
-
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data } = await supabase
