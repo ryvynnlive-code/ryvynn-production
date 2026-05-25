@@ -21,8 +21,6 @@ export function Navigation() {
     { href: '/', label: t('home') },
     { href: '/wall', label: t('wall') },
     { href: '/crisis', label: t('crisis') },
-    { href: '/pricing', label: t('pricing') },
-    { href: '/support', label: 'Donate' },
     ...(user ? [
       { href: '/dashboard', label: tf('dashboard'), protected: true },
       { href: '/settings', label: 'Settings' },
@@ -54,139 +52,109 @@ export function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={
-                  item.href === '/support'
-                    ? `text-sm font-bold transition-all ${
-                        pathname === item.href
-                          ? 'text-ryvynn-cyan'
-                          : 'bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent hover:opacity-80'
-                      }`
-                    : `text-sm font-medium transition-colors ${
-                        pathname === item.href
-                          ? 'text-ryvynn-cyan'
-                          : 'text-gray-400 hover:text-white'
-                      }`
-                }
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right Side: Auth + Language */}
-          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
-            <LanguageToggle />
-
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-ryvynn-cyan rounded-full animate-spin border-t-transparent" />
-            ) : user ? (
-              /* Logged In State */
-              <div className="flex items-center gap-2 md:gap-3">
-                <Link
-                  href="/dashboard"
-                  className="hidden md:flex items-center gap-2 text-sm text-gray-300 hover:text-ryvynn-cyan transition-colors"
-                >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ryvynn-cyan to-ryvynn-purple flex items-center justify-center text-xs font-black text-black">
-                    {(profile?.soul_tokens ?? 0)}
-                  </div>
-                  <span className="hidden lg:inline">{user.email?.split('@')[0]}</span>
-                </Link>
-                <button
-                  onClick={signOut}
-                  className="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded border border-gray-700 hover:border-red-400"
-                >
-                  Exit
-                </button>
-              </div>
-            ) : (
-              /* Logged Out — hidden on homepage so nav doesn't compete with CTA */
-              pathname === '/' ? null : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowSignIn(true)}
-                    className="hidden sm:block text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5"
-                  >
-                    {t('signIn')}
-                  </button>
-                  <button
-                    onClick={() => setShowSignUp(true)}
-                    className="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-700 text-gray-300 hover:border-ryvynn-cyan hover:text-white transition-all"
-                  >
-                    Start Free
-                  </button>
-                </div>
-              )
-            )}
-
-            {/* Mobile Hamburger */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
-              aria-label="Menu"
-            >
-              <div className="flex flex-col gap-1.5 w-5">
-                <span className={`block h-0.5 bg-current transition-all ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
-                <span className={`block h-0.5 bg-current transition-all ${mobileOpen ? 'opacity-0' : ''}`} />
-                <span className={`block h-0.5 bg-current transition-all ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Dropdown */}
-        {mobileOpen && (
-          <div className="lg:hidden border-t border-gray-800 mt-3 pt-4 pb-2 px-4 flex flex-col gap-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`text-sm font-medium py-2 ${
-                  pathname === item.href ? 'text-ryvynn-cyan' : 'text-gray-300 hover:text-white'
+                className={`text-sm transition-all ${
+                  pathname === item.href
+                    ? 'text-white font-semibold'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 {item.label}
               </Link>
             ))}
-            {!user && pathname !== '/' && (
-              <div className="flex gap-3 mt-2 pt-3 border-t border-gray-800">
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+
+            {!loading && (
+              <>
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    {profile?.display_name && (
+                      <span className="text-xs text-gray-500 hidden md:block">
+                        anonymous
+                      </span>
+                    )}
+                    <button
+                      onClick={signOut}
+                      className="text-xs text-gray-500 hover:text-white transition-colors"
+                    >
+                      sign out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowSignIn(true)}
+                      className="text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                      sign in
+                    </button>
+                    <button
+                      onClick={() => setShowSignUp(true)}
+                      className="text-sm px-4 py-1.5 rounded-full border border-ryvynn-cyan/40 text-ryvynn-cyan hover:bg-ryvynn-cyan/10 transition-all font-medium"
+                    >
+                      stay anonymous, get more
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Mobile menu toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden text-gray-400 hover:text-white"
+              aria-label="Menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="lg:hidden mt-3 pb-3 border-t border-gray-800 pt-3 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block px-2 py-1.5 text-sm rounded transition-colors ${
+                  pathname === item.href ? 'text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {!user && (
+              <>
                 <button
                   onClick={() => { setShowSignIn(true); setMobileOpen(false); }}
-                  className="flex-1 text-sm py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:border-ryvynn-cyan hover:text-white transition-all"
+                  className="block w-full text-left px-2 py-1.5 text-sm text-gray-400 hover:text-white"
                 >
-                  Sign In
+                  sign in
                 </button>
                 <button
                   onClick={() => { setShowSignUp(true); setMobileOpen(false); }}
-                  className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:border-ryvynn-cyan hover:text-white transition-all"
+                  className="block w-full text-left px-2 py-1.5 text-sm text-ryvynn-cyan"
                 >
-                  Start Free
+                  stay anonymous, get more →
                 </button>
-              </div>
-            )}
-            {user && (
-              <button
-                onClick={() => { signOut(); setMobileOpen(false); }}
-                className="text-sm text-red-400 py-2 text-left"
-              >
-                Sign Out
-              </button>
+              </>
             )}
           </div>
         )}
       </nav>
 
       {/* Auth Modals */}
-      <SignIn
-        isOpen={showSignIn}
-        onClose={() => setShowSignIn(false)}
-        onSwitchToSignUp={() => { setShowSignIn(false); setShowSignUp(true); }}
-      />
-      <SignUp
-        isOpen={showSignUp}
-        onClose={() => setShowSignUp(false)}
-        onSwitchToSignIn={() => { setShowSignUp(false); setShowSignIn(true); }}
-      />
+      {showSignIn && <SignIn onClose={() => setShowSignIn(false)} onSwitchToSignUp={() => { setShowSignIn(false); setShowSignUp(true); }} />}
+      {showSignUp && <SignUp onClose={() => setShowSignUp(false)} onSwitchToSignIn={() => { setShowSignUp(false); setShowSignIn(true); }} />}
     </>
   );
 }
