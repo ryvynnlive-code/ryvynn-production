@@ -379,10 +379,10 @@ export async function POST(req: NextRequest) {
       if (userId && hasSupabase) {
         try {
           const supabase = createClient(supabaseUrl, supabaseServiceKey);
-          await supabase.from('guardian_conversations').insert([
+          await void Promise.resolve(supabase.from('guardian_conversations').insert([
             { user_id: userId, role: 'user', content: message },
             { user_id: userId, role: 'assistant', content: openingMsg },
-          ]);
+          ]));
         } catch (e) {
           console.error('Error saving opening:', e);
         }
@@ -449,7 +449,7 @@ export async function POST(req: NextRequest) {
       if (userId && hasSupabase) {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const convId = 'council-' + Date.now();
-        supabase.from('agent_evaluations').insert(
+        void Promise.resolve(supabase.from('agent_evaluations').insert(
           councilResult.agentEvaluations.map((a) => ({
             user_id: userId,
             conversation_id: convId,
@@ -464,8 +464,8 @@ export async function POST(req: NextRequest) {
             crisis_signal: a.crisisSignal,
             entry_point: 'guardian',
           }))
-        ).then(() => {}).catch(() => {});
-        supabase.from('synthesis_decisions').insert({
+        ));
+        void Promise.resolve(supabase.from('synthesis_decisions').insert({
           user_id: userId,
           conversation_id: convId,
           synthesis_method: councilResult.synthesisMethod,
@@ -475,7 +475,7 @@ export async function POST(req: NextRequest) {
           crisis_severity: councilResult.crisisSeverity,
           agent_count: 5,
           entry_point: 'guardian',
-        }).then(() => {}).catch(() => {});
+        }));
       }
     } catch (councilErr) {
       console.error('[Council v3] failed, falling back:', councilErr);
@@ -485,10 +485,10 @@ export async function POST(req: NextRequest) {
     if (userId && hasSupabase) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        await supabase.from('guardian_conversations').insert([
+        await void Promise.resolve(supabase.from('guardian_conversations').insert([
           { user_id: userId, role: 'user', content: message },
           { user_id: userId, role: 'assistant', content: aiResponse },
-        ]);
+        ]));
       } catch (e) {
         console.error('Error saving conversation:', e);
       }
