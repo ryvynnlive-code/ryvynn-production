@@ -71,11 +71,7 @@ export function Navigation() {
               <>
                 {user ? (
                   <div className="flex items-center gap-3">
-                    {profile?.display_name && (
-                      <span className="text-xs text-gray-500 hidden md:block">
-                        anonymous
-                      </span>
-                    )}
+                    <span className="text-xs text-gray-500 hidden md:block">anonymous</span>
                     <button
                       onClick={signOut}
                       className="text-xs text-gray-500 hover:text-white transition-colors"
