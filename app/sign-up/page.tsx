@@ -40,6 +40,14 @@ export default function SignUpPage() {
     if (result.error) { setError(result.error); } else { router.push('/dashboard'); }
   };
 
+  const subheading = tab === 'signup'
+    ? 'Stay anonymous. Get more.'
+    : 'Welcome back.';
+
+  const subtext = tab === 'signup'
+    ? 'Your account has no real name. No phone. No identity. Just an email to keep your account yours — nothing else.'
+    : 'No name. No tracking. Just your anonymous home.';
+
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -47,16 +55,14 @@ export default function SignUpPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/">
-            <img src="/assets/dual-flame-logo.png" alt="RYVYNN" className="w-14 h-14 mx-auto mb-4 drop-shadow-[0_0_20px_rgba(0,217,255,0.5)]" />
+            <img
+              src="/assets/dual-flame-logo.png"
+              alt="RYVYNN"
+              className="w-14 h-14 mx-auto mb-4 drop-shadow-[0_0_20px_rgba(0,217,255,0.5)]"
+            />
           </Link>
-          <h1 className="text-2xl font-bold text-white mb-2">
-            {tab === 'signup' ? 'Stay anonymous. Get more.' : 'Welcome back.'}
-          </h1>
-          <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">
-            {tab === 'signup'
-              ? 'Your account has no real name. No phone. No identity. Just an email that proves you're real — nothing else.'
-              : 'No name. No tracking. Just your anonymous home.'}
-          </p>
+          <h1 className="text-2xl font-bold text-white mb-2">{subheading}</h1>
+          <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">{subtext}</p>
         </div>
 
         {/* Anonymous promise banner */}
@@ -77,7 +83,7 @@ export default function SignUpPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-ryvynn-cyan">✓</span>
-                <span>Your email is only used to keep your account yours</span>
+                <span>Your email only keeps the account yours</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-ryvynn-purple">+</span>
@@ -91,17 +97,19 @@ export default function SignUpPage() {
         <div className="flex gap-1 mb-6 bg-gray-900 rounded-xl p-1">
           <button
             onClick={() => setTab('signup')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-              tab === 'signup' ? 'bg-black text-white' : 'text-gray-500 hover:text-gray-300'
-            }`}
+            className={[
+              'flex-1 py-2 text-sm font-medium rounded-lg transition-all',
+              tab === 'signup' ? 'bg-black text-white' : 'text-gray-500 hover:text-gray-300',
+            ].join(' ')}
           >
             Create account
           </button>
           <button
             onClick={() => setTab('signin')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-              tab === 'signin' ? 'bg-black text-white' : 'text-gray-500 hover:text-gray-300'
-            }`}
+            className={[
+              'flex-1 py-2 text-sm font-medium rounded-lg transition-all',
+              tab === 'signin' ? 'bg-black text-white' : 'text-gray-500 hover:text-gray-300',
+            ].join(' ')}
           >
             Sign in
           </button>
@@ -158,10 +166,7 @@ export default function SignUpPage() {
             type="submit"
             disabled={loading}
             className="w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-            style={{
-              background: 'linear-gradient(135deg, #00D9FF, #8B5CF6)',
-              color: '#000'
-            }}
+            style={{ background: 'linear-gradient(135deg, #00D9FF, #8B5CF6)', color: '#000' }}
           >
             {loading
               ? 'One moment...'
@@ -171,21 +176,22 @@ export default function SignUpPage() {
           </button>
         </form>
 
-        {/* Soft support link */}
+        {/* Soft support */}
         <div className="mt-8 text-center">
           <p className="text-gray-600 text-xs">
             RYVYNN is free.{' '}
             <Link href="/pricing" className="text-gray-500 hover:text-white transition-colors underline underline-offset-2">
-              Support the mission →
+              Support the mission
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
-            ← back, no account needed
+            back, no account needed
           </Link>
         </div>
+
       </div>
     </div>
   );
