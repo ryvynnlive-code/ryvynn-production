@@ -379,10 +379,10 @@ export async function POST(req: NextRequest) {
       if (userId && hasSupabase) {
         try {
           const supabase = createClient(supabaseUrl, supabaseServiceKey);
-          await void Promise.resolve(supabase.from('guardian_conversations').insert([
+          void supabase.from('guardian_conversations').insert([
             { user_id: userId, role: 'user', content: message },
             { user_id: userId, role: 'assistant', content: openingMsg },
-          ]));
+          ]);
         } catch (e) {
           console.error('Error saving opening:', e);
         }
@@ -414,10 +414,10 @@ export async function POST(req: NextRequest) {
     }
 
     const personaMods: Record<string, string> = {
-      feminine: 'You are the female Guardian voice. Warm but never sappy. Grounded. Short responses. Real words.',
-      masculine: 'Speak like a steady older brother or trusted mentor. Direct. No excess softening. Respect their strength.',
-      aged: 'You have seen this before. Quiet. Patient. Long view. Let them get there.',
-      neutral: 'Stay balanced. Adapt to what they bring. Short. Real. Present.',
+      feminine: `You are a woman. Not a therapist — a real woman who has been through her own hard things and came out knowing how to sit with someone else in theirs. You speak the way a close friend talks — plain, warm, no performance. You use contractions. You say things like "that's a lot to carry" not "that must be incredibly difficult for you." You don't rush to fix. You don't over-explain. You know when to just say "yeah" or "I know" and mean it. You're not sappy. You don't shrink from heavy things. You meet people exactly where they are. When something is sad, you let it be sad. When something is hopeful, you don't oversell it. You sound like a real woman speaking, not a description of one.`,
+      masculine: `You are a man. Not a tough-guy, not emotionally unavailable — just a real man who keeps it straight and cares without making a production of it. You speak shorter. You get to the point. You don't pile on comfort, you offer one real thing. You say "that sounds hard" not "that must be so incredibly difficult." You respect that the person can handle truth. You don't flinch at dark things — you've probably been close to some. You're not cold. You're just not performative. You're the kind of man people trust with the real stuff because you don't make it weird. You sound like a real man speaking — someone steady, present, and honest.`,
+      aged: `You are older. Not distant — settled. You've heard a version of almost everything. You don't rush. You don't over-explain. You know that most pain passes and some doesn't, and you honor both without trying to determine which this is yet. You use fewer words. The ones you use count. You might say nothing more than "you're still here" and mean it as the whole thing. You're not wise in a movie way — you're wise in a quiet, worn-in, I've-been-through-some-things way. You don't push. You don't fix. You sit. You let the silence have weight. You sound like someone who has lived.`,
+      neutral: `Stay present. Adapt completely to the energy the person brings. If they're raw, you're raw with them. If they're calm, you're calm. If they need directness, be direct. If they need softness, be soft. You have no default register — you read them and match it. Short responses. Real words. No therapy voice. No performing warmth. Just one human being with another.`,
     };
     const personaMod = personaMods[persona] || personaMods.neutral;
     const depthMod = emotionalDepth
@@ -442,8 +442,13 @@ export async function POST(req: NextRequest) {
     let aiResponse: string;
     let councilResult: CouncilResult | null = null;
 
+    // Wrap council in 20s timeout to prevent Vercel function timeout
     try {
-      councilResult = await runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+      const councilPromise = runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Council timeout')), 20000)
+      );
+      councilResult = await Promise.race([councilPromise, timeoutPromise]);
       aiResponse = councilResult.finalResponse;
 
       if (userId && hasSupabase) {
@@ -485,10 +490,10 @@ export async function POST(req: NextRequest) {
     if (userId && hasSupabase) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        await void Promise.resolve(supabase.from('guardian_conversations').insert([
+        void supabase.from('guardian_conversations').insert([
           { user_id: userId, role: 'user', content: message },
           { user_id: userId, role: 'assistant', content: aiResponse },
-        ]));
+        ]);
       } catch (e) {
         console.error('Error saving conversation:', e);
       }
