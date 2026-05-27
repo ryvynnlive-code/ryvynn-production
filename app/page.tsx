@@ -170,11 +170,16 @@ async function voteWallAPI(id: string) {
   } catch {}
 }
 
-async function callGuardian(msg: string): Promise<string> {
+async function callGuardian(msg: string, lang?: string, persona?: string): Promise<string> {
   try {
     const r = await fetch('/api/guardian/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg }),
+      body: JSON.stringify({
+        message: msg,
+        language: lang || (typeof window !== 'undefined' ? localStorage.getItem('ryvynn-language') || 'en' : 'en'),
+        persona: persona || 'neutral',
+        sessionHistory: [],
+      }),
     });
     if (!r.ok) throw new Error();
     const d = await r.json();
@@ -866,14 +871,38 @@ function Wall({ stories, ageTier, bookmarks, onBookmark }: {
 /* ============================================================
    GUARDIAN SECTION
    ============================================================ */
+type Persona = 'neutral' | 'feminine' | 'masculine' | 'aged';
+
+const PERSONAS: { id: Persona; label: string; labelEs: string; desc: string; descEs: string; }[] = [
+  { id: 'neutral',   label: 'Just present',  labelEs: 'Solo presente',  desc: 'Adapts to what you bring',   descEs: 'Se adapta a lo que traes' },
+  { id: 'feminine',  label: 'A woman',        labelEs: 'Una mujer',       desc: 'Warm. Real. Steady.',        descEs: 'Cálida. Real. Firme.' },
+  { id: 'masculine', label: 'A man',          labelEs: 'Un hombre',       desc: 'Direct. Honest. Present.',   descEs: 'Directo. Honesto. Presente.' },
+  { id: 'aged',      label: 'Older voice',    labelEs: 'Voz mayor',       desc: 'Quiet. Patient. Lived-in.',  descEs: 'Tranquilo. Paciente. Vivido.' },
+];
+
 function GuardianSection({ onOpen }: { onOpen: () => void }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [persona, setPersona] = useState<Persona>('neutral');
+  const [lang, setLang] = useState('en');
+  const [personaPicked, setPersonaPicked] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('ryvynn-language') || 'en' : 'en';
+    setLang(stored);
+    const watch = setInterval(() => {
+      const l = localStorage.getItem('ryvynn-language') || 'en';
+      setLang(l);
+    }, 1000);
+    return () => clearInterval(watch);
+  }, []);
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
+
+  const isEs = lang === 'es';
 
   const send = useCallback(async () => {
     if (!input.trim() || typing) return;
@@ -881,10 +910,10 @@ function GuardianSection({ onOpen }: { onOpen: () => void }) {
     setInput('');
     setMsgs(p => [...p, { role: 'user', text: msg }]);
     setTyping(true);
-    const reply = await callGuardian(msg);
+    const reply = await callGuardian(msg, lang, persona);
     setMsgs(p => [...p, { role: 'ai', text: reply }]);
     setTyping(false);
-  }, [input, typing]);
+  }, [input, typing, lang, persona]);
 
   return (
     <section id="guardian" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
@@ -906,10 +935,37 @@ function GuardianSection({ onOpen }: { onOpen: () => void }) {
         </div>
 
         {!chatOpen ? (
-          <div style={{ padding: '28px', textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, color: '#64748b', lineHeight: 1.85, marginBottom: 28 }}>
-              If you want more than the Wall — if you want something that actually responds to you — Guardian is here. Five therapeutic agents listen, then one voice speaks back.
+          <div style={{ padding: '28px' }}>
+            <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, color: '#64748b', lineHeight: 1.85, marginBottom: 24, textAlign: 'center' }}>
+              {isEs
+                ? 'Cinco agentes terapéuticos escuchan — luego una voz responde. Elige cómo quieres que suene.'
+                : 'Five therapeutic agents listen — then one voice speaks back. Choose how you want it to sound.'}
             </p>
+
+            {/* Persona picker */}
+            <div style={{ marginBottom: 24 }}>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#334155', marginBottom: 12, textAlign: 'center', textTransform: 'uppercase' }}>
+                {isEs ? 'Voz del Guardian' : 'Guardian voice'}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
+                {PERSONAS.map(p => (
+                  <button key={p.id} onClick={() => { setPersona(p.id); setPersonaPicked(true); }}
+                    style={{
+                      padding: '12px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                      fontFamily: "'Lora',Georgia,serif", border: '1px solid', transition: 'all 0.2s',
+                      background: persona === p.id ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.02)',
+                      borderColor: persona === p.id ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.07)',
+                    }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: persona === p.id ? '#a78bfa' : '#64748b', marginBottom: 3 }}>
+                      {isEs ? p.labelEs : p.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#334155' }}>
+                      {isEs ? p.descEs : p.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 24 }}>
               {[
                 { icon: '🧭', name: 'Trauma Compass', desc: 'Polyvagal · Somatic' },
@@ -925,16 +981,20 @@ function GuardianSection({ onOpen }: { onOpen: () => void }) {
                 </div>
               ))}
             </div>
-            <button onClick={() => setChatOpen(true)} style={{
-              padding: '13px 32px', borderRadius: 10,
-              background: 'linear-gradient(135deg,rgba(0,217,255,0.15),rgba(139,92,246,0.15))',
-              border: '1px solid rgba(0,217,255,0.3)',
-              color: '#00D9FF', fontSize: 14, fontWeight: 600,
-              cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
-            }}>
-              Talk to Guardian now
-            </button>
-            <p style={{ marginTop: 14, fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>Private · Anonymous · Nothing saved</p>
+            <div style={{ textAlign: 'center' }}>
+              <button onClick={() => setChatOpen(true)} style={{
+                padding: '13px 32px', borderRadius: 10,
+                background: 'linear-gradient(135deg,rgba(0,217,255,0.15),rgba(139,92,246,0.15))',
+                border: '1px solid rgba(0,217,255,0.3)',
+                color: '#00D9FF', fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+              }}>
+                {isEs ? 'Hablar con Guardian ahora' : 'Talk to Guardian now'}
+              </button>
+              <p style={{ marginTop: 14, fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>
+                {isEs ? 'Privado · Anónimo · Nada se guarda' : 'Private · Anonymous · Nothing saved'}
+              </p>
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', height: 420 }}>
@@ -972,7 +1032,7 @@ function GuardianSection({ onOpen }: { onOpen: () => void }) {
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '14px 20px', display: 'flex', gap: 8 }}>
               <input value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-                placeholder="Say anything..."
+                placeholder={isEs ? 'Di lo que necesitas...' : 'Say anything...'}
                 style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 14px', color: '#94a3b8', fontSize: 14, outline: 'none', fontFamily: "'Lora',Georgia,serif" }} />
               <button onClick={send} disabled={!input.trim() || typing} style={{ padding: '10px 18px', borderRadius: 10, background: input.trim() && !typing ? 'linear-gradient(135deg,#8B5CF6,#00D9FF)' : 'rgba(255,255,255,0.04)', border: 'none', color: input.trim() && !typing ? '#fff' : '#334155', fontSize: 18, cursor: input.trim() && !typing ? 'pointer' : 'default', transition: 'all 0.2s' }}>↑</button>
             </div>
