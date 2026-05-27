@@ -19,6 +19,7 @@ export function Navigation() {
 
   const navItems = [
     { href: '/', label: t('home') },
+    { href: '/sanctuary', label: 'Sanctuary' },
     { href: '/wall', label: t('wall') },
     { href: '/crisis', label: t('crisis') },
     ...(user ? [
