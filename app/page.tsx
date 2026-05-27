@@ -1,573 +1,1253 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useI18n } from '@/contexts/I18nContext';
-import Link from 'next/link';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
-interface WallEntry { id: string; confession: string; transformation: string; votes: number; created_at: string; }
-interface ChatMessage { role: 'user' | 'ai'; text: string; }
+/* ============================================================
+   RYVYNN.LIVE — The Sanctuary
+   Merges: RyvynnApp.jsx soul + Next.js Guardian Council
+   Background: #050510 — cathedral at 3 AM
+   Fonts: Cinzel (headlines) + Lora (body)
+   ============================================================ */
 
-// ─── 100 RAW POSTS — short, imperfect, real ───────────────────────────────────
-const RAW_POSTS = [
-  "i don't even know why i feel like this",
-  "i almost texted them again",
-  "i feel stupid for caring this much",
-  "i just want it to stop for a minute",
-  "i didn't tell anyone this",
-  "i cried in my car again today",
-  "i'm so tired of pretending i'm fine",
-  "i smiled at everyone today and meant none of it",
-  "i keep starting over and i'm exhausted",
-  "nobody asked if i was okay today",
-  "i almost did something i can't take back",
-  "i've been holding this for two years",
-  "i don't know who i am anymore",
-  "i miss who i was before all of this",
-  "i said yes when i meant no. again.",
-  "i feel invisible in my own life",
-  "i'm scared i'm becoming someone i don't like",
-  "i can't remember the last time i wasn't anxious",
-  "i keep thinking about something i did five years ago",
-  "i love people i can't protect and it's destroying me",
-  "i made it through today. that's it. that's enough.",
-  "i got sober and nobody even noticed",
-  "three years. nobody knows what that cost me.",
-  "i asked for help today. it didn't kill me like i thought.",
-  "i finally said no to something. first time ever.",
-  "i stopped pretending. it's the most honest i've been in years.",
-  "i told the truth and the world didn't end",
-  "i almost gave up last week. i didn't.",
-  "i survived something i wasn't sure i would",
-  "i'm still here. some days that's everything.",
-  "i think about ending it sometimes and i hate that i do",
-  "i don't want to die. i just want to feel different.",
-  "i haven't slept properly in weeks",
-  "i eat alone every day and pretend i like it",
-  "i don't know how to ask for help",
-  "i think everyone around me has it figured out except me",
-  "i'm so behind on everything and i can't catch up",
-  "i don't know how people just... keep going",
-  "i feel like i'm watching my life happen to someone else",
-  "i've been in the same spot for hours and can't move",
-  "i lost my mom eight months ago and i still reach for my phone to call her",
-  "i got divorced and nobody checks on me anymore",
-  "i moved cities for someone and they left anyway",
-  "i failed at something i told everyone i could do",
-  "i haven't talked to my family in two years",
-  "i think my kids deserve a better parent",
-  "i haven't left the house in four days",
-  "i've been sober for 8 days and today was really hard",
-  "i relapsed and i'm too ashamed to tell my sponsor",
-  "i haven't been honest with my therapist",
-  "i feel numb and i don't know if that's better or worse",
-  "i'm angry all the time and i don't know at what",
-  "i don't feel anything and i don't know which is scarier",
-  "i fake laugh all day at work",
-  "i put my kids to bed and then just sat on the floor",
-  "i check my phone hoping someone reached out. they never do.",
-  "i'm scared the depression is coming back",
-  "i've been pretending to be okay for so long i forgot what okay feels like",
-  "i think i've been slowly disappearing and nobody noticed",
-  "i need someone to just say my name",
-  "i'm so lonely in a room full of people",
-  "i don't think i've been happy in years",
-  "i keep looking for something i can't name",
-  "i'm terrified of becoming my father",
-  "i watch everyone else's life and feel nothing but hollow",
-  "i deleted the app and came back. three times.",
-  "i know i need help. i just can't say it out loud yet.",
-  "i wrote a letter i'll never send",
-  "i think about one particular day and i can't get past it",
-  "i wonder if things will always feel this heavy",
-  "i've been carrying this for so long i forgot what light feels like",
-  "i'm not where i thought i'd be by now",
-  "i thought i'd have it together by 30. i'm 34.",
-  "i don't know what i'm doing and i'm too scared to admit it",
-  "i feel like a burden to everyone around me",
-  "i wish i could talk to someone but i don't want to worry them",
-  "i keep waking up at 3am and lying there",
-  "i don't recognize myself in pictures anymore",
-  "i think my marriage is ending and i haven't said it out loud until now",
-  "i'm in a relationship and i'm lonelier than when i was single",
-  "i'm pretending everything is fine to protect my kids",
-  "i smiled at my coworkers and drove home and cried the whole way",
-  "i'm ashamed of things i did to survive",
-  "i let someone treat me badly for too long",
-  "i don't know how to leave",
-  "i left and i still feel guilty",
-  "i finally blocked them. i feel free and destroyed at the same time.",
-  "i'm in therapy but i still can't say the real thing",
-  "i think about a version of my life i can't get back",
-  "i'm scared that this is just who i am now",
-  "i want to be better and i don't know how",
-  "i keep trying and it keeps not working",
-  "i woke up and the first thing i felt was dread",
-  "i got through something enormous and no one even knows",
-  "i'm proud of something i can't tell anyone",
-  "i survived a year that should have broken me",
-  "i'm still here and some days i'm surprised by that",
-  "i'm not okay. and saying that feels like the first honest thing in months.",
+/* ---------- TYPES ---------- */
+interface Story {
+  id: string;
+  label: string;
+  category: string;
+  text: string;
+  felt: number;
+  replies: string[];
+  feed: 'heard' | 'through';
+  tier: 'safe' | 'raw';
+}
+
+interface ChatMsg { role: 'user' | 'ai'; text: string; }
+
+/* ---------- SEED STORIES (shown before backend loads) ---------- */
+const SEED_STORIES: Story[] = [
+  { id: 'h1', label: 'Anonymous — 3:14 AM', category: 'Addiction', text: "I've been sober 11 days. I threw up twice tonight from withdrawals. I didn't use. That's the whole story.", felt: 847, replies: [], feed: 'heard', tier: 'safe' },
+  { id: 'h2', label: 'Anonymous', category: 'Grief', text: "My son died 8 months ago. I still set a plate for him sometimes. I don't know how to stop.", felt: 1203, replies: [], feed: 'heard', tier: 'safe' },
+  { id: 'h3', label: 'Anonymous — Late', category: 'Loneliness', text: "I haven't had a real conversation with anyone in 19 days. I counted. I just needed to say that somewhere.", felt: 692, replies: [], feed: 'heard', tier: 'safe' },
+  { id: 'h4', label: 'Anonymous', category: 'Family', text: "I cut off my parents six months ago to survive. I miss them every day and I'd do it again.", felt: 934, replies: [], feed: 'heard', tier: 'safe' },
+  { id: 'h5', label: 'Anonymous', category: 'Anxiety', text: "I canceled plans again. I hate myself for it. I am so tired of fighting my own brain.", felt: 1102, replies: [], feed: 'heard', tier: 'safe' },
+  { id: 'h6', label: 'Anonymous — 2 AM', category: 'Trauma', text: "I still flinch when someone raises their voice and I'm 34 years old. He's been dead for twelve years and he still wins.", felt: 1421, replies: [], feed: 'heard', tier: 'raw' },
+  { id: 't1', label: 'Anonymous', category: 'Survival', text: "Last year I was going to end it. I'm still here. I don't know why I made it but I did. If you're where I was — stay.", felt: 2341, replies: [], feed: 'through', tier: 'safe' },
+  { id: 't2', label: 'Anonymous — Early Morning', category: 'Recovery', text: "Two years clean from heroin. I cried in a grocery store today because I could actually afford food. Progress looks weird.", felt: 1876, replies: [], feed: 'through', tier: 'safe' },
+  { id: 't3', label: 'Anonymous', category: 'Hope', text: "I didn't think I'd see 30. I'm 34 now. Messy, broke, still figuring it out. But here.", felt: 1567, replies: [], feed: 'through', tier: 'safe' },
+  { id: 't4', label: 'Anonymous', category: 'Recovery', text: "I was homeless at 22. I have a key to a door now. That's everything.", felt: 1988, replies: [], feed: 'through', tier: 'safe' },
+  { id: 't5', label: 'Anonymous', category: 'Survival', text: "I relapsed 7 times before it stuck. 7 isn't failure. It's 7 attempts. Whoever needs to hear that — that's you.", felt: 2104, replies: [], feed: 'through', tier: 'safe' },
+  { id: 't6', label: 'Anonymous', category: 'Hope', text: "Therapy didn't work for me. Neither did meds. What worked was one friend who didn't leave. Find that person. They exist.", felt: 1733, replies: [], feed: 'through', tier: 'safe' },
 ];
 
-// ─── Guardian — 2 sentence max, locked tone ───────────────────────────────────
-async function guardian(msg: string): Promise<string> {
+/* ---------- CATEGORY COLORS ---------- */
+const CAT_COLOR: Record<string, string> = {
+  Addiction: '#a78bfa', Grief: '#60a5fa', Loneliness: '#94a3b8',
+  Trauma: '#f87171', Anxiety: '#fb923c', Recovery: '#34d399',
+  Family: '#f9a8d4', Survival: '#facc15', Hope: '#00D9FF',
+  Other: '#8B5CF6',
+};
+
+/* ---------- CRISIS DETECTION ---------- */
+const EXPLICIT_CRISIS = [
+  'kill myself','kill my self','killing myself','end my life','ending my life',
+  'end it tonight','suicide','suicidal','want to die','wanna die','want to be dead',
+  'going to do it','gonna do it','doing it tonight','tonight is the night',
+  'have a plan','my plan is','i have pills','i have a gun',
+  "won't be here tomorrow","wont be here tomorrow",'this is goodbye','final goodbye',
+];
+const DISTRESS = [
+  'tired of existing','tired of being here','tired of living',
+  "don't see the point","dont see the point",'no point anymore',
+  "can't go on","cant go on","can't do this anymore","cant do this anymore",
+  'no reason to',"what's the point",'whats the point',
+  'give up','giving up','nothing matters','nothing matters anymore',
+  'better off without me','everyone would be better',
+  'disappear forever','just disappear','fade away',
+  'stop existing','hate being alive','hate existing',
+];
+const PII_PATTERNS = [
+  /\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/,
+  /\b\d{5}(-\d{4})?\b/,
+  /\b(my name is|i'm called|i am called|call me)\s+[A-Z][a-z]+/i,
+  /\b(school|work|workplace|job|address|lives at|live at|live on)\s+[A-Z]/i,
+];
+
+function detectCrisisLevel(text: string): 'none' | 'distress' | 'explicit' {
+  if (!text) return 'none';
+  const lower = text.toLowerCase();
+  if (EXPLICIT_CRISIS.some(kw => lower.includes(kw))) return 'explicit';
+  if (DISTRESS.some(kw => lower.includes(kw))) return 'distress';
+  return 'none';
+}
+
+function detectPII(text: string): boolean {
+  return PII_PATTERNS.some(p => p.test(text));
+}
+
+/* ---------- JACCARD SIMILARITY ---------- */
+function jaccard(a: string, b: string): number {
+  const sa = new Set(a.toLowerCase().split(/\s+/));
+  const sb = new Set(b.toLowerCase().split(/\s+/));
+  const inter = new Set([...sa].filter(x => sb.has(x)));
+  const union = new Set([...sa, ...sb]);
+  return union.size === 0 ? 0 : inter.size / union.size;
+}
+
+function getRelated(text: string, all: Story[], count = 3): Story[] {
+  return all
+    .map(s => ({ story: s, score: jaccard(text, s.text) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, count)
+    .map(x => x.story);
+}
+
+/* ---------- TIME-AWARE COPY ---------- */
+function getTimeMsg(): string {
+  const h = new Date().getHours();
+  if (h >= 0 && h < 5) return "You're not alone at this hour.";
+  if (h >= 5 && h < 8) return 'Early morning. We are here.';
+  if (h >= 22) return 'Late night. We are still here.';
+  return 'We are here. Take your time.';
+}
+
+/* ---------- SAFE STORAGE ---------- */
+function safeGet(key: string): string | null {
+  try { return typeof window !== 'undefined' ? localStorage.getItem(key) : null; }
+  catch { return null; }
+}
+function safeSet(key: string, val: string) {
+  try { if (typeof window !== 'undefined') localStorage.setItem(key, val); }
+  catch { /* swallow */ }
+}
+
+/* ---------- LIVE PRESENCE ---------- */
+function useLivePresence() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    setCount(180 + Math.floor(Math.random() * 100));
+    const id = setInterval(() => {
+      setCount(c => Math.max(150, Math.min(420, c + Math.floor(Math.random() * 5) - 2)));
+    }, 4500);
+    return () => clearInterval(id);
+  }, []);
+  return count;
+}
+
+/* ---------- API HELPERS ---------- */
+async function fetchWallAPI(): Promise<Story[]> {
   try {
-    const res = await fetch('/api/guardian/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch('/api/wall?limit=60&sortBy=recent');
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (d.entries ?? []).map((e: any) => ({
+      id: e.id, label: 'Anonymous',
+      category: e.category || 'Other',
+      text: e.transformation || e.confession || '',
+      felt: e.votes ?? 0, replies: [],
+      feed: e.feed || (e.transformation && e.transformation !== e.confession ? 'through' : 'heard'),
+      tier: e.tier || 'safe',
+    }));
+  } catch { return []; }
+}
+
+async function postWallAPI(text: string, category: string, feed: string) {
+  try {
+    await fetch('/api/wall', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confession: text, category, feed, isAnonymous: true }),
+    });
+  } catch {}
+}
+
+async function voteWallAPI(id: string) {
+  try {
+    await fetch('/api/wall', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entryId: id }),
+    });
+  } catch {}
+}
+
+async function callGuardian(msg: string): Promise<string> {
+  try {
+    const r = await fetch('/api/guardian/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg }),
     });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const full = (data.response ?? '').trim();
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    const full = (d.response ?? '').trim();
     const sentences = full.match(/[^.!?]+[.!?]+/g) ?? [full];
-    return sentences.slice(0, 2).join(' ').trim() || full;
+    return sentences.slice(0, 3).join(' ').trim() || full;
   } catch {
-    const f = [
-      "That sounds like a lot… I'm here with you.",
+    const fallbacks = [
+      "That sounds like a lot. I'm here with you.",
       "You can say it here. I won't hold onto it.",
-      "Go ahead. It's safe to let it out.",
+      "Go ahead. It's safe.",
       "I hear you. Keep going if you need to.",
       "That took something to say. I'm still here.",
     ];
-    return f[Math.floor(Math.random() * f.length)];
+    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
   }
 }
 
-// ─── Wall API ─────────────────────────────────────────────────────────────────
-async function fetchWall(limit = 40): Promise<WallEntry[]> {
-  try {
-    const r = await fetch(`/api/wall?limit=${limit}&sortBy=recent`);
-    return r.ok ? (await r.json()).entries ?? [] : [];
-  } catch { return []; }
-}
-async function postWall(text: string) {
-  try {
-    const r = await fetch('/api/wall', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confession: text, isAnonymous: true }) });
-    return r.json();
-  } catch { return { success: false }; }
-}
-async function voteWall(id: string) {
-  try { await fetch('/api/wall', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entryId: id }) }); } catch {}
-}
-
-// ─── Logo ─────────────────────────────────────────────────────────────────────
-function Flame({ size = 32, pulse = false }: { size?: number; pulse?: boolean }) {
+/* ============================================================
+   AGE GATE
+   ============================================================ */
+function AgeGate({ onChoose }: { onChoose: (tier: string) => void }) {
   return (
-    <div style={{ width: size, height: size, position: 'relative', flexShrink: 0, filter: 'drop-shadow(0 0 8px rgba(0,201,232,0.5)) drop-shadow(0 0 18px rgba(124,92,191,0.3))', animation: pulse ? 'breathe 3.5s ease-in-out infinite' : 'none' }}>
-      <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} priority />
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999, background: '#050510',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', padding: 24, textAlign: 'center',
+    }}>
+      <div style={{ width: 64, height: 64, position: 'relative', marginBottom: 32, filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.6))' }}>
+        <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" fill style={{ objectFit: 'contain' }} />
+      </div>
+      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: '#8B5CF6', marginBottom: 20 }}>
+        RYVYNN.LIVE
+      </p>
+      <h1 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.6rem,5vw,2.4rem)', color: '#f1f5f9', marginBottom: 16, fontWeight: 400, lineHeight: 1.2 }}>
+        Before you enter.
+      </h1>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#64748b', fontSize: 15, lineHeight: 1.9, maxWidth: 420, marginBottom: 44 }}>
+        This space holds raw, unfiltered human experience.<br />
+        Some of it is heavy. We need to know how to protect you.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+        <button onClick={() => onChoose('adult')} style={{
+          padding: '15px 24px', borderRadius: 10, border: 'none',
+          background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)',
+          color: '#fff', fontSize: 15, fontWeight: 600,
+          cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+        }}>I am 18 or older</button>
+        <button onClick={() => onChoose('teen')} style={{
+          padding: '14px 24px', borderRadius: 10,
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(139,92,246,0.3)',
+          color: '#94a3b8', fontSize: 14, cursor: 'pointer',
+          fontFamily: "'Lora',Georgia,serif",
+        }}>I am 14 to 17</button>
+        <button onClick={() => onChoose('under14')} style={{
+          padding: '10px 24px', borderRadius: 10, border: 'none',
+          background: 'none', color: '#334155', fontSize: 13,
+          cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+        }}>I am under 14</button>
+      </div>
+      <p style={{ marginTop: 28, fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>
+        Age is saved only to this device. Nothing else is stored.
+      </p>
     </div>
   );
 }
 
-// ─── Typing counter (simulated) ───────────────────────────────────────────────
-function TypingCounter() {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    setN(Math.floor(Math.random() * 18) + 12);
-    const t = setInterval(() => setN(p => Math.max(8, Math.min(47, p + Math.floor(Math.random() * 5) - 2))), 4200);
-    return () => clearInterval(t);
-  }, []);
+/* ============================================================
+   UNDERAGE REDIRECT
+   ============================================================ */
+function UnderageRedirect({ onBack }: { onBack: () => void }) {
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', background: 'rgba(0,201,232,0.06)', border: '1px solid rgba(0,201,232,0.14)', borderRadius: 20, marginBottom: 22 }}>
-      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#00C9E8', display: 'inline-block', animation: 'pulsedot 2s infinite' }} />
-      <span style={{ fontSize: 12, color: 'rgba(0,201,232,0.85)' }}>{n} people typing right now</span>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: '#050510', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 32, textAlign: 'center',
+    }}>
+      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 20 }}>YOU ARE SAFE</p>
+      <h2 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.4rem,4vw,2rem)', color: '#f1f5f9', marginBottom: 24, fontWeight: 400 }}>
+        Some help is built just for you.
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 360, width: '100%' }}>
+        {[
+          { label: 'Call or text 988', href: 'tel:988', note: 'Free. 24/7. Real people.' },
+          { label: 'Text HOME to 741741', href: 'sms:741741?body=HOME', note: 'Crisis Text Line' },
+          { label: 'Childhelp National Hotline', href: 'tel:18004224453', note: '1-800-422-4453' },
+        ].map(r => (
+          <a key={r.label} href={r.href} style={{
+            padding: '14px 20px', borderRadius: 10,
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(139,92,246,0.2)',
+            color: '#e2e8f0', textDecoration: 'none', fontSize: 14,
+            fontFamily: "'Lora',Georgia,serif", lineHeight: 1.5,
+          }}>
+            <div style={{ fontWeight: 600 }}>{r.label}</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{r.note}</div>
+          </a>
+        ))}
+      </div>
+      <button onClick={onBack} style={{
+        marginTop: 32, background: 'none', border: 'none',
+        color: '#334155', fontSize: 12, cursor: 'pointer',
+        fontFamily: "'Lora',Georgia,serif",
+      }}>back</button>
     </div>
   );
 }
 
-// ─── Live feed — moves every 2.8s, never pauses ───────────────────────────────
-function LiveFeed({ pool }: { pool: string[] }) {
-  const [cards, setCards] = useState<{ text: string; id: number }[]>([]);
-  const ctr = useRef(0);
+/* ============================================================
+   CRISIS TAKEOVER
+   ============================================================ */
+function CrisisTakeover({ onBack }: { onBack: () => void }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 20,
+      background: 'rgba(5,5,16,0.97)', backdropFilter: 'blur(12px)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 32, textAlign: 'center', borderRadius: 20,
+      animation: 'fadeIn 0.3s ease',
+    }}>
+      <div style={{ width: 48, height: 48, position: 'relative', marginBottom: 24 }}>
+        <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+      </div>
+      <h2 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.3rem,4vw,1.8rem)', color: '#f1f5f9', fontWeight: 400, marginBottom: 16 }}>
+        You matter. Right now.
+      </h2>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#94a3b8', fontSize: 15, lineHeight: 1.9, maxWidth: 380, marginBottom: 32 }}>
+        Real people are available right now, 24 hours a day, free, and they have heard everything.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+        <a href="tel:988" style={{
+          padding: '15px 24px', borderRadius: 10,
+          background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)',
+          color: '#fff', textDecoration: 'none', fontSize: 16,
+          fontWeight: 700, fontFamily: "'Lora',Georgia,serif",
+        }}>Call or text 988</a>
+        <a href="sms:741741?body=HOME" style={{
+          padding: '14px 24px', borderRadius: 10,
+          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,217,255,0.2)',
+          color: '#00D9FF', textDecoration: 'none', fontSize: 14,
+          fontFamily: "'Lora',Georgia,serif",
+        }}>Text HOME to 741741</a>
+      </div>
+      <button onClick={onBack} style={{
+        marginTop: 28, background: 'none', border: 'none',
+        color: '#475569', fontSize: 13, cursor: 'pointer',
+        fontFamily: "'Lora',Georgia,serif", textDecoration: 'underline',
+      }}>
+        I am okay — let me keep writing
+      </button>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (!pool.length) return;
-    setCards(pool.slice(0, 5).map((text, i) => ({ text, id: i })));
-    ctr.current = 5;
-    const t = setInterval(() => {
-      const text = pool[Math.floor(Math.random() * pool.length)];
-      const id = ++ctr.current;
-      setCards(prev => [{ text, id }, ...prev.slice(0, 5)]);
-    }, 2800);
-    return () => clearInterval(t);
-  }, [pool]);
+/* ============================================================
+   WRITING MODAL
+   ============================================================ */
+const CATEGORIES = ['Addiction','Anxiety','Family','Grief','Loneliness','Recovery','Survival','Trauma','Hope','Other'];
+type WriteStage = 'write' | 'confirm' | 'private-fade' | 'private-done' | 'published';
+
+function WritingMoment({
+  onClose, presence, ageTier, allStories, onPublished
+}: {
+  onClose: () => void;
+  presence: number;
+  ageTier: string;
+  allStories: Story[];
+  onPublished: (s: Story) => void;
+}) {
+  const [text, setText] = useState(() => safeGet('ryvynn_draft_v1') || '');
+  const [stage, setStage] = useState<WriteStage>('write');
+  const [category, setCategory] = useState('Other');
+  const [feed, setFeed] = useState<'heard'|'through'>('heard');
+  const [crisisLevel, setCrisisLevel] = useState<'none'|'distress'|'explicit'>('none');
+  const [piiWarning, setPiiWarning] = useState(false);
+  const [related, setRelated] = useState<Story[]>([]);
+  const [publishing, setPublishing] = useState(false);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+
+  const timeMsg = useMemo(() => getTimeMsg(), []);
+
+  useEffect(() => { setTimeout(() => textRef.current?.focus(), 100); }, []);
+  useEffect(() => { safeSet('ryvynn_draft_v1', text); }, [text]);
+
+  const handleTextChange = (val: string) => {
+    setText(val);
+    setCrisisLevel(detectCrisisLevel(val));
+    if (piiWarning && !detectPII(val)) setPiiWarning(false);
+  };
+
+  const handlePrivate = () => {
+    safeSet('ryvynn_draft_v1', '');
+    setStage('private-fade');
+    setTimeout(() => setStage('private-done'), 2200);
+  };
+
+  const handlePublish = () => {
+    if (detectPII(text)) { setPiiWarning(true); return; }
+    setStage('confirm');
+  };
+
+  const confirmPublish = async () => {
+    if (publishing) return;
+    setPublishing(true);
+    safeSet('ryvynn_draft_v1', '');
+    const newStory: Story = {
+      id: 'new-' + Date.now(), label: 'Anonymous',
+      category, text, felt: 0, replies: [], feed, tier: ageTier === 'adult' ? 'raw' : 'safe',
+    };
+    await postWallAPI(text, category, feed);
+    setRelated(getRelated(text, allStories, 3));
+    onPublished(newStory);
+    setStage('published');
+    setPublishing(false);
+  };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 36, zIndex: 2, background: 'linear-gradient(to bottom,#07080f,transparent)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, zIndex: 2, background: 'linear-gradient(to top,#07080f,transparent)', pointerEvents: 'none' }} />
-      <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '16px', maxHeight: 400, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 13, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00C9E8', display: 'inline-block', animation: 'pulsedot 2s infinite' }} />
-          <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.08em' }}>PEOPLE ARE SAYING THIS RIGHT NOW</span>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 500,
+      background: 'rgba(5,5,16,0.96)', backdropFilter: 'blur(20px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 16, animation: 'fadeIn 0.2s ease',
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        width: '100%', maxWidth: 580,
+        maxHeight: '92vh', overflowY: 'auto',
+        background: '#080816',
+        border: '1px solid rgba(139,92,246,0.2)',
+        borderRadius: 20, padding: 32, position: 'relative',
+        boxShadow: '0 0 120px rgba(139,92,246,0.08)',
+      }}>
+        {/* Crisis takeover */}
+        {crisisLevel === 'explicit' && stage === 'write' && (
+          <CrisisTakeover onBack={() => setCrisisLevel('distress')} />
+        )}
+
+        {/* Header */}
+        {stage === 'write' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <div>
+                <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 4 }}>RYVYNN — PRIVATE SPACE</p>
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#475569' }}>{timeMsg}</p>
+              </div>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#334155', fontSize: 24, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+
+            {/* Presence */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, padding: '8px 14px', background: 'rgba(139,92,246,0.05)', borderRadius: 20, width: 'fit-content' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{presence} here with you</span>
+            </div>
+
+            {/* Distress nudge */}
+            {crisisLevel === 'distress' && (
+              <div style={{ padding: '12px 16px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10, marginBottom: 20 }}>
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.7, margin: 0 }}>
+                  If you are in a difficult moment right now —{' '}
+                  <a href="tel:988" style={{ color: '#00D9FF', textDecoration: 'none', fontWeight: 600 }}>988</a> or{' '}
+                  <a href="sms:741741?body=HOME" style={{ color: '#8B5CF6', textDecoration: 'none' }}>text HOME to 741741</a>.
+                  You can also keep writing here.
+                </p>
+              </div>
+            )}
+
+            {/* Textarea */}
+            <textarea
+              ref={textRef}
+              value={text}
+              onChange={e => handleTextChange(e.target.value)}
+              placeholder="Say what you need to say. It stays private unless you choose otherwise."
+              style={{
+                width: '100%', minHeight: 220, background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12,
+                padding: '18px 20px', color: '#e2e8f0', fontSize: 16,
+                lineHeight: 1.85, resize: 'vertical', outline: 'none',
+                fontFamily: "'Lora',Georgia,serif", marginBottom: 20,
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.target.style.borderColor = 'rgba(139,92,246,0.35)')}
+              onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.07)')}
+            />
+
+            {/* PII warning */}
+            {piiWarning && (
+              <div style={{ padding: '12px 16px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 10, marginBottom: 16 }}>
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#f87171', margin: 0, lineHeight: 1.6 }}>
+                  Your message may contain identifying details — phone number, location, or name. Remove them to protect yourself, or share anyway if you understand the risk.
+                </p>
+                <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                  <button onClick={() => setPiiWarning(false)} style={{ padding: '7px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Edit message</button>
+                  <button onClick={() => { setPiiWarning(false); setStage('confirm'); }} style={{ padding: '7px 14px', borderRadius: 8, background: 'none', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Share anyway</button>
+                </div>
+              </div>
+            )}
+
+            {/* Feed + Category */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                {(['heard','through'] as const).map(f => (
+                  <button key={f} onClick={() => setFeed(f)} style={{
+                    padding: '7px 16px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                    fontFamily: "'Lora',Georgia,serif", border: '1px solid',
+                    background: feed === f ? 'rgba(139,92,246,0.12)' : 'none',
+                    borderColor: feed === f ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)',
+                    color: feed === f ? '#a78bfa' : '#475569',
+                  }}>
+                    {f === 'heard' ? 'Need to be heard' : 'Got through something'}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {CATEGORIES.map(c => (
+                  <button key={c} onClick={() => setCategory(c)} style={{
+                    padding: '5px 12px', borderRadius: 20, fontSize: 11,
+                    cursor: 'pointer', fontFamily: "'Lora',Georgia,serif", border: '1px solid',
+                    background: category === c ? `${CAT_COLOR[c]}18` : 'none',
+                    borderColor: category === c ? `${CAT_COLOR[c]}60` : 'rgba(255,255,255,0.06)',
+                    color: category === c ? CAT_COLOR[c] : '#334155',
+                  }}>{c}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {text.trim() && (
+                <button onClick={handlePrivate} style={{
+                  flex: 1, minWidth: 140, padding: '13px 20px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+                  color: '#94a3b8', fontSize: 14, cursor: 'pointer',
+                  fontFamily: "'Lora',Georgia,serif",
+                }}>Keep private — let it go</button>
+              )}
+              <button
+                onClick={handlePublish}
+                disabled={!text.trim()}
+                style={{
+                  flex: 1, minWidth: 140, padding: '13px 20px', borderRadius: 10,
+                  background: text.trim() ? 'linear-gradient(135deg,#8B5CF6,#00D9FF)' : 'rgba(255,255,255,0.04)',
+                  border: 'none', color: text.trim() ? '#fff' : '#334155',
+                  fontSize: 14, fontWeight: 600, cursor: text.trim() ? 'pointer' : 'default',
+                  fontFamily: "'Lora',Georgia,serif",
+                }}>
+                Share anonymously
+              </button>
+            </div>
+
+            <p style={{ marginTop: 14, fontSize: 11, color: '#1e293b', textAlign: 'center', fontFamily: "'Lora',Georgia,serif" }}>
+              Nothing is stored until you choose to share. No account. No identity.
+            </p>
+          </>
+        )}
+
+        {/* Confirm publish */}
+        {stage === 'confirm' && (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ width: 52, height: 52, position: 'relative', margin: '0 auto 24px' }}>
+              <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+            </div>
+            <h3 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.3rem,4vw,1.7rem)', color: '#f1f5f9', fontWeight: 400, marginBottom: 14 }}>
+              One more step.
+            </h3>
+            <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#64748b', fontSize: 14, lineHeight: 1.8, maxWidth: 380, margin: '0 auto 32px' }}>
+              This will be shared anonymously. No name. No device. Someone who needs it may find it tonight.
+            </p>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, textAlign: 'left' }}>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>"{text.slice(0, 120)}{text.length > 120 ? '...' : ''}"</p>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setStage('write')} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#64748b', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Go back</button>
+              <button onClick={confirmPublish} disabled={publishing} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif", opacity: publishing ? 0.7 : 1 }}>
+                {publishing ? 'Sharing...' : 'Share it'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Private fade */}
+        {stage === 'private-fade' && (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <p style={{
+              fontFamily: "'Lora',Georgia,serif", fontSize: 20, color: '#475569',
+              lineHeight: 1.8, fontStyle: 'italic',
+              animation: 'privateFade 2s ease forwards',
+            }}>{text.slice(0, 80)}{text.length > 80 ? '...' : ''}</p>
+          </div>
+        )}
+
+        {/* Private done */}
+        {stage === 'private-done' && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', animation: 'fadeIn 0.5s ease' }}>
+            <div style={{ width: 52, height: 52, position: 'relative', margin: '0 auto 24px' }}>
+              <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+            </div>
+            <h3 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.3rem,4vw,1.7rem)', color: '#f1f5f9', fontWeight: 400, marginBottom: 14 }}>
+              Gone. It is gone.
+            </h3>
+            <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#64748b', fontSize: 15, lineHeight: 1.8, maxWidth: 360, margin: '0 auto 32px' }}>
+              It existed. It was real. You said it. That matters, even if no one else ever sees it.
+            </p>
+            <button onClick={onClose} style={{ padding: '12px 28px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Close</button>
+          </div>
+        )}
+
+        {/* Published + related */}
+        {stage === 'published' && (
+          <div style={{ animation: 'fadeIn 0.5s ease' }}>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <div style={{ width: 52, height: 52, position: 'relative', margin: '0 auto 20px' }}>
+                <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+              </div>
+              <h3 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.3rem,4vw,1.7rem)', color: '#f1f5f9', fontWeight: 400, marginBottom: 12 }}>
+                Someone will find that.
+              </h3>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#64748b', fontSize: 14, lineHeight: 1.8 }}>
+                It is on The Wall now. You are not the only one who has felt this.
+              </p>
+            </div>
+            {related.length > 0 && (
+              <div>
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#475569', marginBottom: 16, textAlign: 'center' }}>OTHERS WHO HAVE BEEN HERE</p>
+                {related.map(s => (
+                  <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 18px', marginBottom: 10 }}>
+                    <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>"{s.text}"</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
+                      <span style={{ fontSize: 11, color: CAT_COLOR[s.category] || '#8B5CF6', fontFamily: "'Lora',Georgia,serif" }}>{s.category}</span>
+                      <span style={{ fontSize: 11, color: '#1e293b' }}>·</span>
+                      <span style={{ fontSize: 11, color: '#334155', fontFamily: "'Lora',Georgia,serif" }}>{s.felt.toLocaleString()} felt this</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <button onClick={onClose} style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Back to Ryvynn</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkCount: number; onWrite: () => void }) {
+  return (
+    <nav style={{
+      position: 'sticky', top: 0, zIndex: 100,
+      padding: '14px 24px', display: 'flex',
+      alignItems: 'center', justifyContent: 'space-between',
+      background: 'rgba(5,5,16,0.85)', backdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 36, height: 36, position: 'relative', filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.5))' }}>
+          <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" fill style={{ objectFit: 'contain' }} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {cards.map((c, i) => (
-            <div key={c.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,201,232,0.07)', borderRadius: 10, padding: '10px 13px', animation: i === 0 ? 'newcard .45s ease forwards' : 'none', opacity: Math.max(0.35, 1 - i * 0.13) }}>
-              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(216,224,238,0.78)', fontStyle: 'italic', fontFamily: "'Lora',Georgia,serif" }}>"{c.text}"</p>
+        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 15, letterSpacing: '0.12em', color: '#e2e8f0' }}>RYVYNN</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {presence > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, display: 'none' as any }} className="presence-desktop">
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: 12, color: '#475569', fontFamily: "'Lora',Georgia,serif" }}>{presence}</span>
+          </div>
+        )}
+        {bookmarkCount > 0 && (
+          <span style={{ fontSize: 13, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>☆ {bookmarkCount}</span>
+        )}
+        <Link href="/crisis" style={{ fontSize: 12, color: '#475569', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Crisis</Link>
+        <Link href="/sign-up" style={{ fontSize: 12, color: '#64748b', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Account</Link>
+        <button onClick={onWrite} style={{
+          padding: '8px 20px', borderRadius: 20,
+          background: 'linear-gradient(135deg,rgba(139,92,246,0.2),rgba(0,217,255,0.15))',
+          border: '1px solid rgba(139,92,246,0.35)',
+          color: '#a78bfa', fontSize: 13, fontWeight: 600,
+          cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+          transition: 'all 0.2s',
+        }}>Say it</button>
+      </div>
+    </nav>
+  );
+}
+
+/* ============================================================
+   STORY CARD
+   ============================================================ */
+function StoryCard({
+  story, bookmarked, onBookmark, feltInSession
+}: {
+  story: Story;
+  bookmarked: boolean;
+  onBookmark: (id: string) => void;
+  feltInSession: boolean;
+}) {
+  const [felt, setFelt] = useState(story.felt);
+  const [hasFelt, setHasFelt] = useState(feltInSession);
+  const [replyText, setReplyText] = useState('');
+  const [replies, setReplies] = useState(story.replies);
+  const [showReply, setShowReply] = useState(false);
+
+  const handleFelt = () => {
+    if (hasFelt) return;
+    setFelt(v => v + 1);
+    setHasFelt(true);
+    voteWallAPI(story.id);
+  };
+
+  const catColor = CAT_COLOR[story.category] || '#8B5CF6';
+
+  return (
+    <article style={{
+      background: 'rgba(255,255,255,0.025)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: 14, padding: '20px 22px', marginBottom: 12,
+      transition: 'border-color 0.2s, box-shadow 0.2s',
+    }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderColor = 'rgba(139,92,246,0.15)';
+        el.style.boxShadow = '0 0 30px rgba(139,92,246,0.04)';
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderColor = 'rgba(255,255,255,0.06)';
+        el.style.boxShadow = 'none';
+      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: `${catColor}14`, color: catColor, border: `1px solid ${catColor}30`, fontFamily: "'Lora',Georgia,serif" }}>{story.category}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>{story.label}</span>
+          <button onClick={() => onBookmark(story.id)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: bookmarked ? '#facc15' : '#334155' }} title={bookmarked ? 'Remove bookmark' : 'Bookmark'}>
+            {bookmarked ? '★' : '☆'}
+          </button>
+        </div>
+      </div>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, lineHeight: 1.85, color: '#c0cce0', margin: '0 0 16px', fontStyle: 'italic' }}>"{story.text}"</p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button onClick={handleFelt} style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '6px 14px', borderRadius: 20, fontSize: 12,
+          background: hasFelt ? 'rgba(0,217,255,0.06)' : 'none',
+          border: `1px solid ${hasFelt ? 'rgba(0,217,255,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          color: hasFelt ? 'rgba(0,217,255,0.9)' : '#475569',
+          cursor: hasFelt ? 'default' : 'pointer', fontFamily: "'Lora',Georgia,serif",
+          transition: 'all 0.2s',
+        }}>
+          <span>{hasFelt ? '🔥' : '🤍'}</span>
+          <span>felt this{felt > 0 ? ` · ${felt.toLocaleString()}` : ''}</span>
+        </button>
+        <button onClick={() => setShowReply(!showReply)} style={{
+          padding: '6px 14px', borderRadius: 20, fontSize: 12,
+          background: 'none', border: '1px solid rgba(255,255,255,0.07)',
+          color: '#334155', cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+        }}>
+          {replies.length > 0 ? `replies (${replies.length})` : 'reply'}
+        </button>
+      </div>
+      {showReply && (
+        <div style={{ marginTop: 16, animation: 'fadeIn 0.25s ease' }}>
+          {replies.map((r, i) => (
+            <div key={i} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, marginBottom: 8 }}>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>{r}</p>
             </div>
           ))}
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <input
+              value={replyText}
+              onChange={e => setReplyText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && replyText.trim()) {
+                  setReplies(r => [...r, replyText.trim()]);
+                  setReplyText('');
+                }
+              }}
+              placeholder="Say something back..."
+              style={{
+                flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 10, padding: '9px 14px', color: '#94a3b8', fontSize: 13,
+                outline: 'none', fontFamily: "'Lora',Georgia,serif",
+              }}
+            />
+            <button onClick={() => { if (replyText.trim()) { setReplies(r => [...r, replyText.trim()]); setReplyText(''); } }}
+              style={{ padding: '9px 16px', borderRadius: 10, background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)', color: '#a78bfa', fontSize: 13, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>
+              Send
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </article>
   );
 }
 
-// ─── Wall card ────────────────────────────────────────────────────────────────
-function WallCard({ entry, onVote }: { entry: WallEntry; onVote: (id: string) => void }) {
-  const [reflected, setReflected] = useState(false);
-  const [reflText, setReflText]   = useState('');
-  const [reflecting, setRefl]     = useState(false);
-  const [felt, setFelt]           = useState(false);
-  const [votes, setVotes]         = useState(entry.votes);
+/* ============================================================
+   WALL SECTION
+   ============================================================ */
+function Wall({ stories, ageTier, bookmarks, onBookmark }: {
+  stories: Story[];
+  ageTier: string;
+  bookmarks: Set<string>;
+  onBookmark: (id: string) => void;
+}) {
+  const [feed, setFeed] = useState<'heard'|'through'>('heard');
+  const [catFilter, setCatFilter] = useState('All');
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [feltSessions] = useState<Set<string>>(new Set());
 
-  const text = entry.transformation || entry.confession;
+  const filtered = stories.filter(s => {
+    if (ageTier !== 'adult' && s.tier === 'raw') return false;
+    if (showBookmarksOnly && !bookmarks.has(s.id)) return false;
+    if (s.feed !== feed) return false;
+    if (catFilter !== 'All' && s.category !== catFilter) return false;
+    return true;
+  });
+
+  const activeCats = ['All', ...Array.from(new Set(stories.filter(s => s.feed === feed).map(s => s.category)))];
 
   return (
-    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '15px 17px', marginBottom: 7, transition: 'border-color .2s' }}
-      onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,201,232,0.15)')}
-      onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)')}>
-      <p style={{ margin: '0 0 11px 0', fontSize: 14, lineHeight: 1.75, color: 'rgba(216,224,238,0.84)', fontFamily: "'Lora',Georgia,serif" }}>{text}</p>
-      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button onClick={() => { if (felt) return; setFelt(true); setVotes(v => v + 1); onVote(entry.id); }} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: `1px solid ${felt ? 'rgba(0,201,232,0.32)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 20, padding: '4px 10px', color: felt ? 'rgba(0,201,232,0.9)' : 'rgba(255,255,255,0.28)', fontSize: 11.5, cursor: felt ? 'default' : 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}>
-          <span>{felt ? '🔥' : '🤍'}</span><span>felt this{votes > 0 ? ` · ${votes}` : ''}</span>
-        </button>
-        {!reflected && !reflecting && (
-          <button onClick={async () => { setRefl(true); const r = await guardian(`Reflect warmly in 1-2 sentences, no advice, no questions: "${entry.confession}"`); setReflText(r); setReflected(true); setRefl(false); }}
-            style={{ background: 'none', border: '1px solid rgba(124,92,191,0.2)', borderRadius: 20, padding: '4px 10px', color: 'rgba(124,92,191,0.65)', fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(124,92,191,0.5)'; (e.currentTarget as HTMLElement).style.color = 'rgba(124,92,191,0.95)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(124,92,191,0.2)'; (e.currentTarget as HTMLElement).style.color = 'rgba(124,92,191,0.65)'; }}>
-            Let RYVYNN reflect this
+    <section id="wall" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+        <div style={{ height: 1, flex: 1, background: 'rgba(139,92,246,0.12)' }} />
+        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', color: '#8B5CF6' }}>THE WALL</span>
+        <div style={{ height: 1, flex: 1, background: 'rgba(139,92,246,0.12)' }} />
+      </div>
+
+      {/* Feed tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {(['heard','through'] as const).map(f => {
+          const count = stories.filter(s => s.feed === f).length;
+          return (
+            <button key={f} onClick={() => { setFeed(f); setCatFilter('All'); }}
+              style={{
+                padding: '8px 18px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
+                fontFamily: "'Lora',Georgia,serif", border: '1px solid', transition: 'all 0.2s',
+                background: feed === f ? 'rgba(139,92,246,0.1)' : 'none',
+                borderColor: feed === f ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.07)',
+                color: feed === f ? '#a78bfa' : '#475569',
+              }}>
+              {f === 'heard' ? 'Need to be heard' : 'Got through something'}
+              <span style={{ marginLeft: 7, fontSize: 11, opacity: 0.6 }}>{count}</span>
+            </button>
+          );
+        })}
+        {bookmarks.size > 0 && (
+          <button onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+            style={{
+              padding: '8px 16px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
+              fontFamily: "'Lora',Georgia,serif", border: '1px solid',
+              background: showBookmarksOnly ? 'rgba(250,204,21,0.08)' : 'none',
+              borderColor: showBookmarksOnly ? 'rgba(250,204,21,0.4)' : 'rgba(255,255,255,0.07)',
+              color: showBookmarksOnly ? '#facc15' : '#475569',
+            }}>
+            ★ Saved ({bookmarks.size})
           </button>
         )}
-        {reflecting && <span style={{ fontSize: 11.5, color: 'rgba(0,201,232,0.45)', fontStyle: 'italic' }}>Ryvynn is here…</span>}
       </div>
-      {reflected && <div style={{ marginTop: 11, padding: '10px 12px', background: 'rgba(0,201,232,0.05)', border: '1px solid rgba(0,201,232,0.1)', borderRadius: 9, animation: 'fadein .5s ease' }}><p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: 'rgba(0,201,232,0.82)', fontStyle: 'italic', fontFamily: "'Lora',Georgia,serif" }}>{reflText}</p></div>}
-    </div>
+
+      {/* Category chips */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 24 }}>
+        {activeCats.map(c => (
+          <button key={c} onClick={() => setCatFilter(c)} style={{
+            padding: '4px 12px', borderRadius: 20, fontSize: 11, cursor: 'pointer',
+            fontFamily: "'Lora',Georgia,serif", border: '1px solid', transition: 'all 0.2s',
+            background: catFilter === c ? `${CAT_COLOR[c] || '#8B5CF6'}14` : 'none',
+            borderColor: catFilter === c ? `${CAT_COLOR[c] || '#8B5CF6'}50` : 'rgba(255,255,255,0.06)',
+            color: catFilter === c ? (CAT_COLOR[c] || '#8B5CF6') : '#334155',
+          }}>{c}</button>
+        ))}
+      </div>
+
+      {/* Cards */}
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: '#334155', fontFamily: "'Lora',Georgia,serif", fontSize: 14, fontStyle: 'italic' }}>
+          {showBookmarksOnly ? 'No bookmarks in this feed yet.' : 'Nothing here yet. Be the first.'}
+        </div>
+      ) : (
+        filtered.map(s => (
+          <StoryCard key={s.id} story={s} bookmarked={bookmarks.has(s.id)} onBookmark={onBookmark} feltInSession={feltSessions.has(s.id)} />
+        ))
+      )}
+    </section>
   );
 }
 
-// ─── Chat modal ───────────────────────────────────────────────────────────────
-function ChatModal({ onShare, onClose }: { onShare: (t: string) => Promise<void>; onClose: () => void }) {
-  const [msgs, setMsgs]               = useState<ChatMessage[]>([]);
-  const [input, setInput]             = useState('');
-  const [typing, setTyping]           = useState(false);
-  const [showLoop, setShowLoop]       = useState(false);
-  const [lastMsg, setLastMsg]         = useState('');
-  const [sharing, setSharing]         = useState(false);
-  const [shared, setShared]           = useState(false);
+/* ============================================================
+   GUARDIAN SECTION
+   ============================================================ */
+function GuardianSection({ onOpen }: { onOpen: () => void }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const textRef   = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { setTimeout(() => textRef.current?.focus(), 80); }, []);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
 
   const send = useCallback(async () => {
     if (!input.trim() || typing) return;
     const msg = input.trim();
-    setLastMsg(msg); setInput(''); setShowLoop(false);
-    setMsgs(prev => [...prev, { role: 'user', text: msg }]);
+    setInput('');
+    setMsgs(p => [...p, { role: 'user', text: msg }]);
     setTyping(true);
-    const reply = await guardian(msg);
-    setMsgs(prev => [...prev, { role: 'ai', text: reply }]);
-    setTyping(false); setShowLoop(true);
+    const reply = await callGuardian(msg);
+    setMsgs(p => [...p, { role: 'ai', text: reply }]);
+    setTyping(false);
   }, [input, typing]);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(18px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'fadein .2s ease' }}>
-      <div style={{ width: '100%', maxWidth: 520, height: '86vh', maxHeight: 640, background: '#070810', border: '1px solid rgba(0,201,232,0.18)', borderRadius: 20, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 0 120px rgba(0,201,232,0.06)' }}>
-        {/* Header */}
-        <div style={{ padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Flame size={34} pulse />
-            <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#d8e0ee' }}>Guardian</p>
-              <p style={{ margin: 0, fontSize: 11, color: 'rgba(0,201,232,0.6)' }}>Anonymous · Nothing saved</p>
+    <section id="guardian" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
+        <div style={{ height: 1, flex: 1, background: 'rgba(0,217,255,0.08)' }} />
+        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', color: '#00D9FF' }}>GUARDIAN</span>
+        <div style={{ height: 1, flex: 1, background: 'rgba(0,217,255,0.08)' }} />
+      </div>
+
+      <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,217,255,0.1)', borderRadius: 18, overflow: 'hidden' }}>
+        <div style={{ padding: '24px 28px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 44, height: 44, position: 'relative', filter: 'drop-shadow(0 0 14px rgba(0,217,255,0.5))', flexShrink: 0 }}>
+            <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+          </div>
+          <div>
+            <p style={{ fontFamily: "'Cinzel',serif", fontSize: 14, color: '#e2e8f0', marginBottom: 4 }}>Guardian — 5 agents, one voice</p>
+            <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569' }}>Trauma-informed · Crisis-trained · Available now</p>
+          </div>
+        </div>
+
+        {!chatOpen ? (
+          <div style={{ padding: '28px', textAlign: 'center' }}>
+            <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, color: '#64748b', lineHeight: 1.85, marginBottom: 28 }}>
+              If you want more than the Wall — if you want something that actually responds to you — Guardian is here. Five therapeutic agents listen, then one voice speaks back.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 24 }}>
+              {[
+                { icon: '🧭', name: 'Trauma Compass', desc: 'Polyvagal · Somatic' },
+                { icon: '🔍', name: 'Insight Engine', desc: 'CBT · DBT' },
+                { icon: '🪞', name: 'Soul Mirror', desc: 'Lived experience' },
+                { icon: '🛡️', name: 'Crisis Sentinel', desc: 'C-SSRS trained' },
+                { icon: '🏗️', name: 'Recovery Architect', desc: 'Strength-based' },
+              ].map(a => (
+                <div key={a.name} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, minWidth: 120, textAlign: 'center' }}>
+                  <div style={{ fontSize: 20, marginBottom: 6 }}>{a.icon}</div>
+                  <div style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 3 }}>{a.name}</div>
+                  <div style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 10, color: '#334155' }}>{a.desc}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setChatOpen(true)} style={{
+              padding: '13px 32px', borderRadius: 10,
+              background: 'linear-gradient(135deg,rgba(0,217,255,0.15),rgba(139,92,246,0.15))',
+              border: '1px solid rgba(0,217,255,0.3)',
+              color: '#00D9FF', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+            }}>
+              Talk to Guardian now
+            </button>
+            <p style={{ marginTop: 14, fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>Private · Anonymous · Nothing saved</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: 420 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {msgs.length === 0 && (
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#334155', textAlign: 'center', marginTop: 40, lineHeight: 1.8, fontStyle: 'italic' }}>
+                  What is on your mind right now?
+                </p>
+              )}
+              {msgs.map((m, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', animation: 'fadeIn 0.3s ease' }}>
+                  <div style={{
+                    maxWidth: '82%', padding: '11px 16px', borderRadius: m.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                    background: m.role === 'user' ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: m.role === 'user' ? '1px solid rgba(139,92,246,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                    fontSize: 14, lineHeight: 1.75,
+                    color: m.role === 'user' ? '#c4b5fd' : '#94a3b8',
+                    fontFamily: "'Lora',Georgia,serif",
+                    fontStyle: m.role === 'ai' ? 'italic' : 'normal',
+                  }}>{m.text}</div>
+                </div>
+              ))}
+              {typing && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', animation: 'fadeIn 0.3s ease' }}>
+                  <div style={{ fontSize: 12, color: '#334155', fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>Guardian is here…</div>
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    {[0,1,2].map(i => (
+                      <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: '#8B5CF6', animation: `pulse 1.2s ${i*0.2}s infinite` }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '14px 20px', display: 'flex', gap: 8 }}>
+              <input value={input} onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+                placeholder="Say anything..."
+                style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 14px', color: '#94a3b8', fontSize: 14, outline: 'none', fontFamily: "'Lora',Georgia,serif" }} />
+              <button onClick={send} disabled={!input.trim() || typing} style={{ padding: '10px 18px', borderRadius: 10, background: input.trim() && !typing ? 'linear-gradient(135deg,#8B5CF6,#00D9FF)' : 'rgba(255,255,255,0.04)', border: 'none', color: input.trim() && !typing ? '#fff' : '#334155', fontSize: 18, cursor: input.trim() && !typing ? 'pointer' : 'default', transition: 'all 0.2s' }}>↑</button>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: 24, lineHeight: 1, padding: 4, fontFamily: 'inherit' }}>×</button>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {msgs.length === 0 && (
-            <div style={{ margin: 'auto', textAlign: 'center', padding: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Flame size={48} pulse /></div>
-              <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14, lineHeight: 1.8, fontStyle: 'italic', fontFamily: "'Lora',Georgia,serif" }}>
-                You don't have to explain yourself.<br />Just say what's there.
-              </p>
-            </div>
-          )}
-
-          {msgs.map((m, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 7, animation: 'fadein .35s ease' }}>
-              {m.role === 'ai' && <div style={{ marginTop: 2 }}><Flame size={18} /></div>}
-              <div style={{ maxWidth: '80%', padding: '10px 13px', borderRadius: m.role === 'user' ? '13px 13px 4px 13px' : '13px 13px 13px 4px', background: m.role === 'user' ? 'rgba(0,201,232,0.1)' : 'rgba(255,255,255,0.05)', border: m.role === 'user' ? '1px solid rgba(0,201,232,0.18)' : '1px solid rgba(255,255,255,0.07)', fontSize: 14, lineHeight: 1.65, color: 'rgba(216,224,238,0.88)', fontFamily: m.role === 'ai' ? "'Lora',Georgia,serif" : 'inherit' }}>
-                {m.text}
-              </div>
-            </div>
-          ))}
-
-          {typing && (
-            <div style={{ display: 'flex', gap: 7, alignItems: 'center', animation: 'fadein .3s ease' }}>
-              <Flame size={18} />
-              <div style={{ padding: '9px 14px', borderRadius: '13px 13px 13px 4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', fontSize: 13, color: 'rgba(0,201,232,0.5)', fontStyle: 'italic' }}>Ryvynn is here…</div>
-            </div>
-          )}
-
-          {/* ── GROWTH LOOP ───────────────────────────────────────────── */}
-          {showLoop && !typing && (
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 13, padding: '14px 15px', animation: 'fadein .6s ease' }}>
-              {shared ? (
-                <p style={{ margin: 0, fontSize: 13, textAlign: 'center', color: 'rgba(0,201,232,0.8)', fontStyle: 'italic', fontFamily: "'Lora',Georgia,serif" }}>Someone will read that and feel less alone. 🔥</p>
-              ) : (
-                <>
-                  <p style={{ margin: '0 0 11px 0', fontSize: 13.5, lineHeight: 1.6, color: 'rgba(216,224,238,0.6)' }}>
-                    Before you go — want to leave one line for someone else?
-                  </p>
-                  <div style={{ display: 'flex', gap: 7 }}>
-                    <button onClick={async () => { setSharing(true); await onShare(lastMsg); setShared(true); setSharing(false); }} disabled={sharing}
-                      style={{ flex: 1, padding: '8px 12px', borderRadius: 20, border: '1px solid rgba(0,201,232,0.28)', background: 'rgba(0,201,232,0.08)', color: 'rgba(0,201,232,0.9)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', opacity: sharing ? 0.6 : 1 }}>
-                      {sharing ? 'Sharing…' : 'Share anonymously'}
-                    </button>
-                    <button onClick={() => setShowLoop(false)}
-                      style={{ flex: 1, padding: '8px 12px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.32)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Keep private
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {/* Input */}
-        <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 7, alignItems: 'flex-end' }}>
-          <textarea ref={textRef} value={input} onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Say anything. You're safe here." rows={2}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 11, padding: '9px 12px', color: '#d8e0ee', fontSize: 14, resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5, transition: 'border-color .2s' }}
-            onFocus={e => ((e.target as HTMLElement).style.borderColor = 'rgba(0,201,232,0.28)')}
-            onBlur={e => ((e.target as HTMLElement).style.borderColor = 'rgba(255,255,255,0.09)')} />
-          <button onClick={send} disabled={!input.trim() || typing}
-            style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: input.trim() && !typing ? 'linear-gradient(135deg,rgba(0,201,232,0.22),rgba(124,92,191,0.22))' : 'rgba(255,255,255,0.04)', border: `1px solid ${input.trim() && !typing ? 'rgba(0,201,232,0.35)' : 'rgba(255,255,255,0.07)'}`, color: input.trim() && !typing ? 'rgba(0,201,232,0.9)' : 'rgba(255,255,255,0.2)', fontSize: 17, cursor: input.trim() && !typing ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>↑</button>
-        </div>
+        )}
       </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   MISSION
+   ============================================================ */
+function Mission() {
+  return (
+    <section id="mission" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px', textAlign: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
+        <div style={{ height: 1, flex: 1, background: 'rgba(139,92,246,0.08)' }} />
+        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', color: '#8B5CF6' }}>THE MISSION</span>
+        <div style={{ height: 1, flex: 1, background: 'rgba(139,92,246,0.08)' }} />
+      </div>
+      <h2 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.8rem,4vw,2.8rem)', color: '#f1f5f9', margin: '0 0 48px', fontWeight: 400 }}>A reason to exist.</h2>
+      <div style={{ textAlign: 'left', fontFamily: "'Lora',Georgia,serif", fontSize: 'clamp(1rem,2.5vw,1.1rem)', color: '#64748b', lineHeight: 1.95 }}>
+        <p>Ryvynn exists for the person who has nowhere else to say it.</p>
+        <p style={{ marginTop: 28 }}>For the addict trying one more day.<br />For the kid who feels invisible.<br />For the parent barely holding it together.<br />For the person grieving, ashamed, angry, numb, or tired of pretending.</p>
+        <p style={{ marginTop: 28 }}>This is not therapy.<br />This is not emergency care.</p>
+        <p style={{ marginTop: 28, color: '#e2e8f0', fontWeight: 600 }}>This is a place to say the thing before it eats you alive.</p>
+      </div>
+      <div style={{ borderTop: '1px solid rgba(139,92,246,0.1)', paddingTop: 40, marginTop: 48 }}>
+        <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#475569', fontSize: 14, lineHeight: 1.9, maxWidth: 540, margin: '0 auto' }}>
+          Built by NEXXT GEN INNOVATIONS LLC — operating as RYVYNN and AONIXX. Free at the core. Always. Crisis access is never paywalled.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   PRIVACY PROMISE
+   ============================================================ */
+function Privacy() {
+  const promises = [
+    'Private sessions disappear when you leave unless you choose to publish.',
+    'Published stories are anonymized and saved only because you chose to share them.',
+    'No personally identifying data is intentionally collected or stored.',
+    'Identity details are automatically flagged before posting — you stay protected.',
+    'No ads. No analytics. No tracking. The trust is the product.',
+  ];
+  return (
+    <section id="privacy" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
+      <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, padding: '40px 36px' }}>
+        <p style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', color: '#00D9FF', marginBottom: 16 }}>PRIVACY PROMISE</p>
+        <h2 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.5rem,3vw,2rem)', color: '#f1f5f9', margin: '0 0 32px', fontWeight: 400 }}>Private means private.</h2>
+        {promises.map((item, i) => (
+          <div key={i} style={{ display: 'flex', gap: 16, marginBottom: 18 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', flexShrink: 0, marginTop: 5 }} />
+            <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#64748b', fontSize: 14, lineHeight: 1.75, margin: 0 }}>{item}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   CRISIS STRIP — fixed bottom
+   ============================================================ */
+function CrisisStrip() {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
+      background: 'rgba(5,5,16,0.95)', backdropFilter: 'blur(20px)',
+      borderTop: '1px solid rgba(139,92,246,0.15)',
+      padding: '11px 24px', textAlign: 'center',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 16,
+    }}>
+      <span style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569' }}>In crisis right now?</span>
+      <a href="tel:988" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>Call or text 988</a>
+      <span style={{ color: '#1e293b', fontSize: 12 }}>·</span>
+      <a href="sms:741741?body=HOME" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569', textDecoration: 'none' }}>Text HOME to 741741</a>
+      <span style={{ color: '#1e293b', fontSize: 12 }}>·</span>
+      <Link href="/crisis" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>More resources</Link>
     </div>
   );
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
+/* ============================================================
+   FOOTER
+   ============================================================ */
+function Footer() {
+  return (
+    <footer style={{ padding: '60px 24px 100px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{ width: 32, height: 32, position: 'relative', margin: '0 auto 16px' }}>
+        <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+      </div>
+      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 13, color: '#e2e8f0', letterSpacing: '0.15em', marginBottom: 8 }}>RYVYNN.LIVE</p>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#334155', marginBottom: 6 }}>Free at the core.</p>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#1e293b', marginBottom: 32 }}>Anonymous support for the moments people usually face alone.</p>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
+        <Link href="/pricing" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Support the mission</Link>
+        <Link href="/sign-up" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Anonymous account</Link>
+        <Link href="/crisis" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Crisis resources</Link>
+      </div>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 10, color: '#1e293b', letterSpacing: '0.05em' }}>NEXXT GEN INNOVATIONS LLC · Operating as RYVYNN and AONIXX · Tucson, AZ</p>
+    </footer>
+  );
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
+  const timeMsg = useMemo(() => getTimeMsg(), []);
+  return (
+    <section style={{ maxWidth: 720, margin: '0 auto', padding: 'clamp(80px,12vw,140px) 24px clamp(60px,8vw,100px)', textAlign: 'center' }}>
+      {/* Dual Flame — breathing */}
+      <div style={{
+        width: 100, height: 100, position: 'relative', margin: '0 auto 36px',
+        filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.55)) drop-shadow(0 0 60px rgba(0,217,255,0.3))',
+        animation: 'breathe 4s ease-in-out infinite',
+      }}>
+        <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" fill style={{ objectFit: 'contain' }} priority />
+      </div>
+
+      {/* Presence */}
+      {presence > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
+          <span style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#475569' }}>{presence} here with you right now</span>
+        </div>
+      )}
+
+      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.22em', color: '#8B5CF6', marginBottom: 24 }}>{timeMsg.toUpperCase()}</p>
+
+      <h1 style={{
+        fontFamily: "'Cinzel',serif",
+        fontSize: 'clamp(2rem,6vw,4rem)',
+        color: '#f1f5f9', fontWeight: 400,
+        lineHeight: 1.15, marginBottom: 24,
+        letterSpacing: '-0.01em',
+      }}>
+        Say the thing<br />
+        <span style={{ color: 'rgba(241,245,249,0.35)' }}>you have not said out loud yet.</span>
+      </h1>
+
+      <p style={{
+        fontFamily: "'Lora',Georgia,serif",
+        fontSize: 'clamp(15px,2.2vw,17px)', lineHeight: 1.95,
+        color: '#475569', maxWidth: 480, margin: '0 auto 44px',
+      }}>
+        No account. No name. No record.<br />
+        A place where something — or someone — actually listens.
+      </p>
+
+      <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 52 }}>
+        <button onClick={onSay} style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '15px 32px', borderRadius: 10,
+          background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)',
+          border: 'none', color: '#fff', fontSize: 16, fontWeight: 600,
+          cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
+          boxShadow: '0 0 40px rgba(139,92,246,0.25)',
+          transition: 'all 0.25s',
+        }}>
+          <div style={{ width: 24, height: 24, position: 'relative' }}>
+            <Image src="/assets/dual-flame-logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+          </div>
+          Say it here
+        </button>
+        <a href="#wall" style={{
+          padding: '14px 28px', borderRadius: 10,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.09)',
+          color: '#64748b', fontSize: 15, textDecoration: 'none',
+          fontFamily: "'Lora',Georgia,serif", transition: 'all 0.2s',
+          display: 'inline-flex', alignItems: 'center',
+        }}>Read The Wall</a>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(16px,5vw,40px)', flexWrap: 'wrap' }}>
+        {['No account', 'Nothing stored', 'Always free', 'Crisis always reachable'].map(t => (
+          <span key={t} style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ color: '#8B5CF6', fontSize: 10 }}>✦</span>{t}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   APP ROOT
+   ============================================================ */
 export default function HomePage() {
-  useI18n();
-  const [chatOpen, setChatOpen]     = useState(false);
-  const [showFloat, setShowFloat]   = useState(false);
-  const [showOnboard, setShowOnboard] = useState(false);
-  const [wallEntries, setWallEntries] = useState<WallEntry[]>([]);
-  const [wallTab, setWallTab]       = useState<'heard'|'through'>('heard');
-  const [wallLoading, setWallLoading] = useState(true);
-  const [feedPool, setFeedPool]     = useState<string[]>(RAW_POSTS);
+  const [ageTier, setAgeTier] = useState<string | null>(null);
+  const [showAgeGate, setShowAgeGate] = useState(false);
+  const [underageBlocked, setUnderageBlocked] = useState(false);
+  const [showWriting, setShowWriting] = useState(false);
+  const [stories, setStories] = useState<Story[]>(SEED_STORIES);
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const presence = useLivePresence();
 
+  // Hydrate after mount to avoid SSR mismatch
   useEffect(() => {
-    fetchWall(50).then(entries => {
-      setWallEntries(entries);
-      if (entries.length > 0) {
-        const real = entries.map(e => e.confession || e.transformation).filter(Boolean);
-        setFeedPool([...real, ...RAW_POSTS]);
-      }
-      setWallLoading(false);
+    const stored = safeGet('ryvynn_age');
+    setAgeTier(stored || null);
+    setShowAgeGate(!stored);
+    const bms = safeGet('ryvynn_bookmarks_v1');
+    if (bms) { try { setBookmarks(new Set(JSON.parse(bms))); } catch {} }
+    // Fetch real wall data
+    fetchWallAPI().then(entries => {
+      if (entries.length > 0) setStories([...entries, ...SEED_STORIES.filter(s => !entries.find(e => e.text === s.text))]);
     });
-    const t = setTimeout(() => setShowFloat(true), 10000);
-    if (!localStorage.getItem('ryvynn-onboarded')) setShowOnboard(true);
-    return () => clearTimeout(t);
   }, []);
 
-  const handleShare = useCallback(async (text: string) => {
-    const r = await postWall(text);
-    if (r.success && !r.blocked) {
-      const n: WallEntry = { id: `n-${Date.now()}`, confession: text, transformation: text, votes: 0, created_at: '' };
-      setWallEntries(prev => [n, ...prev]);
-      setFeedPool(prev => [text, ...prev]);
-    }
-    setChatOpen(false);
-  }, []);
+  const handleAgeChoice = (tier: string) => {
+    if (tier === 'under14') { setUnderageBlocked(true); return; }
+    safeSet('ryvynn_age', tier);
+    setAgeTier(tier);
+    setShowAgeGate(false);
+  };
 
-  const THROUGH = /\b(sober|got through|made it|better|survived|finally|recovery|healed|grateful|proud|still here|didn.t|through something)\b/i;
-  const filtered = wallEntries.filter(e => wallTab === 'through' ? THROUGH.test(e.confession || e.transformation) : !THROUGH.test(e.confession || e.transformation));
+  const handleBookmark = (id: string) => {
+    setBookmarks(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      safeSet('ryvynn_bookmarks_v1', JSON.stringify([...next]));
+      return next;
+    });
+  };
 
-  const displayWall = filtered.length > 0 ? filtered : RAW_POSTS
-    .filter(t => wallTab === 'through' ? THROUGH.test(t) : !THROUGH.test(t))
-    .slice(0, 20)
-    .map((text, i): WallEntry => ({ id: `s${i}`, confession: text, transformation: text, votes: 0, created_at: '' }));
+  const handlePublished = (story: Story) => {
+    setStories(prev => [story, ...prev]);
+  };
 
   return (
-    <main style={{ minHeight: '100vh', background: '#07080f', color: '#d8e0ee', fontFamily: "'Inter',system-ui,sans-serif", overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#050510', fontFamily: "'Lora',Georgia,serif", paddingBottom: 60 }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
-        *, *::before, *::after { box-sizing: border-box; }
-        ::placeholder { color: rgba(255,255,255,0.22); }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,201,232,0.15); border-radius: 2px; }
-        @keyframes fadein  { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        @keyframes newcard { from { opacity:0; transform:translateY(-10px) scale(.98); } to { opacity:1; transform:none; } }
-        @keyframes breathe { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
-        @keyframes gradshift { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
-        @keyframes pulsedot { 0%,100% { box-shadow:0 0 0 0 rgba(0,201,232,0.4); } 60% { box-shadow:0 0 0 9px rgba(0,201,232,0); } }
+        ::-webkit-scrollbar-track { background: #050510; }
+        ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.25); border-radius: 2px; }
+        html { scroll-behavior: smooth; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 30px rgba(139,92,246,0.55)) drop-shadow(0 0 60px rgba(0,217,255,0.3)); } 50% { transform: scale(1.06); filter: drop-shadow(0 0 50px rgba(139,92,246,0.8)) drop-shadow(0 0 90px rgba(0,217,255,0.5)); } }
+        @keyframes privateFade { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(8px); } }
       `}</style>
 
-      {chatOpen && <ChatModal onShare={handleShare} onClose={() => setChatOpen(false)} />}
+      {underageBlocked && <UnderageRedirect onBack={() => setUnderageBlocked(false)} />}
+      {showAgeGate && !underageBlocked && <AgeGate onChoose={handleAgeChoice} />}
 
-      {/* ONBOARDING */}
-      {showOnboard && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 900, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(14px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, animation: 'fadein .3s ease' }}>
-          <div style={{ width: '100%', maxWidth: 370, background: '#0a0c14', border: '1px solid rgba(0,201,232,0.16)', borderRadius: 20, padding: '32px 24px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Flame size={66} pulse /></div>
-            <h2 style={{ fontSize: 20, fontWeight: 400, marginBottom: 7, fontFamily: "'Lora',Georgia,serif" }}>What brings you here?</h2>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', lineHeight: 1.65, marginBottom: 22 }}>No wrong answer. Nothing saved.</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { label: 'Get it out', sub: 'Talk to Guardian. Private. Anonymous. Nothing saved.', border: 'rgba(0,201,232,.26)', bg: 'rgba(0,201,232,.07)', color: '#00C9E8', fn: () => { localStorage.setItem('ryvynn-onboarded','1'); setShowOnboard(false); setChatOpen(true); } },
-                { label: 'Be heard', sub: 'Leave something on the wall. Or read what others left.', border: 'rgba(124,92,191,.24)', bg: 'rgba(124,92,191,.07)', color: '#7C5CBF', fn: () => { localStorage.setItem('ryvynn-onboarded','1'); setShowOnboard(false); document.getElementById('wall')?.scrollIntoView({behavior:'smooth'}); } },
-                { label: 'Just read', sub: "See what others are carrying. No pressure.", border: 'rgba(255,255,255,.09)', bg: 'rgba(255,255,255,.03)', color: '#d8e0ee', fn: () => { localStorage.setItem('ryvynn-onboarded','1'); setShowOnboard(false); document.getElementById('wall')?.scrollIntoView({behavior:'smooth'}); } },
-              ].map(o => (
-                <button key={o.label} onClick={o.fn} style={{ display: 'block', width: '100%', padding: '13px 17px', textAlign: 'left', background: o.bg, border: `1.5px solid ${o.border}`, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', transition: 'transform .15s' }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'none')}>
-                  <div style={{ fontSize: 14.5, fontWeight: 600, color: o.color, marginBottom: 3 }}>{o.label}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{o.sub}</div>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => { localStorage.setItem('ryvynn-onboarded','1'); setShowOnboard(false); }} style={{ marginTop: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>Skip</button>
-          </div>
-        </div>
+      {!showAgeGate && !underageBlocked && (
+        <>
+          <Nav presence={presence} bookmarkCount={bookmarks.size} onWrite={() => setShowWriting(true)} />
+          <Hero onSay={() => setShowWriting(true)} presence={presence} />
+
+          {showWriting && (
+            <WritingMoment
+              onClose={() => setShowWriting(false)}
+              presence={presence}
+              ageTier={ageTier || 'adult'}
+              allStories={stories}
+              onPublished={handlePublished}
+            />
+          )}
+
+          <Wall stories={stories} ageTier={ageTier || 'adult'} bookmarks={bookmarks} onBookmark={handleBookmark} />
+          <GuardianSection onOpen={() => {}} />
+          <Mission />
+          <Privacy />
+          <Footer />
+          <CrisisStrip />
+        </>
       )}
-
-      {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '10px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(7,8,15,0.9)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Flame size={34} />
-          <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '0.07em', background: 'linear-gradient(135deg,#00C9E8,#7C5CBF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>RYVYNN</span>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Link href="/wall" style={{ color: 'rgba(255,255,255,0.32)', fontSize: 13, textDecoration: 'none', transition: 'color .15s' }}
-            onMouseEnter={e => ((e.target as HTMLElement).style.color = '#00C9E8')}
-            onMouseLeave={e => ((e.target as HTMLElement).style.color = 'rgba(255,255,255,0.32)')}>The Wall</Link>
-          <button onClick={() => setChatOpen(true)} style={{ padding: '8px 18px', borderRadius: 99, background: 'rgba(0,201,232,0.1)', border: '1.5px solid rgba(0,201,232,0.38)', color: '#00C9E8', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}
-            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(0,201,232,0.18)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(0,201,232,0.1)')}>Start talking</button>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 44, maxWidth: 1100, margin: '0 auto', padding: '108px 32px 68px', alignItems: 'center' }}>
-        {/* Left */}
-        <div style={{ animation: 'fadein .8s ease' }}>
-          <TypingCounter />
-          <h1 style={{ fontSize: 'clamp(30px,4vw,50px)', lineHeight: 1.17, fontWeight: 400, fontFamily: "'Lora',Georgia,serif", marginBottom: 16, letterSpacing: '-0.01em' }}>
-            Say the thing you've never said out loud.
-          </h1>
-          <p style={{ fontSize: 15.5, lineHeight: 1.75, color: 'rgba(255,255,255,0.38)', marginBottom: 10, fontWeight: 300 }}>
-            No names. No memory. No judgment.
-          </p>
-          <p style={{ fontSize: 15.5, lineHeight: 1.75, color: 'rgba(255,255,255,0.55)', marginBottom: 34, fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>
-            You don't have to carry it alone for another minute.
-          </p>
-          <button onClick={() => setChatOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '13px 28px', borderRadius: 99, background: 'rgba(0,201,232,0.1)', border: '1.5px solid rgba(0,201,232,0.42)', color: '#00C9E8', fontSize: 15, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 0 28px rgba(0,201,232,0.1)', transition: 'all .2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,201,232,0.18)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,201,232,0.1)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}>
-            <Flame size={20} />Start talking
-          </button>
-          {/* Trust — stripped */}
-          <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {['No accounts','No tracking','Nothing saved','Gone when you leave'].map(t => (
-              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.25)' }}>
-                <span style={{ color: 'rgba(0,201,232,0.4)' }}>✓</span>{t}
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Right — live feed */}
-        <div style={{ animation: 'fadein 1s ease .12s both' }}>
-          <LiveFeed pool={feedPool} />
-        </div>
-      </section>
-
-      {/* BRIDGE */}
-      <section style={{ maxWidth: 580, margin: '0 auto', padding: '10px 24px 60px', textAlign: 'center' }}>
-        <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 'clamp(18px,2.4vw,24px)', lineHeight: 1.7, fontWeight: 400, fontStyle: 'italic', color: 'rgba(216,224,238,0.4)' }}>
-          Most people never say what they're really going through.{' '}
-          <span style={{ background: 'linear-gradient(135deg,#00C9E8,#7C5CBF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            This is where they finally do.
-          </span>
-        </p>
-      </section>
-
-      {/* WALL */}
-      <section id="wall" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Flame size={50} pulse /></div>
-          <h2 style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 'clamp(22px,3vw,34px)', fontWeight: 400, marginBottom: 5 }}>The Wall</h2>
-          <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.22)', letterSpacing: '0.04em' }}>Anonymous. Unfiltered. Real.</p>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 3, background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 3, marginBottom: 18 }}>
-          {[{id:'heard',label:'Need to be heard'},{id:'through',label:'Got through something'}].map(tab => (
-            <button key={tab.id} onClick={() => setWallTab(tab.id as 'heard'|'through')}
-              style={{ flex: 1, padding: '10px 12px', borderRadius: 10, border: 'none', background: wallTab === tab.id ? 'rgba(0,201,232,0.09)' : 'none', color: wallTab === tab.id ? 'rgba(0,201,232,0.9)' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: wallTab === tab.id ? 500 : 400, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .2s', borderBottom: wallTab === tab.id ? '1px solid rgba(0,201,232,0.22)' : '1px solid transparent' }}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {wallLoading ? (
-          <div style={{ textAlign: 'center', padding: 32 }}><Flame size={26} pulse /><p style={{ color: 'rgba(255,255,255,0.18)', fontSize: 13, marginTop: 10, fontStyle: 'italic' }}>Loading voices…</p></div>
-        ) : (
-          <>
-            {displayWall.map(e => <WallCard key={e.id} entry={e} onVote={voteWall} />)}
-            {displayWall.length === 0 && <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.18)', fontSize: 13, padding: 28 }}>Be the first to leave something.</p>}
-          </>
-        )}
-
-        <div style={{ marginTop: 24, textAlign: 'center', padding: '22px 22px', background: 'rgba(124,92,191,0.05)', border: '1px solid rgba(124,92,191,0.11)', borderRadius: 13 }}>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>Your story belongs here too.</p>
-          <button onClick={() => setChatOpen(true)} style={{ padding: '9px 22px', borderRadius: 24, background: 'rgba(124,92,191,0.1)', border: '1px solid rgba(124,92,191,0.26)', color: 'rgba(124,92,191,0.82)', fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500, transition: 'all .2s' }}
-            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(124,92,191,0.18)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(124,92,191,0.1)')}>
-            Add your voice →
-          </button>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '22px 26px', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Flame size={20} /><span style={{ fontSize: 11, color: 'rgba(255,255,255,0.16)', letterSpacing: '0.05em' }}>NEXXT GEN INNOVATIONS LLC · DBA AONIXX · DBA RYVYNN</span></div>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.16)', fontFamily: "'Lora',Georgia,serif", fontStyle: 'italic' }}>From our darkest hours to our brightest days.</span>
-        </div>
-        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-          <a href="/privacy-policy" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Privacy Policy</a>
-          <a href="/terms-of-service" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Terms of Service</a>
-          <a href="/compliance" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Legal &amp; Compliance</a>
-          <a href="/research" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', textDecoration: 'none', letterSpacing: '0.04em' }}>Evidence Framework</a>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', letterSpacing: '0.04em' }}>RYVYNN is an AI companion — not a licensed therapist or healthcare provider.</span>
-        </div>
-      </footer>
-
-      {/* FLOAT */}
-      {showFloat && (
-        <div style={{ position: 'fixed', bottom: 18, right: 18, zIndex: 50, animation: 'fadein .4s ease' }}>
-          <button onClick={() => setChatOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(7,8,15,0.97)', border: '1.5px solid rgba(0,201,232,0.36)', borderRadius: 99, padding: '10px 17px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 0 28px rgba(0,201,232,0.12)', backdropFilter: 'blur(20px)', transition: 'all .2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,201,232,0.62)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(0,201,232,0.2)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,201,232,0.36)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 28px rgba(0,201,232,0.12)'; }}>
-            <Flame size={18} /><span style={{ fontSize: 13, fontWeight: 500, color: '#00C9E8' }}>Talk now — nothing saved</span>
-          </button>
-        </div>
-      )}
-    </main>
+    </div>
   );
 }
