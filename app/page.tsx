@@ -640,7 +640,7 @@ function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkC
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {presence > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, display: 'none' as any }} className="presence-desktop">
+          <div style={{ display: 'none', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
             <span style={{ fontSize: 12, color: '#475569', fontFamily: "'Lora',Georgia,serif" }}>{presence}</span>
           </div>
