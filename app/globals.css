@@ -2,101 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Theme tokens ──────────────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --rv-bg:          #050510;
+  --rv-bg-2:        #07080f;
+  --rv-surface:     rgba(255,255,255,0.025);
+  --rv-surface-2:   rgba(255,255,255,0.04);
+  --rv-border:      rgba(255,255,255,0.07);
+  --rv-text:        #d8e0ee;
+  --rv-text-soft:   #94a3b8;
+  --rv-text-dim:    #475569;
+  --rv-text-fade:   #334155;
+  --rv-text-trace:  #1e293b;
+  --rv-cyan:        #00C9E8;
+  --rv-purple:      #8B5CF6;
+  --rv-bg-grad:     linear-gradient(135deg,#000 0%,#0a0a0a 50%,#050510 100%);
+}
+
+[data-theme="light"] {
+  --rv-bg:          #f7f5f0;
+  --rv-bg-2:        #ffffff;
+  --rv-surface:     rgba(20,16,40,0.04);
+  --rv-surface-2:   rgba(20,16,40,0.06);
+  --rv-border:      rgba(20,16,40,0.10);
+  --rv-text:        #1a1a2e;
+  --rv-text-soft:   #4a4a68;
+  --rv-text-dim:    #6b6b8a;
+  --rv-text-fade:   #8a8aa8;
+  --rv-text-trace:  #b0b0c8;
+  --rv-cyan:        #0891B2;
+  --rv-purple:      #7c3aed;
+  --rv-bg-grad:     linear-gradient(135deg,#fefcf7 0%,#f7f5f0 50%,#ecebe5 100%);
+}
+
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 html {
   font-size: 17px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 body {
-  background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #050505 100%);
+  background: var(--rv-bg-grad);
+  color: var(--rv-text);
   min-height: 100vh;
   line-height: 1.6;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ─── Mobile — everything gets bigger ─────────────────────────────────────── */
+/* ─── Mobile ────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-
-  html {
-    font-size: 18px;
-  }
-
-  /* Tailwind text utilities — override fixed px values */
-  .text-xs   { font-size: 0.8rem  !important; }   /* 14.4px (was 12px) */
-  .text-sm   { font-size: 0.95rem !important; }   /* 17.1px (was 14px) */
-  .text-base { font-size: 1.05rem !important; }   /* 18.9px */
-  .text-lg   { font-size: 1.2rem  !important; }   /* 21.6px */
-  .text-xl   { font-size: 1.35rem !important; }   /* 24.3px */
-  .text-2xl  { font-size: 1.6rem  !important; }   /* 28.8px */
+  html { font-size: 18px; }
+  .text-xs   { font-size: 0.8rem  !important; }
+  .text-sm   { font-size: 0.95rem !important; }
+  .text-base { font-size: 1.05rem !important; }
+  .text-lg   { font-size: 1.2rem  !important; }
+  .text-xl   { font-size: 1.35rem !important; }
+  .text-2xl  { font-size: 1.6rem  !important; }
   .text-3xl  { font-size: 1.9rem  !important; }
   .text-4xl  { font-size: 2.2rem  !important; }
   .text-5xl  { font-size: 2.7rem  !important; }
   .text-6xl  { font-size: 3.2rem  !important; }
   .text-7xl  { font-size: 3.8rem  !important; }
 
-  /* Arbitrary text sizes used in page.tsx */
   [style*="font-size: 11px"], [style*="font-size:11px"] { font-size: 14px !important; }
   [style*="font-size: 12px"], [style*="font-size:12px"] { font-size: 15px !important; }
   [style*="font-size: 13px"], [style*="font-size:13px"] { font-size: 16px !important; }
   [style*="font-size: 14px"], [style*="font-size:14px"] { font-size: 17px !important; }
   [style*="font-size: 15px"], [style*="font-size:15px"] { font-size: 17px !important; }
 
-  /* Brighter dim text on mobile — #7a8499 → slightly lighter */
-  [style*="color: #7a8499"], [style*="color:#7a8499"] {
-    color: #9aA0b0 !important;
-  }
+  [style*="color: #7a8499"], [style*="color:#7a8499"] { color: #9aA0b0 !important; }
 
-  /* rv-tag pill — was 11px tracking-widest, barely visible */
   .rv-tag {
     font-size: 0.75rem !important;
     padding: 6px 16px !important;
   }
-
-  /* rv-section padding — less horizontal squeeze on small screens */
-  .rv-section {
-    padding: 64px 20px !important;
-  }
-
-  /* rv-card padding — give text room to breathe */
-  .rv-card {
-    padding: 24px 20px !important;
-  }
-
-  /* rv-cta buttons — bigger tap target */
-  .rv-cta {
-    font-size: 15px !important;
-    padding: 14px 24px !important;
-  }
-  .rv-cta-big {
-    padding: 18px 32px !important;
-    font-size: 17px !important;
-  }
-  .rv-cta-xl {
-    padding: 20px 36px !important;
-    font-size: 18px !important;
-  }
-
-  /* Tracking — tighten letter-spacing on small screens so text isn't spaced out */
-  .tracking-wider  { letter-spacing: 0.04em !important; }
+  .rv-section { padding: 64px 20px !important; }
+  .rv-card { padding: 24px 20px !important; }
+  .rv-cta { font-size: 15px !important; padding: 14px 24px !important; }
+  .rv-cta-big { padding: 18px 32px !important; font-size: 17px !important; }
+  .rv-cta-xl { padding: 20px 36px !important; font-size: 18px !important; }
+  .tracking-wider { letter-spacing: 0.04em !important; }
   .tracking-widest { letter-spacing: 0.08em !important; }
-
-  /* Line height — slightly more relaxed for readability */
   p, li, span { line-height: 1.7; }
-
-  /* Float button — bigger on mobile */
-  .rv-float-btn {
-    padding: 14px 20px !important;
-    font-size: 15px !important;
-  }
+  .rv-float-btn { padding: 14px 20px !important; font-size: 15px !important; }
 }
 
-/* ─── Tablet (641–1023px) — gentle bump ───────────────────────────────────── */
+/* ─── Tablet ────────────────────────────────────────────────────────────────── */
 @media (min-width: 641px) and (max-width: 1023px) {
-  html {
-    font-size: 17px;
-  }
+  html { font-size: 17px; }
   .text-xs { font-size: 0.78rem !important; }
   .text-sm { font-size: 0.92rem !important; }
   [style*="color: #7a8499"] { color: #8a90a0 !important; }
+}
+
+/* ─── Light theme overrides for hard-coded inline styles ────────────────────── */
+[data-theme="light"] body {
+  background: var(--rv-bg-grad);
+}
+[data-theme="light"] main,
+[data-theme="light"] [style*="background: #050510"],
+[data-theme="light"] [style*="background:#050510"],
+[data-theme="light"] [style*="background: #07080f"],
+[data-theme="light"] [style*="background:#07080f"] {
+  background: var(--rv-bg) !important;
+}
+[data-theme="light"] [style*="color: #d8e0ee"],
+[data-theme="light"] [style*="color:#d8e0ee"],
+[data-theme="light"] [style*="color: #eef2fa"],
+[data-theme="light"] [style*="color:#eef2fa"],
+[data-theme="light"] [style*="color: #f1f5f9"],
+[data-theme="light"] [style*="color:#f1f5f9"],
+[data-theme="light"] [style*="color: #e2e8f0"],
+[data-theme="light"] [style*="color:#e2e8f0"] {
+  color: var(--rv-text) !important;
+}
+[data-theme="light"] [style*="color: #c0cce0"],
+[data-theme="light"] [style*="color:#c0cce0"],
+[data-theme="light"] [style*="color: #94a3b8"],
+[data-theme="light"] [style*="color:#94a3b8"] {
+  color: var(--rv-text-soft) !important;
+}
+[data-theme="light"] [style*="color: #64748b"],
+[data-theme="light"] [style*="color:#64748b"],
+[data-theme="light"] [style*="color: #475569"],
+[data-theme="light"] [style*="color:#475569"] {
+  color: var(--rv-text-dim) !important;
+}
+[data-theme="light"] [style*="color: #334155"],
+[data-theme="light"] [style*="color:#334155"] {
+  color: var(--rv-text-fade) !important;
+}
+[data-theme="light"] [style*="color: #1e293b"],
+[data-theme="light"] [style*="color:#1e293b"] {
+  color: var(--rv-text-trace) !important;
+}
+[data-theme="light"] [style*="rgba(255,255,255,0.02)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.025)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.03)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.04)"] {
+  background-color: rgba(20,16,40,0.04) !important;
+}
+[data-theme="light"] [style*="rgba(255,255,255,0.06)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.07)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.08)"],
+[data-theme="light"] [style*="rgba(255,255,255,0.09)"] {
+  border-color: rgba(20,16,40,0.10) !important;
+}
+[data-theme="light"] nav[style*="rgba(5,5,16,0.85)"] {
+  background: rgba(247,245,240,0.85) !important;
+  border-bottom-color: rgba(20,16,40,0.08) !important;
+}
+
+/* ─── Smooth theme transitions ──────────────────────────────────────────────── */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
