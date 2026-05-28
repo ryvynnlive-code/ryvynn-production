@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 
 /* ============================================================
    RYVYNN.LIVE — The Sanctuary
@@ -653,6 +654,7 @@ function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkC
         {bookmarkCount > 0 && (
           <span style={{ fontSize: 13, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>☆ {bookmarkCount}</span>
         )}
+        <ThemeToggle size={32} />
         <Link href="/crisis" style={{ fontSize: 12, color: '#475569', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Crisis</Link>
         <Link href="/sign-up" style={{ fontSize: 12, color: '#64748b', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Account</Link>
         <button onClick={onWrite} style={{
