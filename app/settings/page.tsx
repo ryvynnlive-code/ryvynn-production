@@ -150,7 +150,7 @@ export default function SettingsPage() {
             <Row label={tp('ratedEnabled')} desc={tp('ratedWarning')}>
               <Toggle value={ratedMode} onChange={setRatedMode} />
             </Row>
-            <Row label={t('featureZeroSurveillance') || 'Dark Mode'} desc="Force dark visual theme">
+            <Row label={'Dark Mode'} desc="Force dark visual theme">
               <Toggle value={darkMode} onChange={setDarkMode} />
             </Row>
             <Row label="Deep Emotional Mode" desc="Guardian goes deeper into trauma, less surface-level">
