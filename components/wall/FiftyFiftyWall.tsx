@@ -203,7 +203,7 @@ export function WallFeed({ onShare }: WallFeedProps) {
       )}
       {!loading && !hasMore && entries.length > 0 && (
         <p style={{ textAlign: 'center', color: '#2a3040', fontSize: 12, marginTop: 32 }}>
-          {es ? 'Eso es todo por ahora.' : 'That's everything for now.'}
+          {es ? 'Eso es todo por ahora.' : "That's everything for now."}
           {onShare && (
             <button
               onClick={onShare}
