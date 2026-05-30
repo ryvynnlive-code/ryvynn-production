@@ -7,35 +7,43 @@ import Link from 'next/link';
 
 export default function PricingPage() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { language } = useI18n();
   const [loading, setLoading] = useState<string | null>(null);
+  const es = language === 'es';
 
   const TIERS = [
     {
       id: 'solo',
-      name: t('tierSolo'),
+      name: es ? 'Llama Solo' : 'Solo Flame',
       icon: '🔥',
       regular: 12.12,
       intro: 3.69,
       priceId: 'price_1TCvSUFXY1nWj7h7PAn2aUcb',
       coupon: 'WwwAy1Zm',
-      badge: t('pricingBadgeMostPopular'),
+      badge: es ? 'Más popular' : 'Most popular',
       borderClass: 'border-ryvynn-cyan',
       glowClass: 'shadow-[0_0_50px_rgba(0,217,255,0.3)]',
-      cta: t('pricingCtaIgniteFlame'),
+      cta: es ? 'Encender la llama' : 'Ignite the flame',
       primary: true,
-      features: [
-        '120 ' + t('soulTokensLabel') + '/mo',
-        t('feature2Title'),
-        t('feature3Title'),
-        t('journalTitle') || 'Dark Journal (encrypted)',
-        t('featureCrisisDetection'),
-        t('actionEternity'),
+      features: es ? [
+        '120 Tokens del Alma/mes',
+        'Compañero Guardián IA',
+        'Motor Sombra → Milagro',
+        'Diario Oscuro (encriptado)',
+        'Detección de crisis + 988',
+        'Bóveda de Eternidad Digital',
+      ] : [
+        '120 Soul Tokens/mo',
+        'AI Guardian companion',
+        'Shadow → Miracle engine',
+        'Dark Journal (encrypted)',
+        'Crisis detection + 988',
+        'Digital Eternity vault',
       ],
     },
     {
       id: 'family',
-      name: t('tierFamily'),
+      name: es ? 'Llama Familiar' : 'Family Flame',
       icon: '🔥🔥',
       regular: 36.93,
       intro: null,
@@ -44,18 +52,25 @@ export default function PricingPage() {
       badge: null,
       borderClass: 'border-ryvynn-purple',
       glowClass: 'shadow-[0_0_40px_rgba(139,92,246,0.2)]',
-      cta: t('pricingCtaJoinFamily'),
+      cta: es ? 'Unirse como familia' : 'Join as a family',
       primary: false,
-      features: [
-        '369 ' + t('soulTokensLabel') + '/mo',
-        t('tierFamilyDesc'),
-        t('hpPricingFamilyF2'),
-        t('hpPricingFamilyF3'),
+      features: es ? [
+        '369 Tokens del Alma/mes (compartidos)',
+        'Hasta 6 miembros de familia',
+        'Visibilidad familiar en crisis',
+        'Muro de Milagros compartido',
+        'Todo en Llama Solo',
+      ] : [
+        '369 Soul Tokens/mo (shared)',
+        'Up to 6 family members',
+        'Family crisis visibility',
+        'Shared Miracle Wall',
+        'Everything in Solo',
       ],
     },
     {
       id: 'therapist',
-      name: t('tierTherapist'),
+      name: es ? 'Terapeuta Pro' : 'Therapist Pro',
       icon: '💎',
       regular: 69.36,
       intro: null,
@@ -64,18 +79,27 @@ export default function PricingPage() {
       badge: null,
       borderClass: 'border-ryvynn-cyan',
       glowClass: 'shadow-[0_0_40px_rgba(0,217,255,0.2)]',
-      cta: t('pricingCtaUpgradePro'),
+      cta: es ? 'Actualizar a Pro' : 'Upgrade to Pro',
       primary: false,
-      features: [
-        '693 ' + t('soulTokensLabel') + '/mo',
-        t('tierTherapistDesc'),
-        t('featureCrisisDetection'),
+      features: es ? [
+        '693 Tokens del Alma/mes',
+        'Paneles de clientes',
+        'Acceso a protocolos de crisis',
+        'Seguimiento C-SSRS',
+        'Guardián en modo terapeuta',
+        'Todo en Llama Solo',
+      ] : [
+        '693 Soul Tokens/mo',
+        'Client dashboards',
+        'Crisis protocol access',
         'C-SSRS tracking',
+        'Therapist-mode Guardian',
+        'Everything in Solo',
       ],
     },
     {
       id: 'enterprise',
-      name: t('tierEnterprise'),
+      name: es ? 'Empresarial' : 'Enterprise',
       icon: '⚡',
       regular: 96.36,
       intro: null,
@@ -84,13 +108,22 @@ export default function PricingPage() {
       badge: null,
       borderClass: 'border-gray-600',
       glowClass: '',
-      cta: t('pricingCtaScaleTeam'),
+      cta: es ? 'Contáctanos' : 'Contact us',
       primary: false,
-      features: [
-        '963 ' + t('soulTokensLabel') + '/mo',
-        t('tierEnterpriseDesc'),
+      features: es ? [
+        '963 Tokens del Alma/mes',
+        'Miembros ilimitados',
+        'Acceso API',
+        'Opción de marca blanca',
+        'Soporte SLA',
+        'Todo en Terapeuta Pro',
+      ] : [
+        '963 Soul Tokens/mo',
+        'Unlimited team members',
         'API access',
         'White-label option',
+        'SLA support',
+        'Everything in Therapist Pro',
       ],
     },
   ];
@@ -124,31 +157,39 @@ export default function PricingPage() {
             <img
               src="/assets/dual-flame-logo.png"
               alt="RYVYNN"
-              className="w-16 h-16 mx-auto mb-4 drop-shadow-[0_0_18px_rgba(0,217,255,0.5)]"
+              className="w-12 h-12 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,217,255,0.4)]"
             />
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            RYVYNN {t('pricingBadgeFree')}.{' '}
+            {es ? 'RYVYNN es gratis.' : 'RYVYNN is free.'}{' '}
             <span className="bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
-              {t('crisisFreeSubtext')}
+              {es ? 'Siempre.' : 'Always.'}
             </span>
           </h1>
           <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-            {t('pricingHeroSubtitle')}
+            {es
+              ? 'Nadie en crisis encontrará nunca una barrera de pago aquí. Si quieres apoyar la misión y obtener más para ti — así es como.' 
+              : 'No one in crisis will ever hit a paywall here. If you want to support the mission and get more for yourself — this is how.'}
           </p>
           <div className="mt-4 text-sm text-gray-600">
-            {t('privacyNotice')}{' '}
+            {es
+              ? 'Se requiere cuenta anónima para suscribirse. Sin nombre real. Sin ID. '
+              : 'Anonymous account required to subscribe. No real name. No ID. '}
             <Link href="/sign-up" className="text-ryvynn-cyan hover:underline">
-              {t('createAccount')} →
+              {es ? 'Crea la tuya →' : 'Create yours →'}
             </Link>
           </div>
         </div>
 
         {/* Intro price callout */}
         <div className="bg-ryvynn-cyan/5 border border-ryvynn-cyan/20 rounded-2xl p-4 text-center mb-10">
-          <span className="text-ryvynn-cyan text-sm font-semibold">{t('firstMonth')} $3.69 → </span>
+          <span className="text-ryvynn-cyan text-sm font-semibold">
+            {es ? 'Primer mes $3.69 → ' : 'First month $3.69 → '}
+          </span>
           <span className="text-gray-300 text-sm">
-            {t('pricingCtaIgniteFlame')} · {t('cancelAnytime')}
+            {es
+              ? 'Aplicado automáticamente al pagar en Llama Solo. Sin código necesario.'
+              : 'Auto-applied at checkout for Solo Flame. No code needed.'}
           </span>
         </div>
 
@@ -179,13 +220,17 @@ export default function PricingPage() {
                 {tier.intro ? (
                   <div>
                     <span className="text-3xl font-bold text-white">${tier.intro}</span>
-                    <span className="text-gray-500 text-sm">/{t('firstMonth')}</span>
-                    <div className="text-gray-600 text-xs mt-0.5">{t('then')} ${tier.regular}{t('perMonth')}</div>
+                    <span className="text-gray-500 text-sm">
+                      {es ? '/primer mes' : '/first month'}
+                    </span>
+                    <div className="text-gray-600 text-xs mt-0.5">
+                      {es ? `luego $${tier.regular}/mes` : `then $${tier.regular}/mo`}
+                    </div>
                   </div>
                 ) : (
                   <div>
                     <span className="text-3xl font-bold text-white">${tier.regular}</span>
-                    <span className="text-gray-500 text-sm">{t('perMonth')}</span>
+                    <span className="text-gray-500 text-sm">{es ? '/mes' : '/mo'}</span>
                   </div>
                 )}
               </div>
@@ -211,7 +256,7 @@ export default function PricingPage() {
                   border: tier.primary ? 'none' : '1px solid rgba(255,255,255,0.1)',
                 }}
               >
-                {loading === tier.id ? t('pricingProcessing') : tier.cta}
+                {loading === tier.id ? (es ? 'Cargando...' : 'Loading...') : tier.cta}
               </button>
             </div>
           ))}
@@ -220,29 +265,37 @@ export default function PricingPage() {
         {/* Lifetime */}
         <div className="mt-8 bg-gradient-to-r from-ryvynn-cyan/5 to-ryvynn-purple/5 border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <div className="font-bold text-white text-lg">{t('tierLifetime')} — $369.36</div>
+            <div className="font-bold text-white text-lg">
+              {es ? 'De por Vida — $369.36' : 'Lifetime — $369.36'}
+            </div>
             <div className="text-gray-400 text-sm mt-1">
-              {t('tierLifetimeDesc')}
+              {es
+                ? 'Una vez. Todo. Para siempre. Para las personas que saben que esto importa.'
+                : 'One time. Everything. Forever. For the people who know this matters.'}
             </div>
           </div>
           <button
             onClick={() => handleCheckout('price_1TCvT0FXY1nWj7h7tM5K3AzL', 'lifetime')}
             className="px-8 py-3 rounded-xl font-semibold text-sm border border-white/20 text-white hover:bg-white/5 transition-all whitespace-nowrap"
           >
-            {t('pricingCtaBurnEternal')} →
+            {es ? 'Enciende la llama para siempre →' : 'Light the flame forever →'}
           </button>
         </div>
 
         {/* Bottom */}
         <div className="mt-10 text-center space-y-2">
           <p className="text-gray-600 text-xs">
-            {t('crisisFreeSubtext')} · 988 {t('crisisCtaLabel')}
+            {es
+              ? 'El apoyo en crisis siempre es gratis. El 988 siempre está disponible. Nadie queda bloqueado cuando importa.'
+              : 'Crisis support is always free. 988 is always surfaced. No one gets locked out when it matters.'}
           </p>
           <p className="text-gray-700 text-xs">
-            {t('cancelAnytime')} · {t('privacyNotice')}
+            {es
+              ? 'Cancela en cualquier momento. Sin preguntas. Impulsado por Stripe. Solo cuenta anónima — no se requiere nombre real.'
+              : 'Cancel anytime. No questions. Powered by Stripe. Anonymous account only — no real name required.'}
           </p>
           <Link href="/" className="text-gray-600 hover:text-gray-400 text-xs transition-colors inline-block mt-2">
-            ← {t('home')}
+            {es ? '← volver a RYVYNN' : '← back to RYVYNN'}
           </Link>
         </div>
       </div>
