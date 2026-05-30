@@ -1252,6 +1252,7 @@ function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
    ============================================================ */
 export default function HomePage() {
   const { t, language } = useI18n();
+  const isEs = language === 'es';
   const [ageTier, setAgeTier] = useState<string | null>(null);
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [underageBlocked, setUnderageBlocked] = useState(false);
