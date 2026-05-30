@@ -24,7 +24,7 @@ export function Navigation() {
     { href: '/crisis', label: t('crisis') },
     ...(user ? [
       { href: '/dashboard', label: tf('dashboard'), protected: true },
-      { href: '/settings', label: 'Settings' },
+      { href: '/settings', label: t('settings') },
     ] : []),
   ];
 
@@ -33,16 +33,16 @@ export function Navigation() {
       <nav className="border-b border-gray-800 py-3 px-4 md:px-6 bg-black/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
 
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity group flex-shrink-0">
-            <div className="relative w-10 h-10 md:w-12 md:h-12">
+          {/* Logo — BIGGER */}
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group flex-shrink-0">
+            <div className="relative w-14 h-14 md:w-16 md:h-16">
               <img
                 src="/assets/dual-flame-logo.png"
                 alt="RYVYNN Dual Flame"
-                className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,217,255,0.6)] group-hover:drop-shadow-[0_0_30px_rgba(139,92,246,0.8)] transition-all duration-300"
+                className="w-full h-full object-contain drop-shadow-[0_0_24px_rgba(0,217,255,0.7)] group-hover:drop-shadow-[0_0_36px_rgba(139,92,246,0.9)] transition-all duration-300"
               />
             </div>
-            <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent">
+            <span className="font-bold text-xl md:text-2xl bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent tracking-wide">
               RYVYNN
             </span>
           </Link>
@@ -77,7 +77,7 @@ export function Navigation() {
                       onClick={signOut}
                       className="text-xs text-gray-500 hover:text-white transition-colors"
                     >
-                      sign out
+                      {t('signOut')}
                     </button>
                   </div>
                 ) : (
@@ -86,7 +86,7 @@ export function Navigation() {
                       onClick={() => setShowSignIn(true)}
                       className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                      sign in
+                      {t('signIn')}
                     </button>
                     <button
                       onClick={() => setShowSignUp(true)}
@@ -135,7 +135,7 @@ export function Navigation() {
                   onClick={() => { setShowSignIn(true); setMobileOpen(false); }}
                   className="block w-full text-left px-2 py-1.5 text-sm text-gray-400 hover:text-white"
                 >
-                  sign in
+                  {t('signIn')}
                 </button>
                 <button
                   onClick={() => { setShowSignUp(true); setMobileOpen(false); }}
