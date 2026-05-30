@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface WallEntry {
   id: string;
@@ -10,238 +11,208 @@ interface WallEntry {
   created_at: string;
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, es: boolean): string {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s/60)}m ago`;
-  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
-  if (s < 604800) return `${Math.floor(s/86400)}d ago`;
-  return `${Math.floor(s/604800)}w ago`;
+  if (s < 60) return es ? 'justo ahora' : 'just now';
+  if (s < 3600) return es ? `hace ${Math.floor(s/60)}m` : `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return es ? `hace ${Math.floor(s/3600)}h` : `${Math.floor(s/3600)}h ago`;
+  if (s < 604800) return es ? `hace ${Math.floor(s/86400)}d` : `${Math.floor(s/86400)}d ago`;
+  return new Date(iso).toLocaleDateString(es ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
-function getDisplay(e: WallEntry) {
-  return e.transformation && e.transformation !== e.confession ? e.transformation : e.confession;
+interface WallFeedProps {
+  onShare?: () => void;
 }
 
-// ─── Single wall card ─────────────────────────────────────────────────────────
-function WallCard({ entry, felt, onFelt }: {
-  entry: WallEntry;
-  felt: boolean;
-  onFelt: () => void;
-}) {
-  const text = getDisplay(entry);
-  const preview = text.length > 280 ? text.slice(0, 277) + '…' : text;
-
-  return (
-    <div style={{
-      background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)',
-      borderRadius: 16, padding: '22px 24px', transition: 'border-color .2s',
-    }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,201,232,.18)')}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)')}>
-      <p style={{ fontSize: 15, lineHeight: 1.85, color: '#d8e0ee',
-        margin: '0 0 18px', whiteSpace: 'pre-wrap' }}>
-        {preview}
-      </p>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--dimmer)' }}>
-          Anonymous · {timeAgo(entry.created_at)}
-        </span>
-        <button
-          onClick={onFelt}
-          title={felt ? 'You felt this' : 'This helped me feel less alone'}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: felt ? 'rgba(0,201,232,.08)' : 'transparent',
-            border: `1px solid ${felt ? 'rgba(0,201,232,.3)' : 'rgba(255,255,255,.1)'}`,
-            borderRadius: 99, padding: '5px 14px', fontSize: 12,
-            color: felt ? '#00C9E8' : '#636e84',
-            cursor: felt ? 'default' : 'pointer',
-            fontFamily: 'inherit', transition: 'all .15s',
-          }}>
-          {felt ? '✓ ' : ''}
-          {entry.votes + (felt ? 1 : 0)} {entry.votes === 1 && !felt ? 'person' : 'people'} felt this
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Featured voices (top of wall) ───────────────────────────────────────────
-function FeaturedVoices({ onFelt, felt, setFelt }: {
-  onFelt: (id: string) => void;
-  felt: Set<string>;
-  setFelt: React.Dispatch<React.SetStateAction<Set<string>>>;
-}) {
-  const [featured, setFeatured] = useState<WallEntry[]>([]);
-
-  useEffect(() => {
-    fetch('/api/wall?featured=true&limit=3')
-      .then(r => r.json())
-      .then(d => setFeatured(d.entries ?? []))
-      .catch(() => {});
-  }, []);
-
-  if (!featured.length) return null;
-
-  return (
-    <div style={{ marginBottom: 48 }}>
-      <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#636e84',
-        textTransform: 'uppercase', marginBottom: 16 }}>
-        Featured voices this week
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {featured.map(e => (
-          <div key={e.id} style={{
-            background: 'rgba(0,201,232,.04)', border: '1px solid rgba(0,201,232,.15)',
-            borderRadius: 16, padding: '20px 22px',
-          }}>
-            <p style={{ fontSize: 15, lineHeight: 1.85, color: '#d8e0ee',
-              margin: '0 0 14px', whiteSpace: 'pre-wrap' }}>
-              {getDisplay(e).slice(0, 220)}{getDisplay(e).length > 220 ? '…' : ''}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 12, color: '#3a4352' }}>Anonymous · {timeAgo(e.created_at)}</span>
-              <button onClick={() => {
-                if (felt.has(e.id)) return;
-                setFelt(prev => new Set([...prev, e.id]));
-                onFelt(e.id);
-              }} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: felt.has(e.id) ? 'rgba(0,201,232,.1)' : 'transparent',
-                border: `1px solid ${felt.has(e.id) ? 'rgba(0,201,232,.35)' : 'rgba(255,255,255,.1)'}`,
-                borderRadius: 99, padding: '5px 14px', fontSize: 12,
-                color: felt.has(e.id) ? '#00C9E8' : '#636e84',
-                cursor: felt.has(e.id) ? 'default' : 'pointer',
-                fontFamily: 'inherit', transition: 'all .15s',
-              }}>
-                {felt.has(e.id) ? '✓ ' : ''}
-                {e.votes + (felt.has(e.id) ? 1 : 0)} felt this
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main feed ────────────────────────────────────────────────────────────────
-export function WallFeed({ onShare }: { onShare: () => void }) {
+export function WallFeed({ onShare }: WallFeedProps) {
+  const { language } = useI18n();
+  const es = language === 'es';
   const [entries, setEntries] = useState<WallEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const [offset, setOffset]   = useState(0);
-  const [sort, setSort]       = useState<'recent' | 'popular'>('recent');
-  const [felt, setFelt]       = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<'all' | 'recent' | 'popular'>('all');
+  const PER_PAGE = 10;
 
-  useEffect(() => { setOffset(0); load(0); }, [sort]);
+  useEffect(() => {
+    setEntries([]);
+    setPage(0);
+    setHasMore(true);
+    loadEntries(0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
-  const load = async (off: number) => {
+  async function loadEntries(p = page, reset = false) {
     setLoading(true);
     try {
-      const res = await fetch(`/api/wall?limit=12&offset=${off}&sortBy=${sort}`);
+      const params = new URLSearchParams({
+        limit: String(PER_PAGE),
+        offset: String(p * PER_PAGE),
+        ...(filter !== 'all' && { sort: filter }),
+      });
+      const res = await fetch(`/api/wall?${params}`);
       const data = await res.json();
-      setEntries(prev => off === 0 ? (data.entries ?? []) : [...prev, ...(data.entries ?? [])]);
-      setHasMore(data.hasMore ?? false);
-    } catch { /* silent */ }
-    setLoading(false);
+      const list: WallEntry[] = Array.isArray(data) ? data : (data.entries ?? []);
+      if (reset) {
+        setEntries(list);
+      } else {
+        setEntries(prev => [...prev, ...list]);
+      }
+      setHasMore(list.length === PER_PAGE);
+      setPage(p + 1);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const vote = async (id: string) => {
+    if (votedIds.has(id)) return;
+    setVotedIds(prev => new Set([...prev, id]));
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, votes: e.votes + 1 } : e));
+    await fetch(`/api/wall?id=${id}`, { method: 'PATCH' }).catch(() => {});
   };
 
-  const markFelt = async (id: string) => {
-    if (felt.has(id)) return;
-    setFelt(prev => new Set([...prev, id]));
-    try {
-      await fetch('/api/wall', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryId: id }),
-      });
-    } catch { /* silent */ }
+  const toggleExpanded = (id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
+
+  const CHAR_LIMIT = 240;
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
-      <FeaturedVoices onFelt={markFelt} felt={felt} setFelt={setFelt} />
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 24px 80px' }}>
 
-      {/* Sort */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {(['recent', 'popular'] as const).map(s => (
-          <button key={s} onClick={() => setSort(s)} style={{
-            background: sort === s ? 'rgba(0,201,232,.1)' : 'transparent',
-            border: `1px solid ${sort === s ? 'rgba(0,201,232,.35)' : 'rgba(255,255,255,.1)'}`,
-            borderRadius: 99, padding: '6px 16px', fontSize: 13,
-            color: sort === s ? '#00C9E8' : '#636e84',
-            cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
-          }}>
-            {s === 'recent' ? 'Most recent' : 'Most felt'}
+      {/* Filter */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
+        {(['all', 'recent', 'popular'] as const).map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              padding: '6px 16px', borderRadius: 99, fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', transition: 'all .15s',
+              background: filter === f ? 'rgba(0,201,232,.15)' : 'transparent',
+              border: filter === f ? '1.5px solid #00C9E8' : '1.5px solid rgba(255,255,255,.1)',
+              color: filter === f ? '#00C9E8' : '#636e84',
+            }}
+          >
+            {es
+              ? { all: 'Todo', recent: 'Reciente', popular: 'Popular' }[f]
+              : { all: 'All', recent: 'Recent', popular: 'Popular' }[f]}
           </button>
         ))}
       </div>
 
-      {/* Empty state */}
-      {!loading && entries.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <p style={{ color: 'var(--dim)', fontSize: 15, marginBottom: 8 }}>
-            No voices here yet.
+      {/* Entries */}
+      {entries.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#636e84' }}>
+          <p style={{ fontSize: 15, marginBottom: 8 }}>
+            {es ? 'El muro está quieto.' : 'The wall is quiet.'}
           </p>
-          <p style={{ color: 'var(--dimmer)', fontSize: 13, marginBottom: 24 }}>
-            The first one could help someone more than you think.
+          <p style={{ fontSize: 13 }}>
+            {es ? 'Sé el primero en dejar algo.' : 'Be the first to leave something.'}
           </p>
-          <button className="btn" onClick={onShare} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(0,201,232,.1)', border: '1.5px solid #00C9E8',
-            borderRadius: 99, padding: '11px 22px', color: '#00C9E8',
-            fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            Leave the first one
-          </button>
+          {onShare && (
+            <button
+              onClick={onShare}
+              style={{ marginTop: 20, padding: '10px 22px', borderRadius: 99, fontSize: 14,
+                background: 'rgba(0,201,232,.1)', border: '1.5px solid #00C9E8',
+                color: '#00C9E8', cursor: 'pointer' }}>
+              {es ? 'Deja algo' : 'Leave something'}
+            </button>
+          )}
         </div>
       )}
 
-      {/* Feed */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {entries.map(e => (
-          <WallCard
-            key={e.id}
-            entry={e}
-            felt={felt.has(e.id)}
-            onFelt={() => markFelt(e.id)}
-          />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {entries.map((entry, i) => {
+          const isExpanded = expanded.has(entry.id);
+          const hasMore2 = entry.transformation.length > CHAR_LIMIT;
+          const displayText = hasMore2 && !isExpanded
+            ? entry.transformation.slice(0, CHAR_LIMIT) + '…'
+            : entry.transformation;
+          const hasVoted = votedIds.has(entry.id);
+
+          return (
+            <article key={entry.id} style={{
+              padding: '28px 0',
+              borderBottom: i < entries.length - 1 ? '1px solid rgba(255,255,255,.06)' : 'none',
+            }}>
+              <p style={{ fontSize: 15, lineHeight: 1.75, color: '#c8d3e8', marginBottom: 12 }}>
+                {displayText}
+                {hasMore2 && (
+                  <button
+                    onClick={() => toggleExpanded(entry.id)}
+                    style={{ background: 'none', border: 'none', color: '#00C9E8',
+                      fontSize: 13, cursor: 'pointer', marginLeft: 6, padding: 0 }}>
+                    {isExpanded
+                      ? (es ? 'menos' : 'less')
+                      : (es ? 'más' : 'more')}
+                  </button>
+                )}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 12, color: '#3a4352' }}>
+                  {timeAgo(entry.created_at, es)}
+                </span>
+                <button
+                  onClick={() => vote(entry.id)}
+                  disabled={hasVoted}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    background: hasVoted ? 'rgba(0,201,232,.08)' : 'transparent',
+                    border: 'none', borderRadius: 99,
+                    padding: '4px 10px', cursor: hasVoted ? 'default' : 'pointer',
+                    color: hasVoted ? '#00C9E8' : '#636e84',
+                    fontSize: 12, transition: 'all .15s',
+                  }}
+                  title={es ? 'Este me llegó' : 'This hit me'}
+                >
+                  <span>{hasVoted ? '♥' : '♡'}</span>
+                  <span>{entry.votes}</span>
+                </button>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       {/* Load more */}
-      {hasMore && (
-        <div style={{ textAlign: 'center', marginTop: 28 }}>
-          <button onClick={() => { const n = offset + 12; setOffset(n); load(n); }}
-            disabled={loading} style={{
-              background: 'none', border: 'none', color: '#636e84',
-              fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
-              textDecoration: 'underline', textUnderlineOffset: 3,
-            }}>
-            {loading ? 'Loading…' : 'Load more'}
+      {loading && (
+        <p style={{ textAlign: 'center', color: '#3a4352', fontSize: 13, padding: '24px 0' }}>
+          {es ? 'Cargando...' : 'Loading...'}
+        </p>
+      )}
+      {!loading && hasMore && (
+        <div style={{ textAlign: 'center', marginTop: 32 }}>
+          <button
+            onClick={() => loadEntries()}
+            style={{ padding: '10px 28px', borderRadius: 99, fontSize: 14,
+              background: 'transparent', border: '1.5px solid rgba(255,255,255,.12)',
+              color: '#636e84', cursor: 'pointer' }}>
+            {es ? 'Cargar más' : 'Load more'}
           </button>
         </div>
       )}
-
-      {/* Bottom nudge — after reading 3+ entries, show write prompt */}
-      {entries.length >= 3 && (
-        <div style={{ marginTop: 56, padding: '28px 24px',
-          background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.06)',
-          borderRadius: 16, textAlign: 'center' }}>
-          <p style={{ fontSize: 14, color: '#636e84', marginBottom: 14, lineHeight: 1.7 }}>
-            You've seen others speak. Want to say something of your own?
-          </p>
-          <button onClick={onShare} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(0,201,232,.1)', border: '1.5px solid #00C9E8',
-            borderRadius: 99, padding: '11px 22px', color: '#00C9E8',
-            fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            Add something to the wall
-          </button>
-        </div>
+      {!loading && !hasMore && entries.length > 0 && (
+        <p style={{ textAlign: 'center', color: '#2a3040', fontSize: 12, marginTop: 32 }}>
+          {es ? 'Eso es todo por ahora.' : 'That's everything for now.'}
+          {onShare && (
+            <button
+              onClick={onShare}
+              style={{ background: 'none', border: 'none', color: '#636e84',
+                fontSize: 12, cursor: 'pointer', marginLeft: 8, textDecoration: 'underline' }}>
+              {es ? '¿Añadir el tuyo?' : 'Add yours?'}
+            </button>
+          )}
+        </p>
       )}
     </div>
   );
