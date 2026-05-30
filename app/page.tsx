@@ -204,6 +204,8 @@ async function callGuardian(msg: string, lang?: string, persona?: string): Promi
    AGE GATE
    ============================================================ */
 function AgeGate({ onChoose }: { onChoose: (tier: string) => void }) {
+  const { language } = useI18n();
+  const es = language === 'es';
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999, background: '#050510',
@@ -229,18 +231,18 @@ function AgeGate({ onChoose }: { onChoose: (tier: string) => void }) {
           background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)',
           color: '#fff', fontSize: 15, fontWeight: 600,
           cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
-        }}>I am 18 or older</button>
+        }}>{es ? 'Tengo 18 años o más' : 'I am 18 or older'}</button>
         <button onClick={() => onChoose('teen')} style={{
           padding: '14px 24px', borderRadius: 10,
           background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(139,92,246,0.3)',
           color: '#94a3b8', fontSize: 14, cursor: 'pointer',
           fontFamily: "'Lora',Georgia,serif",
-        }}>I am 14 to 17</button>
+        }}>{es ? 'Tengo 14 a 17 años' : 'I am 14 to 17'}</button>
         <button onClick={() => onChoose('under14')} style={{
           padding: '10px 24px', borderRadius: 10, border: 'none',
           background: 'none', color: '#334155', fontSize: 13,
           cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
-        }}>I am under 14</button>
+        }}>{es ? 'Tengo menos de 14' : 'I am under 14'}</button>
       </div>
       <p style={{ marginTop: 28, fontSize: 11, color: '#1e293b', fontFamily: "'Lora',Georgia,serif" }}>
         Age is saved only to this device. Nothing else is stored.
@@ -253,6 +255,8 @@ function AgeGate({ onChoose }: { onChoose: (tier: string) => void }) {
    UNDERAGE REDIRECT
    ============================================================ */
 function UnderageRedirect({ onBack }: { onBack: () => void }) {
+  const { language } = useI18n();
+  const es = language === 'es';
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
@@ -260,7 +264,7 @@ function UnderageRedirect({ onBack }: { onBack: () => void }) {
       alignItems: 'center', justifyContent: 'center',
       padding: 32, textAlign: 'center',
     }}>
-      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 20 }}>YOU ARE SAFE</p>
+      <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 20 }}>{es ? 'ESTÁS SEGURO' : 'YOU ARE SAFE'}</p>
       <h2 style={{ fontFamily: "'Cinzel',serif", fontSize: 'clamp(1.4rem,4vw,2rem)', color: '#f1f5f9', marginBottom: 24, fontWeight: 400 }}>
         Some help is built just for you.
       </h2>
@@ -294,6 +298,8 @@ function UnderageRedirect({ onBack }: { onBack: () => void }) {
    CRISIS TAKEOVER
    ============================================================ */
 function CrisisTakeover({ onBack }: { onBack: () => void }) {
+  const { language } = useI18n();
+  const isEs = language === 'es';
   return (
     <div style={{
       position: 'absolute', inset: 0, zIndex: 20,
@@ -318,13 +324,13 @@ function CrisisTakeover({ onBack }: { onBack: () => void }) {
           background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)',
           color: '#fff', textDecoration: 'none', fontSize: 16,
           fontWeight: 700, fontFamily: "'Lora',Georgia,serif",
-        }}>Call or text 988</a>
+        }}>{isEs ? 'Llamar o texto 988' : 'Call or text 988'}</a>
         <a href="sms:741741?body=HOME" style={{
           padding: '14px 24px', borderRadius: 10,
           background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,217,255,0.2)',
           color: '#00D9FF', textDecoration: 'none', fontSize: 14,
           fontFamily: "'Lora',Georgia,serif",
-        }}>Text HOME to 741741</a>
+        }}>{isEs ? 'Texto HOME al 741741' : 'Text HOME to 741741'}</a>
       </div>
       <button onClick={onBack} style={{
         marginTop: 28, background: 'none', border: 'none',
@@ -360,9 +366,23 @@ function WritingMoment({
   const [piiWarning, setPiiWarning] = useState(false);
   const [related, setRelated] = useState<Story[]>([]);
   const [publishing, setPublishing] = useState(false);
+  const { language } = useI18n();
+  const isEs = language === 'es';
   const textRef = useRef<HTMLTextAreaElement>(null);
 
-  const timeMsg = useMemo(() => getTimeMsg(), []);
+  const timeMsg = useMemo(() => {
+    const h = new Date().getHours();
+    if (isEs) {
+      if (h >= 0 && h < 5) return 'No estás solo a esta hora.';
+      if (h >= 5 && h < 8) return 'Madrugada. Aquí estamos.';
+      if (h >= 22) return 'Noche tarde. Seguimos aquí.';
+      return 'Aquí estamos. Tómate tu tiempo.';
+    }
+    if (h >= 0 && h < 5) return "You're not alone at this hour.";
+    if (h >= 5 && h < 8) return 'Early morning. We are here.';
+    if (h >= 22) return 'Late night. We are still here.';
+    return 'We are here. Take your time.';
+  }, [isEs]);
 
   useEffect(() => { setTimeout(() => textRef.current?.focus(), 100); }, []);
   useEffect(() => { safeSet('ryvynn_draft_v1', text); }, [text]);
@@ -424,7 +444,7 @@ function WritingMoment({
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <div>
-                <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 4 }}>RYVYNN — PRIVATE SPACE</p>
+                <p style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.15em', color: '#8B5CF6', marginBottom: 4 }}>{isEs ? 'RYVYNN — ESPACIO PRIVADO' : 'RYVYNN — PRIVATE SPACE'}</p>
                 <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#475569' }}>{timeMsg}</p>
               </div>
               <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#334155', fontSize: 24, cursor: 'pointer', lineHeight: 1 }}>×</button>
@@ -433,7 +453,7 @@ function WritingMoment({
             {/* Presence */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, padding: '8px 14px', background: 'rgba(139,92,246,0.05)', borderRadius: 20, width: 'fit-content' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{presence} here with you</span>
+              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{presence} {isEs ? 'aquí contigo' : 'here with you'}</span>
             </div>
 
             {/* Distress nudge */}
@@ -453,7 +473,7 @@ function WritingMoment({
               ref={textRef}
               value={text}
               onChange={e => handleTextChange(e.target.value)}
-              placeholder="Say what you need to say. It stays private unless you choose otherwise."
+              placeholder={isEs ? 'Di lo que necesitas decir. Permanece privado a menos que elijas compartirlo.' : 'Say what you need to say. It stays private unless you choose otherwise.'}
               style={{
                 width: '100%', minHeight: 220, background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12,
@@ -473,8 +493,8 @@ function WritingMoment({
                   Your message may contain identifying details — phone number, location, or name. Remove them to protect yourself, or share anyway if you understand the risk.
                 </p>
                 <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                  <button onClick={() => setPiiWarning(false)} style={{ padding: '7px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Edit message</button>
-                  <button onClick={() => { setPiiWarning(false); setStage('confirm'); }} style={{ padding: '7px 14px', borderRadius: 8, background: 'none', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Share anyway</button>
+                  <button onClick={() => setPiiWarning(false)} style={{ padding: '7px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Editar mensaje' : 'Edit message'}</button>
+                  <button onClick={() => { setPiiWarning(false); setStage('confirm'); }} style={{ padding: '7px 14px', borderRadius: 8, background: 'none', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: 12, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Compartir de todos modos' : 'Share anyway'}</button>
                 </div>
               </div>
             )}
@@ -490,7 +510,7 @@ function WritingMoment({
                     borderColor: feed === f ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)',
                     color: feed === f ? '#a78bfa' : '#475569',
                   }}>
-                    {f === 'heard' ? 'Need to be heard' : 'Got through something'}
+                    {f === 'heard' ? (isEs ? 'Necesito ser escuchado' : 'Need to be heard') : (isEs ? 'Lo superé' : 'Got through something')}
                   </button>
                 ))}
               </div>
@@ -515,7 +535,7 @@ function WritingMoment({
                   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
                   color: '#94a3b8', fontSize: 14, cursor: 'pointer',
                   fontFamily: "'Lora',Georgia,serif",
-                }}>Keep private — let it go</button>
+                }}>{isEs ? 'Guardar privado — dejarlo ir' : 'Keep private — let it go'}</button>
               )}
               <button
                 onClick={handlePublish}
@@ -553,9 +573,9 @@ function WritingMoment({
               <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>"{text.slice(0, 120)}{text.length > 120 ? '...' : ''}"</p>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setStage('write')} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#64748b', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Go back</button>
+              <button onClick={() => setStage('write')} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#64748b', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Volver' : 'Go back'}</button>
               <button onClick={confirmPublish} disabled={publishing} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif", opacity: publishing ? 0.7 : 1 }}>
-                {publishing ? 'Sharing...' : 'Share it'}
+                {publishing ? (isEs ? 'Compartiendo...' : 'Sharing...') : (isEs ? 'Compartirlo' : 'Share it')}
               </button>
             </div>
           </div>
@@ -604,21 +624,21 @@ function WritingMoment({
             </div>
             {related.length > 0 && (
               <div>
-                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#475569', marginBottom: 16, textAlign: 'center' }}>OTHERS WHO HAVE BEEN HERE</p>
+                <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#475569', marginBottom: 16, textAlign: 'center' }}>{isEs ? 'OTROS QUE HAN ESTADO AQUÍ' : 'OTHERS WHO HAVE BEEN HERE'}</p>
                 {related.map(s => (
                   <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 18px', marginBottom: 10 }}>
                     <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>"{s.text}"</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
                       <span style={{ fontSize: 11, color: CAT_COLOR[s.category] || '#8B5CF6', fontFamily: "'Lora',Georgia,serif" }}>{s.category}</span>
                       <span style={{ fontSize: 11, color: '#1e293b' }}>·</span>
-                      <span style={{ fontSize: 11, color: '#334155', fontFamily: "'Lora',Georgia,serif" }}>{s.felt.toLocaleString()} felt this</span>
+                      <span style={{ fontSize: 11, color: '#334155', fontFamily: "'Lora',Georgia,serif" }}>{s.felt.toLocaleString()} {isEs ? 'lo sintieron' : 'felt this'}</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             <div style={{ textAlign: 'center', marginTop: 24 }}>
-              <button onClick={onClose} style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>Back to Ryvynn</button>
+              <button onClick={onClose} style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#8B5CF6,#00D9FF)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Volver a RYVYNN' : 'Back to Ryvynn'}</button>
             </div>
           </div>
         )}
@@ -631,6 +651,8 @@ function WritingMoment({
    NAV
    ============================================================ */
 function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkCount: number; onWrite: () => void }) {
+  const { language } = useI18n();
+  const isEs = language === 'es';
   return (
     <nav style={{
       position: 'sticky', top: 0, zIndex: 100,
@@ -656,8 +678,8 @@ function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkC
           <span style={{ fontSize: 13, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>☆ {bookmarkCount}</span>
         )}
         <ThemeToggle size={32} />
-        <Link href="/crisis" style={{ fontSize: 12, color: '#475569', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Crisis</Link>
-        <Link href="/sign-up" style={{ fontSize: 12, color: '#64748b', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>Account</Link>
+        <Link href="/crisis" style={{ fontSize: 12, color: '#475569', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Crisis' : 'Crisis'}</Link>
+        <Link href="/sign-up" style={{ fontSize: 12, color: '#64748b', textDecoration: 'none', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Cuenta' : 'Account'}</Link>
         <button onClick={onWrite} style={{
           padding: '8px 20px', borderRadius: 20,
           background: 'linear-gradient(135deg,rgba(139,92,246,0.2),rgba(0,217,255,0.15))',
@@ -665,7 +687,7 @@ function Nav({ presence, bookmarkCount, onWrite }: { presence: number; bookmarkC
           color: '#a78bfa', fontSize: 13, fontWeight: 600,
           cursor: 'pointer', fontFamily: "'Lora',Georgia,serif",
           transition: 'all 0.2s',
-        }}>Say it</button>
+        }}>{isEs ? 'Dilo' : 'Say it'}</button>
       </div>
     </nav>
   );
@@ -825,7 +847,7 @@ function Wall({ stories, ageTier, bookmarks, onBookmark }: {
                 borderColor: feed === f ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.07)',
                 color: feed === f ? '#a78bfa' : '#475569',
               }}>
-              {f === 'heard' ? 'Need to be heard' : 'Got through something'}
+              {f === 'heard' ? (isEs ? 'Necesito ser escuchado' : 'Need to be heard') : (isEs ? 'Lo superé' : 'Got through something')}
               <span style={{ marginLeft: 7, fontSize: 11, opacity: 0.6 }}>{count}</span>
             </button>
           );
@@ -1113,9 +1135,9 @@ function CrisisStrip() {
       display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 16,
     }}>
       <span style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569' }}>In crisis right now?</span>
-      <a href="tel:988" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>Call or text 988</a>
+      <a href="tel:988" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>{isEs ? 'Llamar o texto 988' : 'Call or text 988'}</a>
       <span style={{ color: '#1e293b', fontSize: 12 }}>·</span>
-      <a href="sms:741741?body=HOME" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569', textDecoration: 'none' }}>Text HOME to 741741</a>
+      <a href="sms:741741?body=HOME" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#475569', textDecoration: 'none' }}>{isEs ? 'Texto HOME al 741741' : 'Text HOME to 741741'}</a>
       <span style={{ color: '#1e293b', fontSize: 12 }}>·</span>
       <Link href="/crisis" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>More resources</Link>
     </div>
