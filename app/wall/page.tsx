@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { WallFeed } from '@/components/wall/FiftyFiftyWall';
+import { useI18n } from '@/contexts/I18nContext';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function WallPage() {
   const [showShare, setShowShare] = useState(false);
+  const { t, tp } = useI18n();
 
   return (
     <main style={{ minHeight: '100vh', background: '#07080f', color: '#d8e0ee',
@@ -27,23 +29,22 @@ export default function WallPage() {
           <Image src="/assets/dual-flame-logo.png" alt="" width={24} height={24}
             style={{ objectFit: 'contain', opacity: .7 }} />
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em',
-            color: 'var(--dim)', textTransform: 'uppercase' }}>The Wall</span>
+            color: 'var(--dim)', textTransform: 'uppercase' }}>{t('hpWallTag')}</span>
         </div>
         <h1 className="lora" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 400,
           color: '#eef2fa', lineHeight: 1.2, marginBottom: 14 }}>
-          Words people chose to leave behind.
+          {t('hpWallH2')}
         </h1>
         <p style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--dim)', marginBottom: 28, maxWidth: 520 }}>
-          Someone typed it. Felt heard. Decided it might help the next person.
-          That's all this is. Read it. Or add yours.
+          {t('hpWallSub')}
         </p>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <button className="btn" onClick={() => setShowShare(true)}>
-            Leave something on the wall
+            {t('hpWallShareBtn')}
           </button>
           <Link href="/guardian" style={{ fontSize: 13, color: 'var(--dimmer)', textDecoration: 'none' }}>
-            Or talk to Guardian first →
+            {t('hpWallReadBtn')} →
           </Link>
         </div>
       </div>
@@ -58,94 +59,72 @@ export default function WallPage() {
 
 // ─── Share Modal ─────────────────────────────────────────────────────────────
 function ShareModal({ onClose }: { onClose: () => void }) {
-  const [text, setText]   = useState('');
-  const [saving, setSaving] = useState(false);
-  const [result, setResult] = useState<'done' | 'blocked' | null>(null);
+  const { tp } = useI18n();
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
-  const submit = async () => {
-    if (!text.trim() || saving) return;
-    setSaving(true);
+  async function submit() {
+    if (!text.trim() || loading) return;
+    setLoading(true);
     try {
-      const res = await fetch('/api/wall', {
+      const res = await fetch('/api/confession', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confession: text.trim(), transformation: text.trim(), isAnonymous: true }),
+        body: JSON.stringify({ confession: text, shareToWall: true }),
       });
-      const data = await res.json();
-      setResult(data.blocked ? 'blocked' : 'done');
-    } catch { setSaving(false); }
-  };
+      if (res.ok) setDone(true);
+    } catch {}
+    setLoading(false);
+  }
 
   return (
-    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)',
-        backdropFilter: 'blur(10px)', zIndex: 50, display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ background: '#0f1119', border: '1px solid rgba(255,255,255,.1)',
-        borderRadius: 20, padding: '32px 28px', maxWidth: 520, width: '100%' }}>
-
-        {result === 'done' && (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <p style={{ fontSize: 32, marginBottom: 12 }}>✓</p>
-            <h2 className="lora" style={{ fontSize: '1.5rem', fontWeight: 400,
-              color: '#eef2fa', marginBottom: 10 }}>It's on the wall.</h2>
-            <p style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 24, lineHeight: 1.7 }}>
-              Anonymous. No name. Just your words, for whoever needs them next.
-            </p>
-            <button className="btn" onClick={onClose}>Done</button>
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', zIndex: 50,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }} onClick={onClose}>
+      <div style={{
+        background: '#0d1117', border: '1px solid rgba(255,255,255,.1)',
+        borderRadius: 16, padding: 32, maxWidth: 520, width: '100%',
+      }} onClick={e => e.stopPropagation()}>
+        {done ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>✨</div>
+            <p style={{ color: '#eef2fa', fontSize: 18, marginBottom: 8 }}>{tp('confessionSharedAnon')}</p>
+            <button onClick={onClose} style={{ marginTop: 16, color: '#636e84', background: 'none',
+              border: 'none', cursor: 'pointer', fontSize: 14 }}>{tp('journalClose')}</button>
           </div>
-        )}
-
-        {result === 'blocked' && (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <p style={{ fontSize: 32, marginBottom: 12 }}>🛡</p>
-            <h2 className="lora" style={{ fontSize: '1.4rem', fontWeight: 400,
-              color: '#eef2fa', marginBottom: 10 }}>This one stays with you.</h2>
-            <p style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 8, lineHeight: 1.7 }}>
-              It's saved privately. Some things are too raw for the wall right now — and that's okay.
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--dimmer)', marginBottom: 24 }}>
-              If you're struggling, Guardian is here. Or text 988.
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Link href="/guardian" className="btn" onClick={onClose}>Talk to Guardian</Link>
-              <button className="btn-ghost" onClick={onClose}>Close</button>
-            </div>
-          </div>
-        )}
-
-        {!result && (
+        ) : (
           <>
-            <h2 className="lora" style={{ fontSize: '1.4rem', fontWeight: 400,
-              color: '#eef2fa', marginBottom: 8 }}>
-              Keep this with you — or let it help someone else?
-            </h2>
-            <p style={{ fontSize: 13, color: 'var(--dimmer)', lineHeight: 1.65, marginBottom: 20 }}>
-              Say what you've been carrying. Anonymous. No name. No account.
-              You decide if it stays private or goes on the wall.
-            </p>
+            <h2 style={{ fontSize: 20, color: '#eef2fa', marginBottom: 8 }}>{tp('confessionTransformBtn')}</h2>
+            <p style={{ fontSize: 13, color: '#636e84', marginBottom: 20 }}>{tp('confessionPrivacyNote')}</p>
             <textarea
               value={text}
               onChange={e => setText(e.target.value)}
-              placeholder="Type whatever you want to leave here..."
-              autoFocus
-              style={{ width: '100%', minHeight: 130, background: 'rgba(255,255,255,.04)',
-                border: '1px solid rgba(255,255,255,.1)', borderRadius: 12,
-                padding: '14px 16px', fontSize: 15, lineHeight: 1.7, color: '#d8e0ee',
-                fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
+              placeholder={tp('confessionWritePlaceholder')}
+              style={{
+                width: '100%', minHeight: 120, background: 'rgba(255,255,255,.04)',
+                border: '1px solid rgba(255,255,255,.1)', borderRadius: 10, padding: 16,
+                color: '#d8e0ee', fontSize: 14, resize: 'vertical', fontFamily: 'inherit',
+                boxSizing: 'border-box',
+              }}
             />
-            <p style={{ fontSize: 12, color: 'var(--dimmer)', margin: '8px 0 20px' }}>
-              ✓ Anonymous · ✓ No account · ✓ You choose what happens
-            </p>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button className="btn" onClick={submit}
-                disabled={!text.trim() || saving}
-                style={{ opacity: text.trim() && !saving ? 1 : .38 }}>
-                {saving ? 'Posting...' : 'Share to the wall'}
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={submit}
+                disabled={!text.trim() || loading}
+                style={{
+                  flex: 1, padding: '12px 0', borderRadius: 99, background: '#00C9E8',
+                  color: '#000', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer',
+                  opacity: (!text.trim() || loading) ? 0.5 : 1,
+                }}
+              >
+                {loading ? tp('confessionTransformingTitle') : tp('confessionShareWallBtn')}
               </button>
-              <button className="btn-ghost" onClick={onClose}>
-                Keep it to myself
-              </button>
+              <button onClick={onClose} style={{
+                padding: '12px 20px', borderRadius: 99, background: 'rgba(255,255,255,.06)',
+                color: '#636e84', border: 'none', cursor: 'pointer', fontSize: 14,
+              }}>{tp('confessionCancel')}</button>
             </div>
           </>
         )}
