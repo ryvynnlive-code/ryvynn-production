@@ -24,7 +24,7 @@ export function Navigation() {
     { href: '/crisis', label: t('crisis') },
     ...(user ? [
       { href: '/dashboard', label: tf('dashboard'), protected: true },
-      { href: '/settings', label: t('settings') },
+      { href: '/settings', label: tf('settings') },
     ] : []),
   ];
 
