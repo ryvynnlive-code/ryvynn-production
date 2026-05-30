@@ -811,6 +811,8 @@ function Wall({ stories, ageTier, bookmarks, onBookmark }: {
   bookmarks: Set<string>;
   onBookmark: (id: string) => void;
 }) {
+  const { language } = useI18n();
+  const isEs = language === 'es';
   const [feed, setFeed] = useState<'heard'|'through'>('heard');
   const [catFilter, setCatFilter] = useState('All');
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
@@ -1126,6 +1128,8 @@ function Privacy() {
    CRISIS STRIP — fixed bottom
    ============================================================ */
 function CrisisStrip() {
+  const { language } = useI18n();
+  const isEs = language === 'es';
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
