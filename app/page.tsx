@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useI18n } from '@/contexts/I18nContext';
 
 /* ============================================================
    RYVYNN.LIVE — The Sanctuary
@@ -1228,6 +1229,7 @@ function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
    APP ROOT
    ============================================================ */
 export default function HomePage() {
+  const { t, language } = useI18n();
   const [ageTier, setAgeTier] = useState<string | null>(null);
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [underageBlocked, setUnderageBlocked] = useState(false);
