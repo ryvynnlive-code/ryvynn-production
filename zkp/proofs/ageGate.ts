@@ -28,9 +28,12 @@ export class AgeGateError extends Error {
 async function loadSnarkjs() {
   try {
     // Dynamic import keeps snarkjs out of the main bundle.
-    // snarkjs must be listed in package.json dependencies.
+    // snarkjs ships its own types in newer releases; the @ts-ignore guards against
+    // environments where the package types aren't resolved at build time.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const snarkjs = await import('snarkjs');
-    return snarkjs;
+    return snarkjs as typeof import('snarkjs');
   } catch {
     throw new AgeGateError(
       'ZK proving library failed to load. Please refresh and try again.',

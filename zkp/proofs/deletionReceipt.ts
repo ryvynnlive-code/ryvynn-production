@@ -38,6 +38,8 @@ export class DeletionProofError extends Error {
 export async function generateDeletionReceipt(
   input: DeletionInput,
 ): Promise<DeletionReceipt> {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const snarkjs = await import('snarkjs').catch(() => {
     throw new DeletionProofError(
       'ZK proving library unavailable.',
