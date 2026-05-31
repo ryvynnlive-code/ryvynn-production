@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { BurnOnExit } from '@/components/BurnOnExit';
+import { DeletionReceiptPanel } from '@/components/DeletionReceiptPanel';
+import { ZKAgeGate } from '@/components/ZKAgeGate';
 
 /* ============================================================
    RYVYNN SANCTUARY — /sanctuary
@@ -211,13 +214,14 @@ function useDraftAutosave(text: string, setText: (t: string) => void) {
   }, [text, hydrated]);
 }
 
-function useBookmarks(): [string[], (id: string) => void] {
+function useBookmarks(): [string[], (id: string) => void, () => void] {
   const [bookmarks, setBookmarks] = useState<string[]>(() => safeParseJSON(safeGet(BOOKMARK_KEY), []));
   useEffect(() => { safeSet(BOOKMARK_KEY, JSON.stringify(bookmarks)); }, [bookmarks]);
   const toggle = useCallback((id: string) => {
     setBookmarks(prev => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]);
   }, []);
-  return [bookmarks, toggle];
+  const reset = useCallback(() => { setBookmarks([]); safeSet(BOOKMARK_KEY, ''); }, []);
+  return [bookmarks, toggle, reset];
 }
 
 /* ── PRIMITIVES ───────────────────────────────────────────── */
@@ -250,6 +254,18 @@ function btn(variant: BtnVariant): React.CSSProperties {
 
 /* ── AGE GATE ─────────────────────────────────────────────── */
 function AgeGate({ onChoose }: { onChoose: (t: string) => void }) {
+  const [showZK, setShowZK] = useState(false);
+
+  // ZK path: birth year stays private, only the boolean result leaves the browser
+  if (showZK) {
+    return (
+      <ZKAgeGate
+        onPassed={() => onChoose('adult')}
+        onBlocked={() => setShowZK(false)}
+      />
+    );
+  }
+
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9999, background:'#050510',
                   display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -265,6 +281,13 @@ function AgeGate({ onChoose }: { onChoose: (t: string) => void }) {
       </p>
       <div style={{ display:'flex', flexDirection:'column', gap:12, width:'100%', maxWidth:320 }}>
         <button onClick={() => onChoose('adult')}   style={{ ...btn('primary'), padding:'14px 24px' }}>I'm 18 or older</button>
+        <button
+          onClick={() => setShowZK(true)}
+          style={{ background:'none', border:'none', cursor:'pointer', fontSize:11,
+                   color:'#475569', fontFamily:"'Lora', Georgia, serif", padding:'4px 0',
+                   textDecoration:'underline', textUnderlineOffset:3 }}>
+          or verify privately with a zero-knowledge proof
+        </button>
         <button onClick={() => onChoose('teen')}    style={{ ...btn('outline'), padding:'14px 24px' }}>I'm 14 to 17</button>
         <button onClick={() => onChoose('under14')} style={{ ...btn('outline'), padding:'14px 24px',
                                                               borderColor:'rgba(255,255,255,0.08)', color:'#64748b' }}>
@@ -322,8 +345,8 @@ function CrisisStrip() {
 }
 
 /* ── NAV (sanctuary-local, no auth) ──────────────────────── */
-function SanctuaryNav({ presence, bookmarkCount, onShowBookmarks }: {
-  presence: number; bookmarkCount: number; onShowBookmarks: () => void;
+function SanctuaryNav({ presence, bookmarkCount, onShowBookmarks, onBurn }: {
+  presence: number; bookmarkCount: number; onShowBookmarks: () => void; onBurn: () => void;
 }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -359,6 +382,17 @@ function SanctuaryNav({ presence, bookmarkCount, onShowBookmarks }: {
                          animation:'pulse 2s infinite' }} />
           {presence} here
         </span>
+        {/* Burn trigger — whispered, not promoted */}
+        <button
+          onClick={onBurn}
+          title="Leave and erase this session"
+          style={{ background:'none', border:'none', cursor:'pointer', fontSize:11,
+                   color:'rgba(255,255,255,0.14)', fontFamily:"'Lora', Georgia, serif",
+                   padding:'4px 6px', transition:'color 0.2s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(248,113,113,0.5)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.14)')}>
+          leave &amp; erase
+        </button>
       </div>
     </nav>
   );
@@ -1072,9 +1106,31 @@ export default function SanctuaryPage() {
   const [showWriting, setShowWriting]         = useState(false);
   const [stories, setStories]                 = useState<Story[]>(SEED_STORIES);
   const [storiesLoaded, setStoriesLoaded]     = useState(false);
-  const [bookmarks, toggleBookmark]           = useBookmarks();
+  const [bookmarks, toggleBookmark, resetBookmarks] = useBookmarks();
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const presence                              = useLivePresence();
+
+  // Burn state — ephemeral session lifecycle
+  const [triggerBurn, setTriggerBurn]     = useState(false);
+  const [showReceipt, setShowReceipt]     = useState(false);
+  const [sessionId]                       = useState<string>(() =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `session_${Date.now()}_${Math.random().toString(36).slice(2)}`
+  );
+
+  const clearAll = useCallback(() => {
+    safeSet(DRAFT_KEY, '');
+    safeSet(AGE_KEY, '');
+    resetBookmarks();
+    sessionStorage.clear();
+    setStories(SEED_STORIES);
+    setStoriesLoaded(false);
+    setShowWriting(false);
+    setAgeTier(null);
+    setShowAgeGate(true);
+    setShowBookmarksOnly(false);
+  }, [resetBookmarks]);
 
   // Hydrate localStorage values client-side
   useEffect(() => {
@@ -1141,6 +1197,7 @@ export default function SanctuaryPage() {
             presence={presence}
             bookmarkCount={bookmarks.length}
             onShowBookmarks={scrollToBookmarks}
+            onBurn={() => setTriggerBurn(true)}
           />
           <Hero onSay={() => setShowWriting(true)} />
           {showWriting && (
@@ -1164,6 +1221,26 @@ export default function SanctuaryPage() {
           <SanctuaryFooter />
           <CrisisStrip />
         </>
+      )}
+
+      {/* Burn animation — ember dissolve on "leave & erase" */}
+      <BurnOnExit
+        triggerBurn={triggerBurn}
+        onComplete={() => {
+          setTriggerBurn(false);
+          setShowReceipt(true);
+        }}
+      />
+
+      {/* Deletion receipt — shown after burn, before state reset */}
+      {showReceipt && (
+        <DeletionReceiptPanel
+          sessionId={sessionId}
+          onDismiss={() => {
+            setShowReceipt(false);
+            clearAll();
+          }}
+        />
       )}
     </div>
   );
