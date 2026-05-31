@@ -50,7 +50,7 @@ export default function AboutPage() {
           <div className="space-y-4">
             {[
               ['No real name required — ever', 'Your account has no identity attached. Just an email to keep it yours.'],
-              ['Free crisis access, permanently', 'If you're in crisis, you should never hit a paywall.'],
+              ['Free crisis access, permanently', "If you're in crisis, you should never hit a paywall."],
               ['Your words are yours', 'Journals are encrypted. Confessions are anonymous. The Wall holds your story, not your name.'],
               ['Built different', 'One founder. Two years. Zero VC pressure. Built on Android from Tucson, AZ — for the people the industry ignores.'],
             ].map(([title, desc]) => (
