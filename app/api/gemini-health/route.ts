@@ -8,24 +8,25 @@ export async function GET(req: NextRequest) {
   }
   const key = process.env.GEMINI_API_KEY;
   if (!key) return NextResponse.json({ hasKey: false });
+
+  const model = searchParams.get('model') || 'gemini-2.0-flash';
   try {
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + key);
+    const res = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with the single word: OK' }] }] }),
+      }
+    );
     const text = await res.text();
-    let models: string[] | undefined;
-    try {
-      const j = JSON.parse(text);
-      models = (j.models || []).map((m: { name?: string }) => m.name || '').filter(Boolean);
-    } catch { /* not json */ }
     return NextResponse.json({
-      hasKey: true,
-      keyTail: key.slice(-4),
-      status: res.status,
-      ok: res.ok,
-      modelCount: models?.length ?? 0,
-      models: models?.slice(0, 60),
-      bodySnippet: models ? undefined : text.slice(0, 500),
+      model,
+      genStatus: res.status,
+      genOk: res.ok,
+      bodySnippet: text.slice(0, 600),
     });
   } catch (e) {
-    return NextResponse.json({ hasKey: true, fetchError: String(e).slice(0, 300) });
+    return NextResponse.json({ model, fetchError: String(e).slice(0, 300) });
   }
 }
