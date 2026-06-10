@@ -5,6 +5,17 @@ const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const hasSupabase = !!(supabaseUrl && supabaseServiceKey);
 
+// ============================================================
+// GROQ CONFIG — free tier, fast inference
+// Model priority: llama-3.3-70b -> llama-3.1-70b -> llama3-70b -> mixtral
+// ============================================================
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-70b-versatile',
+  'llama3-70b-8192',
+  'mixtral-8x7b-32768',
+];
+
 const GUARDIAN_OPENING_MESSAGE = `I'm not here to label what you're feeling or put it in a box. Dark times are real. Hard times are real. Yours is not smaller or less valid than anyone else's.
 
 I'm just here. No checklist. No alarm. Just here.
@@ -69,45 +80,6 @@ ANONYMITY: Never ask for names, locations, ages, or any personal identifiers.
 
 GOAL: Help the user feel heard and steady. Not overwhelmed. Not fixed. Just heard.`;
 
-const GEMINI_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
-  'gemini-1.5-pro',
-];
-
-// ============================================================
-// GUARDIAN COUNCIL v3 — 5 NAMED THERAPEUTIC AGENTS + ORACLE
-// Trauma Compass · Insight Engine · Soul Mirror
-// Crisis Sentinel · Recovery Architect
-// Runs for ALL users. No premium gate.
-// ============================================================
-
-interface AgentEval {
-  agentKey: string;
-  agentName: string;
-  modality: string;
-  icon: string;
-  color: string;
-  description: string;
-  response: string;
-  crisisSignal: boolean;
-  score: number;
-  confidence: number;
-  safety: number;
-  relevance: number;
-}
-
-interface CouncilResult {
-  finalResponse: string;
-  agentEvaluations: AgentEval[];
-  synthesisMethod: string;
-  crisisDetected: boolean;
-  crisisSeverity: string;
-  consensusScore: number;
-}
-
 const NAMED_AGENTS = [
   {
     key: 'TRAUMA_COMPASS',
@@ -161,6 +133,40 @@ const CRISIS_KEYWORDS = [
   'not worth living', 'better off dead', 'hurt myself', 'self harm', 'no reason to live',
 ];
 
+const crisisKeywords = [
+  /suicide|kill myself|want to die|end it all|unalive|better off dead|goodbye world|final note/i,
+  /overdose|cutting|self.harm|don.t want to be here/i,
+  /i wish i wasn.t here|i don.t want to exist|tired of everything|nothing matters|what.s the point|i give up/i,
+];
+
+function detectCrisis(text: string): boolean {
+  return crisisKeywords.some((r) => r.test(text));
+}
+
+interface AgentEval {
+  agentKey: string;
+  agentName: string;
+  modality: string;
+  icon: string;
+  color: string;
+  description: string;
+  response: string;
+  crisisSignal: boolean;
+  score: number;
+  confidence: number;
+  safety: number;
+  relevance: number;
+}
+
+interface CouncilResult {
+  finalResponse: string;
+  agentEvaluations: AgentEval[];
+  synthesisMethod: string;
+  crisisDetected: boolean;
+  crisisSeverity: string;
+  consensusScore: number;
+}
+
 function scoreAgent(resp: string, key: string, crisis: boolean): number {
   let s = 65;
   const w = resp.trim().split(/\s+/).length;
@@ -172,34 +178,63 @@ function scoreAgent(resp: string, key: string, crisis: boolean): number {
   return Math.min(100, Math.max(0, s));
 }
 
-async function callGeminiSingle(
+// ============================================================
+// GROQ API CALL — OpenAI-compatible endpoint
+// ============================================================
+async function callGroq(
   apiKey: string,
-  model: string,
   systemPrompt: string,
-  contents: Array<{ role: string; parts: Array<{ text: string }> }>,
+  messages: Array<{ role: string; content: string }>,
   maxTokens: number,
   temperature: number
-): Promise<{ model: string; text: string | null }> {
-  try {
-    const res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey,
-      {
+): Promise<string | null> {
+  for (const model of GROQ_MODELS) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents,
-          generationConfig: { maxOutputTokens: maxTokens, temperature },
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages,
+          ],
+          max_tokens: maxTokens,
+          temperature,
         }),
+      });
+      if (res.status === 429) {
+        console.warn(`[Groq] rate limited on ${model}, trying next`);
+        continue;
       }
-    );
-    if (!res.ok) return { model, text: null };
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
-    return { model, text };
-  } catch {
-    return { model, text: null };
+      if (!res.ok) {
+        console.warn(`[Groq] ${res.status} on ${model}`);
+        continue;
+      }
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || null;
+      if (!text) { console.warn(`[Groq] empty response from ${model}`); continue; }
+      if (model !== GROQ_MODELS[0]) console.log(`[Groq] served by fallback: ${model}`);
+      return text;
+    } catch (err) {
+      console.warn(`[Groq] error on ${model}:`, err);
+      continue;
+    }
   }
+  return null;
+}
+
+// Convert Gemini-style contents to OpenAI-style messages
+function toOpenAIMessages(
+  contents: Array<{ role: string; parts: Array<{ text: string }> }>
+): Array<{ role: string; content: string }> {
+  return contents.map((c) => ({
+    role: c.role === 'model' ? 'assistant' : c.role,
+    content: c.parts.map((p) => p.text).join(''),
+  }));
 }
 
 async function runGuardianCouncil(
@@ -213,17 +248,18 @@ async function runGuardianCouncil(
   const lower = userMsg.toLowerCase();
   const kwCrisis = CRISIS_KEYWORDS.some((k) => lower.includes(k)) || isCrisis;
   const langNote = isES ? ' Respond in Spanish.' : '';
+  const msgs = toOpenAIMessages(contents);
 
-  console.log('[Council v3] 5 named agents deliberating...');
+  console.log('[Council v3] 5 named agents deliberating via Groq...');
 
   const evals: AgentEval[] = await Promise.all(
     NAMED_AGENTS.map(async (agent) => {
       const agentSystemPrompt = agent.prompt + langNote + '\n\nGuardian voice: ' + systemPrompt.slice(0, 200);
       try {
-        const r = await callGeminiSingle(apiKey, 'gemini-2.0-flash', agentSystemPrompt, contents, 150, 0.78);
-        const raw = r.text || 'I hear you. You are not alone.';
-        const cs = raw.includes('[CRISIS_DETECTED]') || kwCrisis;
-        const clean = raw.replace('[CRISIS_DETECTED]', '').trim();
+        const raw = await callGroq(apiKey, agentSystemPrompt, msgs, 150, 0.78);
+        const text = raw || 'I hear you. You are not alone.';
+        const cs = text.includes('[CRISIS_DETECTED]') || kwCrisis;
+        const clean = text.replace('[CRISIS_DETECTED]', '').trim();
         const sc = scoreAgent(clean, agent.key, kwCrisis);
         return {
           agentKey: agent.key,
@@ -262,17 +298,16 @@ async function runGuardianCouncil(
   const ss = evals.find((a) => a.agentKey === 'CRISIS_SENTINEL')?.score ?? 0;
   const crisisSeverity = !crisisDetected ? 'none' : ss > 80 ? 'critical' : ss > 60 ? 'high' : ss > 40 ? 'medium' : 'low';
 
-  const agentText = evals.map((a) => '[' + a.agentName.toUpperCase() + ']:\n' + a.response).join('\n\n');
+  const agentText = evals.map((a) => `[${a.agentName.toUpperCase()}]:\n${a.response}`).join('\n\n');
   const crisisNote = crisisDetected ? '\n\nCRITICAL: Crisis detected. Lead with safety. Include 988 and Crisis Text Line 741741.' : '';
-  const oracleMsg = 'Person said: "' + userMsg + '"\n\nAgent responses:\n' + agentText + crisisNote + '\n\nWrite the ONE final Guardian response.';
-  const oracleContents = [{ role: 'user', parts: [{ text: oracleMsg }] }];
+  const oracleMsg = `Person said: "${userMsg}"\n\nAgent responses:\n${agentText}${crisisNote}\n\nWrite the ONE final Guardian response.`;
 
   let finalResponse = '';
   let synthesisMethod = 'weighted';
   try {
-    const oracleResult = await callGeminiSingle(apiKey, 'gemini-2.0-flash', systemPrompt, oracleContents, 200, 0.7);
-    if (oracleResult.text) {
-      finalResponse = oracleResult.text;
+    const oracleText = await callGroq(apiKey, systemPrompt, [{ role: 'user', content: oracleMsg }], 200, 0.7);
+    if (oracleText) {
+      finalResponse = oracleText;
     } else {
       throw new Error('empty oracle');
     }
@@ -284,64 +319,9 @@ async function runGuardianCouncil(
   if (crisisDetected) synthesisMethod = 'crisis_override';
 
   const consensusScore = Math.round(evals.reduce((s, a) => s + a.score, 0) / evals.length);
-  console.log('[Council v3] done · consensus=' + consensusScore + ' · crisis=' + String(crisisDetected) + ' · method=' + synthesisMethod);
+  console.log(`[Council v3] done · consensus=${consensusScore} · crisis=${String(crisisDetected)} · method=${synthesisMethod}`);
 
   return { finalResponse, agentEvaluations: evals, synthesisMethod, crisisDetected, crisisSeverity, consensusScore };
-}
-
-async function callGeminiWithFallback(
-  apiKey: string,
-  systemPrompt: string,
-  contents: Array<{ role: string; parts: Array<{ text: string }> }>,
-  maxTokens: number,
-  temperature: number
-): Promise<string> {
-  let lastError = '';
-  for (const model of GEMINI_MODELS) {
-    try {
-      const res = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents,
-            generationConfig: { maxOutputTokens: maxTokens, temperature },
-          }),
-        }
-      );
-      if (res.status === 429) {
-        lastError = '429 on ' + model;
-        const idx = GEMINI_MODELS.indexOf(model);
-        await new Promise((r) => setTimeout(r, 300 * (idx + 1)));
-        continue;
-      }
-      if (!res.ok) {
-        lastError = res.status + ' on ' + model;
-        continue;
-      }
-      const data = await res.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!text) { lastError = 'empty from ' + model; continue; }
-      if (model !== GEMINI_MODELS[0]) console.log('Guardian served by fallback: ' + model);
-      return text;
-    } catch (err) {
-      lastError = String(err);
-      continue;
-    }
-  }
-  throw new Error('All Gemini models failed. Last: ' + lastError);
-}
-
-const crisisKeywords = [
-  /suicide|kill myself|want to die|end it all|unalive|better off dead|goodbye world|final note/i,
-  /overdose|cutting|self.harm|don.t want to be here/i,
-  /i wish i wasn.t here|i don.t want to exist|tired of everything|nothing matters|what.s the point|i give up/i,
-];
-
-function detectCrisis(text: string): boolean {
-  return crisisKeywords.some((r) => r.test(text));
 }
 
 export async function POST(req: NextRequest) {
@@ -360,8 +340,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_API_KEY) {
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    if (!GROQ_API_KEY) {
       return NextResponse.json({
         response: language === 'es'
           ? 'Estoy aquí contigo. Tengo un momento técnico breve — por favor intenta de nuevo.\n\n**Si estás en crisis**: Llama o escribe al **988** (24/7, gratis, confidencial).'
@@ -430,6 +410,7 @@ export async function POST(req: NextRequest) {
       depthMod,
     ].filter(Boolean).join('\n\n');
 
+    // Build Gemini-style contents for council (council fn converts internally)
     const geminiContents = [
       ...history.map((h) => ({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -438,13 +419,11 @@ export async function POST(req: NextRequest) {
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    // Council v3 — ALL users get named therapeutic agents
     let aiResponse: string;
     let councilResult: CouncilResult | null = null;
 
-    // Wrap council in 20s timeout to prevent Vercel function timeout
     try {
-      const councilPromise = runGuardianCouncil(GEMINI_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
+      const councilPromise = runGuardianCouncil(GROQ_API_KEY, systemPrompt, geminiContents, isCrisis, isES);
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Council timeout')), 20000)
       );
@@ -483,8 +462,13 @@ export async function POST(req: NextRequest) {
         }));
       }
     } catch (councilErr) {
-      console.error('[Council v3] failed, falling back:', councilErr);
-      aiResponse = await callGeminiWithFallback(GEMINI_API_KEY, systemPrompt, geminiContents, 180, emotionalDepth ? 0.9 : 0.82);
+      console.error('[Council v3] failed, falling back to single Groq call:', councilErr);
+      const msgs = [
+        ...history.map((h) => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.content })),
+        { role: 'user', content: message },
+      ];
+      const fallback = await callGroq(GROQ_API_KEY, systemPrompt, msgs, 180, emotionalDepth ? 0.9 : 0.82);
+      aiResponse = fallback || "I hear you — I'm here with you.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).";
     }
 
     if (userId && hasSupabase) {
