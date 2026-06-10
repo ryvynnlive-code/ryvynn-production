@@ -12,7 +12,7 @@ export default function WallPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#07080f', color: '#d8e0ee',
-      fontFamily: "\'Inter\',system-ui,sans-serif" }}>
+      fontFamily: "'Inter',system-ui,sans-serif" }}>
       <style>{`
         :root { --cyan:#00C9E8; --purple:#7C5CBF; --dim:#636e84; --dimmer:#3a4352; --border:rgba(255,255,255,.08); }
         .lora { font-family:'Lora',Georgia,serif; }
@@ -21,7 +21,31 @@ export default function WallPage() {
         .btn-ghost { background:none;border:none;color:var(--dim);font-family:inherit;font-size:14px;cursor:pointer;padding:0; }
         .btn-ghost:hover { color:var(--cyan); }
         .divider { border:none;border-top:1px solid var(--border);margin:0; }
+        .amt-chip { background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12);border-radius:99px;padding:8px 16px;color:#d8e0ee;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
+        .amt-chip:hover { border-color:var(--cyan);color:var(--cyan); }
+        .amt-chip.active { background:rgba(0,201,232,.14);border-color:var(--cyan);color:var(--cyan); }
       `}</style>
+
+      {/* Guardian access banner */}
+      <div style={{ borderBottom: '1px solid var(--border)',
+        background: 'linear-gradient(90deg,rgba(0,201,232,.06),rgba(124,92,191,.06))' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '14px 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13.5, color: '#aeb8cc', lineHeight: 1.5 }}>
+            {language === 'es'
+              ? 'El Guardián está despierto ahora mismo — anónimo, sin juicio, sin memoria.'
+              : 'The Guardian is awake right now — anonymous, no judgment, no memory.'}
+          </span>
+          <Link href="/guardian" className="btn" style={{ padding: '8px 18px', fontSize: 13 }}>
+            {language === 'es' ? 'Habla con el Guardián' : 'Talk to the Guardian'}
+          </Link>
+        </div>
+      </div>
+
+      {/* Donation block */}
+      <DonateBlock />
+
+      <hr className="divider" />
 
       {/* Header */}
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 36px' }}>
@@ -63,7 +87,119 @@ export default function WallPage() {
   );
 }
 
-// ─── Share Modal ─────────────────────────────────────────────────────────────
+// Donate Block
+function DonateBlock() {
+  const { language } = useI18n();
+  const es = language === 'es';
+  const [amount, setAmount] = useState<string>('');
+  const [recurring, setRecurring] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const presets = [3, 9, 36];
+
+  const donate = async () => {
+    const dollars = Number(amount);
+    if (!dollars || dollars < 1) {
+      setError(es ? 'Ingresa una cantidad.' : 'Enter an amount.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/stripe/donate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: dollars, recurring }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || (es ? 'Algo salió mal.' : 'Something went wrong.'));
+        setLoading(false);
+      }
+    } catch {
+      setError(es ? 'Algo salió mal.' : 'Something went wrong.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: '28px 24px 24px' }}>
+      <div style={{ background: 'rgba(255,255,255,.025)', border: '1px solid var(--border)',
+        borderRadius: 16, padding: '22px 22px 24px' }}>
+        <p className="lora" style={{ fontSize: '1.15rem', fontWeight: 400, color: '#eef2fa',
+          marginBottom: 6, lineHeight: 1.4 }}>
+          {es ? 'Mantén esto encendido.' : 'Keep this flame lit.'}
+        </p>
+        <p style={{ fontSize: 13.5, color: 'var(--dim)', lineHeight: 1.65, marginBottom: 18 }}>
+          {es
+            ? 'RYVYNN es gratis y anónimo — y siempre lo será. Las donaciones cubren los servidores y mantienen al Guardián despierto para la próxima persona en crisis.'
+            : 'RYVYNN is free and anonymous — and always will be. Donations cover the servers and keep the Guardian awake for the next person in crisis.'}
+        </p>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          {presets.map((p) => (
+            <button key={p}
+              className={`amt-chip${Number(amount) === p ? ' active' : ''}`}
+              onClick={() => { setAmount(String(p)); setError(null); }}>
+              ${p}
+            </button>
+          ))}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.12)',
+            borderRadius: 99, padding: '6px 14px' }}>
+            <span style={{ color: 'var(--dim)', fontSize: 14 }}>$</span>
+            <input
+              type="number" min="1" inputMode="decimal"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setError(null); }}
+              placeholder={es ? 'otra' : 'other'}
+              style={{ width: 64, background: 'none', border: 'none', outline: 'none',
+                color: '#d8e0ee', fontSize: 14, fontFamily: 'inherit' }}
+            />
+          </div>
+        </div>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18,
+          cursor: 'pointer', userSelect: 'none' }}>
+          <span onClick={() => setRecurring(!recurring)} style={{
+            width: 38, height: 22, borderRadius: 99, flexShrink: 0,
+            background: recurring ? 'var(--cyan)' : 'rgba(255,255,255,.14)',
+            position: 'relative', transition: 'background .15s' }}>
+            <span style={{ position: 'absolute', top: 2, left: recurring ? 18 : 2,
+              width: 18, height: 18, borderRadius: '50%', background: '#fff',
+              transition: 'left .15s' }} />
+          </span>
+          <span style={{ fontSize: 13.5, color: recurring ? '#d8e0ee' : 'var(--dim)' }}>
+            {es ? 'Donar cada mes' : 'Give monthly'}
+          </span>
+        </label>
+
+        {error && (
+          <p style={{ fontSize: 13, color: '#e8a0a0', marginBottom: 12 }}>{error}</p>
+        )}
+
+        <button className="btn" onClick={donate} disabled={loading}
+          style={{ opacity: loading ? .55 : 1 }}>
+          {loading
+            ? (es ? 'Abriendo...' : 'Opening...')
+            : recurring
+              ? (es ? `Donar $${amount || '—'}/mes` : `Donate $${amount || '—'}/mo`)
+              : (es ? `Donar $${amount || '—'}` : `Donate $${amount || '—'}`)}
+        </button>
+        <p style={{ fontSize: 11.5, color: 'var(--dimmer)', marginTop: 12 }}>
+          {es
+            ? '🔒 Pago seguro vía Stripe · Cancela cuando quieras'
+            : '🔒 Secure payment via Stripe · Cancel anytime'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Share Modal
 function ShareModal({ onClose }: { onClose: () => void }) {
   const [text, setText]   = useState('');
   const [saving, setSaving] = useState(false);
