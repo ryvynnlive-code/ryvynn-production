@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZmt4eWxqd2Vtbm5id3pjcmtlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzAyMDU2NSwiZXhwIjoyMDg4NTk2NTY1fQ.zChCd7uhbTN2OdI5DCB8BEE8f6Gb3I_hfRpMkRoagHg';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseServiceKey) {
+  console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY env var not set');
+}
 
 // CREATE eternity message
 export async function POST(req: NextRequest) {
   try {
+    if (!supabaseServiceKey) {
+      return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
+    }
     const { userId, encryptedMessage, triggerCondition, recipientInfo } = await req.json();
 
     if (!userId || !encryptedMessage) {
@@ -65,6 +72,9 @@ export async function POST(req: NextRequest) {
 // READ eternity messages
 export async function GET(req: NextRequest) {
   try {
+    if (!supabaseServiceKey) {
+      return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
+    }
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     const messageId = searchParams.get('messageId');
@@ -119,6 +129,9 @@ export async function GET(req: NextRequest) {
 // UPDATE eternity message
 export async function PUT(req: NextRequest) {
   try {
+    if (!supabaseServiceKey) {
+      return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
+    }
     const { userId, messageId, encryptedMessage, triggerCondition, recipientInfo, status } = await req.json();
 
     if (!userId || !messageId) {
@@ -165,6 +178,9 @@ export async function PUT(req: NextRequest) {
 // DELETE eternity message
 export async function DELETE(req: NextRequest) {
   try {
+    if (!supabaseServiceKey) {
+      return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
+    }
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     const messageId = searchParams.get('messageId');
