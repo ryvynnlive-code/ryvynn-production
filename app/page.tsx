@@ -552,7 +552,7 @@ function WritingMoment({
             </div>
 
             <p style={{ marginTop: 14, fontSize: 11, color: '#1e293b', textAlign: 'center', fontFamily: "'Lora',Georgia,serif" }}>
-              Nothing is stored until you choose to share. No account. No identity.
+              Nothing is shared until you choose to. Anonymous by default — no real name needed.
             </p>
           </>
         )}
@@ -1175,15 +1175,59 @@ function Footer() {
    ============================================================ */
 function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
   const timeMsg = useMemo(() => getTimeMsg(), []);
+  const embersRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const c = embersRef.current; if (!c) return;
+    const ctx = c.getContext('2d'); if (!ctx) return;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let raf = 0;
+    const resize = () => { const r = c.getBoundingClientRect(); c.width = r.width * DPR; c.height = r.height * DPR; };
+    resize(); window.addEventListener('resize', resize);
+    const cols = ['0,217,255', '139,92,246', '255,233,184'];
+    const parts: { x: number; y: number; vx: number; vy: number; r: number; life: number; max: number; col: string }[] = [];
+    const spawn = () => { parts.push({ x: c.width * 0.5 + (Math.random() - 0.5) * c.width * 0.12, y: c.height * 0.82, vx: (Math.random() - 0.5) * 0.25 * DPR, vy: -(0.35 + Math.random() * 0.7) * DPR, r: (0.6 + Math.random() * 1.5) * DPR, life: 0, max: 70 + Math.random() * 70, col: cols[Math.random() * cols.length | 0] }); };
+    const tick = () => {
+      ctx.clearRect(0, 0, c.width, c.height);
+      if (parts.length < 42 && Math.random() < 0.7) spawn();
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i]; p.life++; p.x += p.vx; p.y += p.vy; p.vy *= 0.992;
+        const t = p.life / p.max; if (t >= 1) { parts.splice(i, 1); continue; }
+        const a = Math.sin(t * Math.PI) * 0.85;
+        ctx.beginPath(); ctx.fillStyle = 'rgba(' + p.col + ',' + a.toFixed(3) + ')';
+        ctx.shadowBlur = 10 * DPR; ctx.shadowColor = 'rgba(' + p.col + ',0.9)';
+        ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, []);
   return (
     <section style={{ maxWidth: 720, margin: '0 auto', padding: 'clamp(80px,12vw,140px) 24px clamp(60px,8vw,100px)', textAlign: 'center' }}>
-      {/* Dual Flame — breathing */}
+      {/* Dual Flame — living light */}
       <div style={{
-        width: 100, height: 100, position: 'relative', margin: '0 auto 36px',
-        filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.55)) drop-shadow(0 0 60px rgba(0,217,255,0.3))',
-        animation: 'breathe 4s ease-in-out infinite',
+        position: 'relative', width: 'min(62vw,210px)', height: 'min(62vw,210px)', margin: '0 auto 40px',
       }}>
-        <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" fill style={{ objectFit: 'contain' }} priority />
+        {/* glow halo */}
+        <div style={{
+          position: 'absolute', inset: '-42%', borderRadius: '50%', zIndex: 0, pointerEvents: 'none',
+          background: 'radial-gradient(circle at 50% 56%, rgba(0,217,255,0.30), transparent 60%), radial-gradient(circle at 50% 46%, rgba(139,92,246,0.28), transparent 62%), radial-gradient(circle at 50% 60%, rgba(255,233,184,0.16), transparent 55%)',
+          filter: 'blur(10px)', animation: 'haloBreathe 5.5s ease-in-out infinite',
+        }} />
+        {/* rising embers */}
+        <canvas ref={embersRef} style={{
+          position: 'absolute', left: '50%', top: '-12%', transform: 'translateX(-50%)',
+          width: '200%', height: '132%', zIndex: 1, pointerEvents: 'none',
+        }} />
+        {/* the flame — the real logo, bigger + brighter */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2,
+          animation: 'flameBreathe 4.2s ease-in-out infinite',
+        }}>
+          <Image src="/assets/dual-flame-logo.png" alt="RYVYNN" fill style={{ objectFit: 'contain' }} priority />
+        </div>
       </div>
 
       {/* Presence */}
@@ -1212,7 +1256,7 @@ function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
         fontSize: 'clamp(15px,2.2vw,17px)', lineHeight: 1.95,
         color: '#475569', maxWidth: 480, margin: '0 auto 44px',
       }}>
-        No account. No name. No record.<br />
+        Anonymous by default. No real name. No tracking.<br />
         A place where something — or someone — actually listens.
       </p>
 
@@ -1241,7 +1285,7 @@ function Hero({ onSay, presence }: { onSay: () => void; presence: number }) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(16px,5vw,40px)', flexWrap: 'wrap' }}>
-        {['No account', 'Nothing stored', 'Always free', 'Crisis always reachable'].map(t => (
+        {['Anonymous', 'No surveillance', 'Free to start', 'Crisis always free'].map(t => (
           <span key={t} style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 7 }}>
             <span style={{ color: '#8B5CF6', fontSize: 10 }}>✦</span>{t}
           </span>
@@ -1310,6 +1354,8 @@ export default function HomePage() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes breathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 30px rgba(139,92,246,0.55)) drop-shadow(0 0 60px rgba(0,217,255,0.3)); } 50% { transform: scale(1.06); filter: drop-shadow(0 0 50px rgba(139,92,246,0.8)) drop-shadow(0 0 90px rgba(0,217,255,0.5)); } }
+        @keyframes flameBreathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 34px rgba(139,92,246,0.6)) drop-shadow(0 0 66px rgba(0,217,255,0.42)); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 62px rgba(139,92,246,0.95)) drop-shadow(0 0 116px rgba(0,217,255,0.66)); } }
+        @keyframes haloBreathe { 0%, 100% { opacity: 0.78; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
         @keyframes privateFade { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(8px); } }
       `}</style>
 
