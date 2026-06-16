@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | RYVYNN",
   },
   description:
-    "Say what's on your mind. No account. No memory. No one watching. It disappears when you close the tab. Free. Always.",
+    "Say what's on your mind. Anonymous by default — no real name, no surveillance. Free to start. Crisis support always free.",
   robots: { index: true, follow: true },
   keywords: [
     "anonymous mental health",
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
     siteName: "RYVYNN",
     title: "RYVYNN — You're not alone right now.",
     description:
-      "Say what's on your mind. No account. No memory. No one watching. It disappears when you close the tab.",
+      "Say what's on your mind. Anonymous by default — no real name, no surveillance. Free to start.",
     images: [{ url: "/assets/dual-flame-logo.png", width: 512, height: 512, alt: "RYVYNN" }],
   },
   twitter: {
     card: "summary",
     title: "RYVYNN — Anonymous AI support that forgets on purpose.",
-    description: "No login. No memory. No tracking. Just say what you need to say.",
+    description: "Anonymous by default. No surveillance. Just say what you need to say.",
     images: ["/assets/dual-flame-logo.png"],
   },
   icons: {
