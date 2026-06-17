@@ -1366,6 +1366,7 @@ export default function HomePage() {
         <>
           <Nav presence={presence} bookmarkCount={bookmarks.size} onWrite={() => setShowWriting(true)} />
           <Hero onSay={() => setShowWriting(true)} presence={presence} />
+          <GuardianSection onOpen={() => {}} />
 
           {showWriting && (
             <WritingMoment
@@ -1378,7 +1379,6 @@ export default function HomePage() {
           )}
 
           <Wall stories={stories} ageTier={ageTier || 'adult'} bookmarks={bookmarks} onBookmark={handleBookmark} />
-          <GuardianSection onOpen={() => {}} />
           <Mission />
           <Privacy />
           <Footer />
