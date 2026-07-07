@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const hasSupabase = !!(supabaseUrl && supabaseServiceKey);
 
 // ============================================================
 // GROQ CONFIG — free tier, fast inference
@@ -328,7 +323,6 @@ export async function POST(req: NextRequest) {
   try {
     const {
       message,
-      userId,
       language,
       isFirstMessage,
       persona = 'neutral',
@@ -356,17 +350,8 @@ export async function POST(req: NextRequest) {
 
     if (isFirstMessage === true) {
       const openingMsg = isES ? GUARDIAN_OPENING_MESSAGE_ES : GUARDIAN_OPENING_MESSAGE;
-      if (userId && hasSupabase) {
-        try {
-          const supabase = createClient(supabaseUrl, supabaseServiceKey);
-          void supabase.from('guardian_conversations').insert([
-            { user_id: userId, role: 'user', content: message },
-            { user_id: userId, role: 'assistant', content: openingMsg },
-          ]);
-        } catch (e) {
-          console.error('Error saving opening:', e);
-        }
-      }
+      // EPHEMERAL: Guardian conversations are never persisted server-side.
+      // Continuity within a tab comes from client-provided sessionHistory only.
       return NextResponse.json({
         response: openingMsg,
         isCrisis: false,
@@ -375,21 +360,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // EPHEMERAL: history is client-supplied session context only. Nothing is read from the DB.
     let history: Array<{ role: string; content: string }> = [];
-    if (userId && hasSupabase) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const { data } = await supabase
-          .from('guardian_conversations')
-          .select('role, content')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: true })
-          .limit(20);
-        if (data) history = data;
-      } catch (e) {
-        console.error('Error fetching history:', e);
-      }
-    } else if (sessionHistory.length > 0) {
+    if (sessionHistory.length > 0) {
       history = sessionHistory.slice(-10);
     }
 
@@ -429,38 +402,7 @@ export async function POST(req: NextRequest) {
       );
       councilResult = await Promise.race([councilPromise, timeoutPromise]);
       aiResponse = councilResult.finalResponse;
-
-      if (userId && hasSupabase) {
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const convId = 'council-' + Date.now();
-        void Promise.resolve(supabase.from('agent_evaluations').insert(
-          councilResult.agentEvaluations.map((a) => ({
-            user_id: userId,
-            conversation_id: convId,
-            agent_name: a.agentKey,
-            agent_display_name: a.agentName,
-            therapeutic_modality: a.modality,
-            response_text: a.response,
-            confidence_score: a.confidence,
-            safety_score: a.safety,
-            relevance_score: a.relevance,
-            final_score: a.score,
-            crisis_signal: a.crisisSignal,
-            entry_point: 'guardian',
-          }))
-        ));
-        void Promise.resolve(supabase.from('synthesis_decisions').insert({
-          user_id: userId,
-          conversation_id: convId,
-          synthesis_method: councilResult.synthesisMethod,
-          final_response: councilResult.finalResponse,
-          consensus_score: councilResult.consensusScore,
-          crisis_detected: councilResult.crisisDetected,
-          crisis_severity: councilResult.crisisSeverity,
-          agent_count: 5,
-          entry_point: 'guardian',
-        }));
-      }
+      // EPHEMERAL: no per-agent evaluations or synthesis metadata are persisted.
     } catch (councilErr) {
       console.error('[Council v3] failed, falling back to single Groq call:', councilErr);
       const msgs = [
@@ -471,17 +413,7 @@ export async function POST(req: NextRequest) {
       aiResponse = fallback || "I hear you — I'm here with you.\n\n**If you're in crisis**: Call or text **988** (24/7, free, confidential).";
     }
 
-    if (userId && hasSupabase) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        void supabase.from('guardian_conversations').insert([
-          { user_id: userId, role: 'user', content: message },
-          { user_id: userId, role: 'assistant', content: aiResponse },
-        ]);
-      } catch (e) {
-        console.error('Error saving conversation:', e);
-      }
-    }
+    // EPHEMERAL: the exchange is not written anywhere server-side.
 
     return NextResponse.json({
       response: aiResponse,
@@ -517,20 +449,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('userId');
-  if (!userId || !hasSupabase) return NextResponse.json({ conversations: [] });
-  try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { data } = await supabase
-      .from('guardian_conversations')
-      .select('role, content, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true })
-      .limit(50);
-    return NextResponse.json({ conversations: data || [] });
-  } catch {
-    return NextResponse.json({ conversations: [] });
-  }
+export async function GET() {
+  // EPHEMERAL: Guardian keeps no server-side history. Always empty.
+  return NextResponse.json({ conversations: [] });
 }
