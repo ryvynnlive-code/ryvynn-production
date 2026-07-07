@@ -1,6 +1,7 @@
 'use client';
 
 import { usePersona } from '@/contexts/PersonaContext';
+import { authedFetch } from '@/lib/authedFetch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { GrowingAvatar } from '@/components/GrowingAvatar';
@@ -48,7 +49,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`/api/tokens?userId=${user.id}`)
+    authedFetch(`/api/tokens?userId=${user.id}`)
       .then(r => r.json())
       .then(d => setProfile({ streak_days: d.streak ?? 0, soul_tokens: d.balance ?? 0 }))
       .catch(() => {});

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { authedFetch } from '@/lib/authedFetch';
 import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -41,7 +42,7 @@ export default function DashboardPage() {
 
     const loadTokenData = async () => {
       try {
-        const response = await fetch(`/api/tokens?userId=${user.id}`);
+        const response = await authedFetch(`/api/tokens?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to load tokens');
         const data = await response.json();
         setTokenData(data);
@@ -60,7 +61,7 @@ export default function DashboardPage() {
     setCheckingIn(true);
 
     try {
-      const response = await fetch('/api/tokens', {
+      const response = await authedFetch('/api/tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),

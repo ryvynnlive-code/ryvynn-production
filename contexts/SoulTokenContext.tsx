@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { authedFetch } from '@/lib/authedFetch';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SoulTokenState {
@@ -54,7 +55,7 @@ export function SoulTokenProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/tokens?userId=${user.id}`);
+      const res = await authedFetch(`/api/tokens?userId=${user.id}`);
       if (!res.ok) throw new Error('Token fetch failed');
       const data = await res.json();
 
@@ -80,7 +81,7 @@ export function SoulTokenProvider({ children }: { children: ReactNode }) {
   const checkDailyLogin = async () => {
     if (!user) return;
     try {
-      const res = await fetch('/api/tokens', {
+      const res = await authedFetch('/api/tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthedUserId } from '@/lib/auth';
 
 const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
 
@@ -12,9 +13,8 @@ function getSupabase() {
 // GET — token balance + streak + recent transactions
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    const userId = await getAuthedUserId(req);
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const supabase = getSupabase();
 
@@ -61,8 +61,8 @@ export async function GET(req: NextRequest) {
 // POST — daily check-in
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await req.json();
-    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    const userId = await getAuthedUserId(req);
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const supabase = getSupabase();
 

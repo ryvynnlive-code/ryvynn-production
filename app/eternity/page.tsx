@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { authedFetch } from '@/lib/authedFetch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { encrypt } from '@/lib/encryption';
@@ -40,7 +41,7 @@ export default function EternityPage() {
   const loadMessages = async () => {
     if (!user) return;
     try {
-      const response = await fetch(`/api/eternity?userId=${user.id}`);
+      const response = await authedFetch(`/api/eternity?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to load messages');
       const data = await response.json();
       setMessages(data.messages || []);
@@ -64,7 +65,7 @@ export default function EternityPage() {
       const encryptionKey = `ryvynn-eternity-${user.id}`;
       const encrypted = await encrypt(newMessage, encryptionKey);
 
-      const response = await fetch('/api/eternity', {
+      const response = await authedFetch('/api/eternity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

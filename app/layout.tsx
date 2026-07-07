@@ -6,6 +6,7 @@ import { AgeTierProvider } from "@/contexts/AgeTierContext";
 import { GeolocationProvider } from "@/contexts/GeolocationContext";
 import { SoulTokenProvider } from "@/contexts/SoulTokenContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { EncryptionProvider } from "@/contexts/EncryptionContext";
 import { Navigation } from "@/components/Navigation";
 import { VoiceJournalButton } from "@/components/VoiceJournalButton";
 import { PushNotifications } from "@/components/PushNotifications";
@@ -65,20 +66,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-black text-white antialiased">
         <AuthProvider>
-          <I18nProvider>
-            <PersonaProvider>
-              <AgeTierProvider>
-                <GeolocationProvider>
-                  <SoulTokenProvider>
-                    <Navigation />
-                    {children}
-                    <VoiceJournalButton />
-                    <PushNotifications />
-                  </SoulTokenProvider>
-                </GeolocationProvider>
-              </AgeTierProvider>
-            </PersonaProvider>
-          </I18nProvider>
+          <EncryptionProvider>
+            <I18nProvider>
+              <PersonaProvider>
+                <AgeTierProvider>
+                  <GeolocationProvider>
+                    <SoulTokenProvider>
+                      <Navigation />
+                      {children}
+                      <VoiceJournalButton />
+                      <PushNotifications />
+                    </SoulTokenProvider>
+                  </GeolocationProvider>
+                </AgeTierProvider>
+              </PersonaProvider>
+            </I18nProvider>
+          </EncryptionProvider>
         </AuthProvider>
       </body>
     </html>

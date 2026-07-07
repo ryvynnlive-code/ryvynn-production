@@ -2,11 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEncryption } from '@/contexts/EncryptionContext';
+import { authedFetch } from '@/lib/authedFetch';
 
 type VoiceJournalState = 'idle' | 'listening' | 'saving' | 'done' | 'error';
 
 export function VoiceJournalButton() {
   const { user } = useAuth();
+  const enc = useEncryption();
   const [state, setState] = useState<VoiceJournalState>('idle');
   const [transcript, setTranscript] = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -35,19 +38,20 @@ export function VoiceJournalButton() {
 
   const saveEntry = useCallback(async (text: string) => {
     if (!text.trim()) { setState('idle'); return; }
+    // Journaling requires a signed-in, unlocked vault so the entry can be
+    // encrypted with the user's passphrase before it leaves the device.
+    if (!user || !enc.isUnlocked) {
+      setState('error');
+      setTimeout(() => setState('idle'), 2500);
+      return;
+    }
     setState('saving');
-    const userId = user?.id || 'anonymous';
     try {
-      let content = text;
-      if (user) {
-        const { encrypt } = await import('@/lib/encryption');
-        const key = `ryvynn-journal-${user.id}`;
-        content = await encrypt(text, key);
-      }
-      const res = await fetch('/api/journal', {
+      const content = await enc.encryptText(text);
+      const res = await authedFetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, encryptedContent: content }),
+        body: JSON.stringify({ encryptedContent: content }),
       });
       if (!res.ok) throw new Error('Save failed');
       setState('done');
@@ -56,7 +60,7 @@ export function VoiceJournalButton() {
       setState('error');
       setTimeout(() => setState('idle'), 2000);
     }
-  }, [user]);
+  }, [user, enc]);
 
   const startListening = useCallback(() => {
     if (!supported || typeof window === 'undefined') return;

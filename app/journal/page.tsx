@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useRouter } from 'next/navigation';
-import { encrypt, decrypt } from '@/lib/encryption';
+import { useEncryption } from '@/contexts/EncryptionContext';
+import { authedFetch } from '@/lib/authedFetch';
 
 interface JournalEntry {
   id: string;
@@ -13,10 +14,92 @@ interface JournalEntry {
   updated_at: string;
 }
 
+function JournalLock({ enc }: { enc: ReturnType<typeof useEncryption> }) {
+  const [pass, setPass] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const creating = !enc.hasPassphrase;
+
+  const submit = async () => {
+    if (busy) return;
+    if (creating && pass !== confirm) return;
+    setBusy(true);
+    try {
+      if (creating) await enc.createPassphrase(pass);
+      else await enc.unlock(pass);
+    } catch {
+      /* error surfaced via enc.unlockError */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gradient-to-br from-gray-900 via-black to-gray-900 border-2 border-ryvynn-cyan rounded-2xl p-8 shadow-[0_0_30px_rgba(0,217,255,0.2)]">
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-3">🔐</div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            {creating ? 'Create your passphrase' : 'Unlock your journal'}
+          </h1>
+          <p className="text-sm text-gray-400">
+            {creating
+              ? 'Your entries are encrypted with this passphrase before they ever leave your device. We never see it and cannot reset it.'
+              : 'Enter the passphrase you created. It stays on your device only.'}
+          </p>
+        </div>
+
+        <input
+          type="password"
+          value={pass}
+          onChange={e => setPass(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !creating) submit(); }}
+          placeholder="Passphrase"
+          className="w-full bg-black border-2 border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-ryvynn-cyan mb-3"
+          autoFocus
+        />
+
+        {creating && (
+          <input
+            type="password"
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+            placeholder="Confirm passphrase"
+            className="w-full bg-black border-2 border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-ryvynn-cyan mb-3"
+          />
+        )}
+
+        {creating && confirm.length > 0 && pass !== confirm && (
+          <p className="text-xs text-red-400 mb-3">Passphrases don&apos;t match.</p>
+        )}
+        {enc.unlockError && <p className="text-xs text-red-400 mb-3">{enc.unlockError}</p>}
+
+        <button
+          onClick={submit}
+          disabled={busy || pass.length === 0 || (creating && pass !== confirm)}
+          className="w-full py-4 bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple rounded-xl font-bold text-white hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_0_20px_rgba(0,217,255,0.3)]"
+        >
+          {busy ? 'Working…' : creating ? 'Create & unlock' : 'Unlock'}
+        </button>
+
+        {creating && (
+          <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-600/40 rounded-lg">
+            <p className="text-xs text-yellow-300">
+              ⚠️ There is no recovery. If you forget this passphrase, your encrypted entries cannot be read by anyone — including us. That is the point of real privacy.
+            </p>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
 export default function JournalPage() {
   const { user, loading: authLoading } = useAuth();
   const { tf } = useI18n();
   const router = useRouter();
+  const enc = useEncryption();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [writing, setWriting] = useState(false);
@@ -51,7 +134,7 @@ export default function JournalPage() {
   const loadEntries = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/journal?userId=${user.id}`);
+      const res = await authedFetch('/api/journal');
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setEntries(data.entries || []);
@@ -108,12 +191,11 @@ export default function JournalPage() {
     if (!newEntry.trim() || !user || writing) return;
     setWriting(true);
     try {
-      const key = `ryvynn-journal-${user.id}`;
-      const encrypted = await encrypt(newEntry, key);
-      const res = await fetch('/api/journal', {
+      const encrypted = await enc.encryptText(newEntry);
+      const res = await authedFetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, encryptedContent: encrypted }),
+        body: JSON.stringify({ encryptedContent: encrypted }),
       });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
@@ -135,8 +217,7 @@ export default function JournalPage() {
   const handleViewEntry = async (entry: JournalEntry) => {
     if (!user) return;
     try {
-      const key = `ryvynn-journal-${user.id}`;
-      const decrypted = await decrypt(entry.encrypted_content, key);
+      const decrypted = await enc.decryptText(entry.encrypted_content);
       setDecryptedContent(decrypted);
       setSelectedEntry(entry);
     } catch {
@@ -157,6 +238,22 @@ export default function JournalPage() {
   }
 
   if (!user) return null;
+
+  // Wait until we know whether this account has a passphrase, then require unlock.
+  if (!enc.ready) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🔐</div>
+          <p className="text-gray-400">Checking your vault…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!enc.isUnlocked) {
+    return <JournalLock enc={enc} />;
+  }
 
   return (
     <main className="min-h-screen py-12 px-4 sm:px-6">
