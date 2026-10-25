@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-function loadTs(file, imports = {}) {
+function loadTs(file, imports = {}, env = {}) {
   const code = ts.transpileModule(fs.readFileSync(new URL('../' + file, import.meta.url), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -12,7 +12,7 @@ function loadTs(file, imports = {}) {
   vm.runInNewContext(code, { exports, require: name => {
     if (!(name in imports)) throw new Error('Unexpected import: ' + name);
     return imports[name];
-  }, process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fixture' } },
+  }, process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fixture', ...env } },
   crypto: globalThis.crypto, TextEncoder, TextDecoder, Uint8Array, btoa, atob });
   return exports;
 }
@@ -32,6 +32,44 @@ test('private API authentication rejects missing, forged and cross-user tokens',
   assert.equal((await requireApiUser(request('forged'), 'owner')).status, 401);
   assert.equal((await requireApiUser(request('valid'), 'victim')).status, 403);
   assert.equal(await requireApiUser(request('valid'), 'owner'), null);
+});
+
+test('wall rejects forged attribution before database writes and keeps anonymous posting available', async () => {
+  const inserted = [];
+  const rewards = [];
+  const { POST } = loadTs('app/api/wall/route.ts', {
+    'next/server': { NextResponse: { json: (body, options = {}) => ({ status: options.status || 200, body }) } },
+    '@/lib/api-auth': { requireApiUser: async (req, userId) =>
+      req.headers.get('authorization') === 'Bearer valid' && userId === 'owner'
+        ? null : { status: 401 } },
+    '@supabase/supabase-js': { createClient: () => ({
+      from: () => ({ insert: row => {
+        inserted.push(row);
+        return { select: () => ({ single: async () => ({ data: { id: 'entry' }, error: null }) }) };
+      } }),
+      rpc: async (...args) => { rewards.push(args); return { error: null }; },
+    }) },
+  }, { SUPABASE_SERVICE_ROLE_KEY: 'server-fixture-only' });
+  const request = (body, token) => new Request('https://example.test/api/wall', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+    body: JSON.stringify(body),
+  });
+  assert.equal((await POST(request({ confession: 'A hopeful day', userId: 'victim', isAnonymous: false }))).status, 401);
+  assert.equal((await POST(request({ confession: 'A hopeful day', userId: 'victim' }, 'valid'))).status, 401);
+  assert.equal(inserted.length, 0);
+  assert.equal(rewards.length, 0);
+  assert.equal((await POST(request({ confession: { unexpected: 'object' } }))).status, 400);
+  assert.equal((await POST(request({ confession: 'A hopeful day', transformation: [] }))).status, 400);
+  assert.equal((await POST(request({ confession: 'x'.repeat(10001) }))).status, 400);
+  const anonymous = await POST(request({ confession: 'A hopeful day' }));
+  assert.equal(anonymous.status, 200);
+  assert.equal(anonymous.body.tokensEarned, 0);
+  assert.equal(inserted[0].user_id, null);
+  assert.equal(rewards.length, 0);
+  const owner = await POST(request({ confession: 'A hopeful day', userId: 'owner', isAnonymous: false }, 'valid'));
+  assert.equal(owner.status, 200);
+  assert.equal(inserted[1].user_id, 'owner');
+  assert.equal(rewards[0][1].user_uuid, 'owner');
 });
 
 test('journal ciphertext survives reload and rejects wrong passwords and tampering', async () => {

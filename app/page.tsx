@@ -126,15 +126,8 @@ function safeSet(key: string, val: string) {
 
 /* ---------- LIVE PRESENCE ---------- */
 function useLivePresence() {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    setCount(180 + Math.floor(Math.random() * 100));
-    const id = setInterval(() => {
-      setCount(c => Math.max(150, Math.min(420, c + Math.floor(Math.random() * 5) - 2)));
-    }, 4500);
-    return () => clearInterval(id);
-  }, []);
-  return count;
+  // No presence source is connected. Hide counts until they are measured.
+  return 0;
 }
 
 /* ---------- API HELPERS ---------- */
@@ -156,11 +149,14 @@ async function fetchWallAPI(): Promise<Story[]> {
 
 async function postWallAPI(text: string, category: string, feed: string) {
   try {
-    await fetch('/api/wall', {
+    const response = await fetch('/api/wall', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confession: text, category, feed, isAnonymous: true }),
     });
-  } catch {}
+    const result = await response.json();
+    if (!response.ok || result.blocked || !result.success || !result.entryId) return null;
+    return result.entryId as string;
+  } catch { return null; }
 }
 
 async function voteWallAPI(id: string) {
@@ -358,7 +354,7 @@ function WritingMoment({
   allStories: Story[];
   onPublished: (s: Story) => void;
 }) {
-  const [text, setText] = useState(() => safeGet('ryvynn_draft_v1') || '');
+  const [text, setText] = useState('');
   const [stage, setStage] = useState<WriteStage>('write');
   const [category, setCategory] = useState('Other');
   const [feed, setFeed] = useState<'heard'|'through'>('heard');
@@ -366,6 +362,7 @@ function WritingMoment({
   const [piiWarning, setPiiWarning] = useState(false);
   const [related, setRelated] = useState<Story[]>([]);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(false);
   const { language } = useI18n();
   const isEs = language === 'es';
   const textRef = useRef<HTMLTextAreaElement>(null);
@@ -385,7 +382,10 @@ function WritingMoment({
   }, [isEs]);
 
   useEffect(() => { setTimeout(() => textRef.current?.focus(), 100); }, []);
-  useEffect(() => { safeSet('ryvynn_draft_v1', text); }, [text]);
+  useEffect(() => {
+    // Clear legacy autosaved sensitive drafts; new drafts stay in memory only.
+    try { localStorage.removeItem('ryvynn_draft_v1'); } catch { /* storage disabled */ }
+  }, []);
 
   const handleTextChange = (val: string) => {
     setText(val);
@@ -394,7 +394,6 @@ function WritingMoment({
   };
 
   const handlePrivate = () => {
-    safeSet('ryvynn_draft_v1', '');
     setStage('private-fade');
     setTimeout(() => setStage('private-done'), 2200);
   };
@@ -407,12 +406,17 @@ function WritingMoment({
   const confirmPublish = async () => {
     if (publishing) return;
     setPublishing(true);
-    safeSet('ryvynn_draft_v1', '');
+    setPublishError(false);
+    const entryId = await postWallAPI(text, category, feed);
+    if (!entryId) {
+      setPublishError(true);
+      setPublishing(false);
+      return;
+    }
     const newStory: Story = {
-      id: 'new-' + Date.now(), label: 'Anonymous',
+      id: entryId, label: 'Anonymous',
       category, text, felt: 0, replies: [], feed, tier: ageTier === 'adult' ? 'raw' : 'safe',
     };
-    await postWallAPI(text, category, feed);
     setRelated(getRelated(text, allStories, 3));
     onPublished(newStory);
     setStage('published');
@@ -434,6 +438,9 @@ function WritingMoment({
         borderRadius: 20, padding: 32, position: 'relative',
         boxShadow: '0 0 120px rgba(139,92,246,0.08)',
       }}>
+        {publishError && <p role="alert" style={{ color: '#fca5a5' }}>
+          {isEs ? 'No se publicó. Tu texto sigue aquí para que puedas editarlo o volver a intentarlo.' : 'Not published. Your text is still here so you can edit it or try again.'}
+        </p>}
         {/* Crisis takeover */}
         {crisisLevel === 'explicit' && stage === 'write' && (
           <CrisisTakeover onBack={() => setCrisisLevel('distress')} />
@@ -453,7 +460,7 @@ function WritingMoment({
             {/* Presence */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, padding: '8px 14px', background: 'rgba(139,92,246,0.05)', borderRadius: 20, width: 'fit-content' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{presence} {isEs ? 'aquí contigo' : 'here with you'}</span>
+              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Tu espacio para escribir' : 'Your space to write'}</span>
             </div>
 
             {/* Distress nudge */}

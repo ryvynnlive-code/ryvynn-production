@@ -35,6 +35,15 @@ Stage a production-environment build without domain assignment, record its commi
 
 This release does not implement undeveloped features, verify external provider retention policies, guarantee unlimited infrastructure, cancel external subscriptions, repair registrar billing, or prove the production database's RLS. The release must remain pending while those required production checks are inaccessible.
 
+## Recovery follow-up — October 25, 2026
+
+- Vercel team access now works. Verified `ryvnn-prod` project `prj_t0rngQDZWhLRn8jXUlY6xCzeAljh` in team `team_2LSzPFJill2AgYbcStgZG1wD`; existing production still uses `cd29c68`, while the free-access branch preview at `9612e84` built READY. Preview health reports free access and no billing requirement; pricing and public Wall GET return 200.
+- Required Supabase and AI environment variable names exist in both production and preview. Secret values were not displayed or changed. Presence is not proof of correctness or credential rotation.
+- The browser bundle identifies production database project `iofkxyljwemnnbwzcrke`. Supabase project inspection and security-advisor requests both return permission denied. The five visible projects are inactive and are not substitutes. Direct database grants/RLS and authenticated account journeys remain unverified; production release stays blocked on that access.
+- Vercel domain configuration reports `misconfigured: true`, with no A/CNAME answers; public DNS returns NXDOMAIN. Registrar renewal/hold details remain unknown. No registrar plugin was found. Do not change unrelated DNS records or infer an expiration date.
+- Follow-up patch verifies identity before Wall attribution/rewards, validates text input, and keeps account-free anonymous posts available. It prevents blocked/failed posting responses being shown as successful, keeps homepage drafts in memory instead of autosaving sensitive text, and removes simulated online-user counts.
+- Four security/encryption/checkout tests, typecheck, and the optimized build pass on Node 24 with synthetic public configuration. Lint has 0 errors and 22 pre-existing warnings. Production dependency audit reports 0 known vulnerabilities. No live account, private user record, database schema, or billing subscription was changed.
+
 ## Checks completed in this checkout
 
 - Node 24.22.1; Next.js 15.5.28 production build passed with synthetic public configuration and no Stripe, Resend, Groq, or database service-role secret.

@@ -216,6 +216,7 @@ function ShareModal({ onClose }: { onClose: () => void }) {
         body: JSON.stringify({ confession: text.trim(), transformation: text.trim(), isAnonymous: true }),
       });
       const data = await res.json();
+      if (!res.ok || (!data.success && !data.blocked)) throw new Error('Failed to share');
       setResult(data.blocked ? 'blocked' : 'done');
     } catch { setSaving(false); }
   };

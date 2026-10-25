@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireApiUser } from '@/lib/api-auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
@@ -24,14 +25,24 @@ export async function POST(req: NextRequest) {
   try {
     const { userId, confession, transformation, isAnonymous = true } = await req.json();
 
-    if (!confession) {
+    if (typeof confession !== 'string' || !confession.trim()) {
       return NextResponse.json({ error: 'content required' }, { status: 400 });
+    }
+    if (confession.length > 10000 || (transformation != null &&
+        (typeof transformation !== 'string' || transformation.length > 10000))) {
+      return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
+    }
+    // Account attribution and rewards must never trust a browser-supplied ID.
+    // Visitors without an account can still publish anonymously for free.
+    if (userId != null) {
+      const denied = await requireApiUser(req, userId);
+      if (denied) return denied;
     }
 
     const text = transformation || confession;
     const risk = detectRisk(text);
 
-    // Block high-risk content silently — tell user it was saved privately
+    // Do not claim a blocked post was saved or published.
     if (!risk.allowWall) {
       return NextResponse.json({
         success: true,
