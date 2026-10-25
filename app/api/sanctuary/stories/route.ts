@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
 function supa() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
         user_id: null,
         confession: text.trim(),
         transformation: meta,
-        votes: Math.floor(Math.random() * 60) + 20, // warm start
+        votes: 0, // Only real interactions count
         is_anonymous: true,
       })
       .select('id, confession, votes, transformation, created_at')

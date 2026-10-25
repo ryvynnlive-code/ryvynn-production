@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DONATION_TIERS = [
-  { amount: 5,  priceId: 'price_1TEFPCFXY1nWj7h7uZdMTNXr', label: '$5',  emoji: '🕯️', desc: 'One day of server costs. Keeps the flame lit.' },
-  { amount: 10, priceId: 'price_1TEFPbFXY1nWj7h7BrjdUovI', label: '$10', emoji: '🔥', desc: 'Funds 50 free crisis sessions. Real lives.' },
-  { amount: 25, priceId: 'price_1TEFPgFXY1nWj7h7F5h6H4oc', label: '$25', emoji: '⚡', desc: 'One week of infrastructure. 24/7 uptime.' },
-  { amount: 50, priceId: 'price_1TEFPlFXY1nWj7h78j3Usui9', label: '$50', emoji: '💎', desc: 'Sponsors a month of free crisis access.' },
+  { amount: 5,  priceId: 'price_1TEFPCFXY1nWj7h7uZdMTNXr', label: '$5',  emoji: '🕯️', desc: 'Helps keep the flame lit.' },
+  { amount: 10, priceId: 'price_1TEFPbFXY1nWj7h7BrjdUovI', label: '$10', emoji: '🔥', desc: 'Helps cover the cost of free access.' },
+  { amount: 25, priceId: 'price_1TEFPgFXY1nWj7h7F5h6H4oc', label: '$25', emoji: '⚡', desc: 'Supports hosting and infrastructure.' },
+  { amount: 50, priceId: 'price_1TEFPlFXY1nWj7h78j3Usui9', label: '$50', emoji: '💎', desc: 'Supports free access for everyone.' },
 ];
 
 const SHARE_MESSAGES = [
@@ -16,21 +16,21 @@ const SHARE_MESSAGES = [
     platform: 'Reddit',
     icon: '📢',
     subreddits: ['r/anxiety', 'r/mentalhealth', 'r/depression'],
-    message: `I built an anonymous mental wellness AI that forgets everything the moment you close the tab. No login. No data stored. Zero surveillance — structurally, not by policy. Built it for my own 3AM spirals. Free forever for crisis. ryvynn.live`,
+    message: `I built an anonymous mental wellness AI that forgets everything the moment you close the tab. No login. No data stored. Zero surveillance — structurally, not by policy. Built it for my own 3AM spirals. Free for everyone. ryvynn.live`,
     color: 'border-orange-500/30 hover:border-orange-500/60',
     glow: 'hover:shadow-[0_0_20px_rgba(249,115,22,0.2)]',
   },
   {
     platform: 'X / Twitter',
     icon: '𝕏',
-    message: `Most AI companions store your pain. RYVYNN forgets on purpose — structurally impossible to subpoena or leak. Free crisis tier forever. Built by one person, for everyone who needed this at 3AM. ryvynn.live`,
+    message: `Most AI companions store your pain. RYVYNN forgets on purpose — structurally impossible to subpoena or leak. Free for everyone. Built by one person, for everyone who needed this at 3AM. ryvynn.live`,
     color: 'border-white/20 hover:border-white/50',
     glow: 'hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]',
   },
   {
     platform: 'TikTok / Instagram',
     icon: '🎬',
-    message: `POV: you needed someone at 3AM and didn't want to be remembered\n\nryvynn.live — it literally forgets when you close the tab. Zero data. Free for crisis. No login ever.`,
+    message: `POV: you needed someone at 3AM and didn't want to be remembered\n\nryvynn.live — it literally forgets when you close the tab. Zero data. Free for everyone. No login ever.`,
     color: 'border-pink-500/30 hover:border-pink-500/60',
     glow: 'hover:shadow-[0_0_20px_rgba(236,72,153,0.2)]',
   },
@@ -51,11 +51,12 @@ export default function SupportPage() {
     setDonating(true);
 
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/stripe/donate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId: selectedTier.priceId,
+          amount: finalAmount,
+          recurring: false,
           userId: user?.id ?? null,
           userEmail: user?.email ?? null,
         }),
@@ -97,7 +98,7 @@ export default function SupportPage() {
             </span>
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            RYVYNN runs on zero revenue and zero funding. Crisis access stays free forever.
+            RYVYNN runs on zero revenue and zero funding. Full access stays free for everyone.
             But servers cost real money. Every dollar extends the flame.
           </p>
         </div>
@@ -214,7 +215,7 @@ export default function SupportPage() {
               { icon: '⭐', title: 'Star on GitHub', href: 'https://github.com/ryvynnlive-code/ryvynn-production', cta: 'Star the Repo' },
               { icon: '📝', title: 'Share Your Story', href: 'mailto:ryvynn.live@gmail.com?subject=My RYVYNN Story', cta: 'Send Anonymously' },
               { icon: '🤝', title: 'Partner / Refer', href: 'mailto:ryvynn.live@gmail.com?subject=Partnership Inquiry', cta: "Let's Connect" },
-              { icon: '💬', title: 'Upgrade to Premium', href: '/pricing', cta: 'See Plans' },
+              { icon: '💬', title: 'Explore Free Features', href: '/pricing', cta: 'Full Access' },
             ].map((item, i) => (
               <a
                 key={i}
@@ -238,7 +239,7 @@ export default function SupportPage() {
           <p>RYVYNN is a product of NEXXT GEN INNOVATIONS LLC / AONIXX.</p>
           <p className="mt-1">Donations are not tax-deductible. For mission support, not equity.</p>
           <Link href="/pricing" className="text-ryvynn-cyan hover:underline mt-2 inline-block">
-            Looking for premium plans? →
+            Every feature is free →
           </Link>
         </div>
       </div>

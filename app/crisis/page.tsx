@@ -1,5 +1,7 @@
 'use client';
 
+
+import Link from 'next/link';
 import { useEffect } from 'react';
 import { useGeolocation } from '@/contexts/GeolocationContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -167,9 +169,9 @@ export default function CrisisPage() {
             You can stay here. Talk to the Guardian — anonymously, no account, nothing saved.
             It won&apos;t replace real support, but it can help you get through the next hour.
           </p>
-          <a href="/guardian" className="inline-block px-5 py-2.5 bg-ryvynn-purple/20 border border-ryvynn-purple/40 text-ryvynn-purple rounded-lg text-sm font-medium hover:bg-ryvynn-purple/30 transition-colors">
+          <Link href="/guardian" className="inline-block px-5 py-2.5 bg-ryvynn-purple/20 border border-ryvynn-purple/40 text-ryvynn-purple rounded-lg text-sm font-medium hover:bg-ryvynn-purple/30 transition-colors">
             Talk to Guardian now →
-          </a>
+          </Link>
         </div>
 
         {/* Privacy Note */}

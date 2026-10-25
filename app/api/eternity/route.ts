@@ -1,7 +1,8 @@
+import { requireApiUser } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseServiceKey) {
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
     }
     const { userId, encryptedMessage, triggerCondition, recipientInfo } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
 
     if (!userId || !encryptedMessage) {
       return NextResponse.json(
@@ -77,6 +80,8 @@ export async function GET(req: NextRequest) {
     }
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     const messageId = searchParams.get('messageId');
 
     if (!userId) {
@@ -133,6 +138,8 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Service configuration error' }, { status: 503 });
     }
     const { userId, messageId, encryptedMessage, triggerCondition, recipientInfo, status } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
 
     if (!userId || !messageId) {
       return NextResponse.json(
@@ -183,6 +190,8 @@ export async function DELETE(req: NextRequest) {
     }
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     const messageId = searchParams.get('messageId');
 
     if (!userId || !messageId) {

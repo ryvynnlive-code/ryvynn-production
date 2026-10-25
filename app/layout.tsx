@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | RYVYNN",
   },
   description:
-    "Say what's on your mind. Anonymous by default — no real name, no surveillance. Free to start. Crisis support always free.",
+    "Say what's on your mind. Anonymous by default — no real name, no surveillance. Full access is free for everyone.",
   robots: { index: true, follow: true },
   keywords: [
     "anonymous mental health",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "RYVYNN",
     title: "RYVYNN — You're not alone right now.",
     description:
-      "Say what's on your mind. Anonymous by default — no real name, no surveillance. Free to start.",
+      "Say what's on your mind. Anonymous by default — no real name, no surveillance. Full access is free for everyone.",
     images: [{ url: "/assets/dual-flame-logo.png", width: 512, height: 512, alt: "RYVYNN" }],
   },
   twitter: {
@@ -71,6 +71,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <GeolocationProvider>
                   <SoulTokenProvider>
                     <Navigation />
+                    <aside className="border-b border-gray-800 bg-black px-4 py-3 text-center text-xs text-gray-400">
+                      Full access is free. Guardian messages are processed by Groq, an external AI provider. Avoid identifying details. Saved journals require a free account.
+                    </aside>
                     {children}
                     <VoiceJournalButton />
                     <PushNotifications />

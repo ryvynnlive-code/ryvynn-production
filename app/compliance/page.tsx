@@ -240,10 +240,10 @@ export default function CompliancePage() {
           </div>
           <div className="space-y-4 text-[15px] text-gray-300 leading-relaxed">
             <p>
-              The Federal Trade Commission enforces Section 5 of the FTC Act against unfair or deceptive acts. RYVYNN makes prominent, specific public claims: <em className="text-white">"Nothing saved. Gone when you leave."</em> These statements are not aspirational — they are material representations that must be technically true at every layer of the stack.
+              The Federal Trade Commission enforces Section 5 of the FTC Act against unfair or deceptive acts. RYVYNN makes prominent, specific public claims: <em className="text-white">&quot;Nothing saved. Gone when you leave.&quot;</em> These statements are not aspirational — they are material representations that must be technically true at every layer of the stack.
             </p>
             <p>
-              The FTC's 2023–2026 enforcement posture on AI products has focused specifically on gaps between public privacy claims and actual backend behavior. Enforcement actions have been issued for server logs, third-party SDKs, and analytics tools that silently retained data operators believed was discarded.
+              The FTC&apos;s 2023–2026 enforcement posture on AI products has focused specifically on gaps between public privacy claims and actual backend behavior. Enforcement actions have been issued for server logs, third-party SDKs, and analytics tools that silently retained data operators believed was discarded.
             </p>
             <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-lg p-4 text-sm text-gray-300">
               <div className="text-yellow-400 text-[10px] font-mono tracking-widest uppercase mb-2">Action Required</div>
@@ -271,7 +271,7 @@ export default function CompliancePage() {
             </p>
             <div className="bg-red-400/5 border border-red-400/20 rounded-lg p-4 text-sm text-gray-300">
               <div className="text-red-400 text-[10px] font-mono tracking-widest uppercase mb-2">Fix Now — 15 Minutes</div>
-              Add a single visible line at Guardian chat entry: <em className="text-white">"RYVYNN is an AI companion — not a human therapist or licensed mental health provider."</em> This one change satisfies the primary disclosure requirement across all current state statutes. Do not delay this.
+              Add a single visible line at Guardian chat entry: <em className="text-white">&quot;RYVYNN is an AI companion — not a human therapist or licensed mental health provider.&quot;</em> This one change satisfies the primary disclosure requirement across all current state statutes. Do not delay this.
             </div>
             <p className="text-sm text-gray-500">
               Note: State AI legislation is moving rapidly. The statutes referenced here reflect Q1 2026 status. Engage qualified counsel for quarterly verification — particularly for any features involving minors, clinical language, or expanded data handling.
@@ -288,7 +288,7 @@ export default function CompliancePage() {
           </div>
           <div className="space-y-4 text-[15px] text-gray-300 leading-relaxed">
             <p>
-              The Children's Online Privacy Protection Act (COPPA) applies to operators of websites or online services directed at children under 13, or who have actual knowledge they are collecting data from users under 13. RYVYNN does not actively collect data — which dramatically lowers COPPA exposure.
+              The Children&apos;s Online Privacy Protection Act (COPPA) applies to operators of websites or online services directed at children under 13, or who have actual knowledge they are collecting data from users under 13. RYVYNN does not actively collect data — which dramatically lowers COPPA exposure.
             </p>
             <p>
               However: <strong className="text-white">the age gate was removed from the current build.</strong> Anonymous access is open to all users without age verification. A minor in emotional crisis can reach the Guardian with no friction — which is compassionate by design but creates a documented COPPA-adjacent risk vector if any data collection ever occurs (even temporarily, even via third-party SDK).
@@ -332,7 +332,7 @@ export default function CompliancePage() {
               No federal license is required for non-clinical AI emotional support tools. RYVYNN does not diagnose, prescribe, treat, or bill for clinical services. Its legal classification is as a general consumer wellness application — the same category as journaling apps, meditation tools, or anonymous peer support platforms.
             </p>
             <p>
-              RYVYNN's C-SSRS-aligned Guardian crisis detection — routing users to 988 Suicide &amp; Crisis Lifeline when escalation thresholds are met — is best practice and a significant legal asset. This feature must be maintained, documented, and tested with every Guardian model update. It is both a mission obligation and a regulatory shield.
+              RYVYNN&apos;s C-SSRS-aligned Guardian crisis detection — routing users to 988 Suicide &amp; Crisis Lifeline when escalation thresholds are met — is best practice and a significant legal asset. This feature must be maintained, documented, and tested with every Guardian model update. It is both a mission obligation and a regulatory shield.
             </p>
             <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-lg p-4 text-sm text-gray-300">
               <div className="text-yellow-400 text-[10px] font-mono tracking-widest uppercase mb-2">Standing Requirement</div>

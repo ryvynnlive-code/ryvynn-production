@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
 function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         blocked: true,
-        message: 'Saved privately. This one stays just with you.',
+        message: 'This message was not published or saved.',
       });
     }
 
@@ -81,8 +81,8 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const limit    = parseInt(searchParams.get('limit')  || '12');
-    const offset   = parseInt(searchParams.get('offset') || '0');
+    const limit    = Math.min(100, Math.max(1, Number(searchParams.get('limit')) || 12));
+    const offset   = Math.min(10000, Math.max(0, Number(searchParams.get('offset')) || 0));
     const sortBy   = searchParams.get('sortBy') || 'recent';
     const featured = searchParams.get('featured') === 'true';
 
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('wall_entries')
-      .select('*', { count: 'exact' });
+      .select('id, confession, transformation, votes, created_at, is_anonymous', { count: 'exact' });
 
     if (featured) {
       // Featured = most felt_heard in last 7 days

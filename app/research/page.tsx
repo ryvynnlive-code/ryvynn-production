@@ -1,3 +1,5 @@
+
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 
@@ -206,18 +208,18 @@ export default function ResearchPage() {
               cannot be changed by pricing decisions.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-              <a
+              <Link
                 href="/crisis"
                 className="rounded-full bg-red-500 px-6 py-2 text-sm font-semibold text-white hover:bg-red-400 transition-colors"
               >
                 Crisis Resources →
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/guardian"
                 className="rounded-full border border-white/20 px-6 py-2 text-sm font-semibold text-white hover:border-white/40 transition-colors"
               >
                 Talk to Guardian
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -286,7 +288,7 @@ export default function ResearchPage() {
             platform. It does not diagnose, treat, cure, or prevent any mental health condition.
             If you are experiencing a mental health emergency, call{' '}
             <strong className="text-white">988</strong> (US Suicide & Crisis Lifeline) or your
-            local emergency number immediately. RYVYNN's AI features are supplemental support
+            local emergency number immediately. RYVYNN&apos;s AI features are supplemental support
             tools, not replacements for licensed mental health professionals.
           </p>
         </div>

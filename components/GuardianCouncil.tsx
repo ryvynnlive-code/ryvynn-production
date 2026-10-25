@@ -101,7 +101,7 @@ export function GuardianCouncil({entryPoint='get_it_out',userId,sessionId:initSi
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {msgs.length===0&&(
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="text-4xl mb-4">🔥</div><p className="text-white/50 text-sm">What's on your mind?</p>
+            <div className="text-4xl mb-4">🔥</div><p className="text-white/50 text-sm">What&apos;s on your mind?</p>
             <div className="mt-6 flex flex-wrap gap-2 justify-center">{["I've been struggling lately","I don't know where to start","I need to get this out"].map(p=>(
               <button key={p} onClick={()=>setInput(p)} className="text-xs px-3 py-1.5 rounded-full border border-white/10 text-white/40 hover:text-white/70 transition-colors">{p}</button>
             ))}</div>

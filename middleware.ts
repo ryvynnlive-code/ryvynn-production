@@ -19,8 +19,11 @@ const alwaysPublic = [
   '/auth/callback',
 ];
 
-// Supabase project ref extracted from URL: iofkxyljwemnnbwzcrke.supabase.co
-const SUPABASE_REF = 'iofkxyljwemnnbwzcrke';
+// UI redirect only; private APIs independently verify bearer tokens with Auth.
+const SUPABASE_REF = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '').hostname.split('.')[0]; }
+  catch { return ''; }
+})();
 
 function hasValidSession(req: NextRequest): boolean {
   // Supabase stores session in cookies named:

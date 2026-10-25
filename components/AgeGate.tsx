@@ -1,5 +1,7 @@
 'use client';
 
+
+import Link from 'next/link';
 /**
  * AgeGate — 3rd party face verification pattern
  * We ask Yoti/Vouched: "is this person 18+?"
@@ -169,7 +171,7 @@ export function AgeGate({ onVerified, onSkip, required = false }: AgeGateProps) 
           
           <p className="text-gray-700 text-xs mt-4 leading-relaxed">
             By entering you confirm you are 18 or older and accept our{' '}
-            <a href="/terms" className="underline hover:text-gray-500">terms</a>.
+            <Link href="/terms" className="underline hover:text-gray-500">terms</Link>.
           </p>
         </div>
       </div>

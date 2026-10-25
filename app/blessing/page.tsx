@@ -1,5 +1,7 @@
 'use client';
 
+
+import Link from 'next/link';
 import { useState } from 'react';
 
 export default function BlessingPage() {
@@ -41,7 +43,7 @@ export default function BlessingPage() {
           <span className="bg-gradient-to-r from-ryvynn-cyan to-ryvynn-purple bg-clip-text text-transparent font-semibold">Blessing</span>
         </h1>
         <p className="text-white/50 text-sm mb-flame-lg">
-          Tell the Flame what you're carrying and it will write one for you — or leave it empty and just receive some light.
+          Tell the Flame what you&apos;re carrying and it will write one for you — or leave it empty and just receive some light.
         </p>
 
         <textarea
@@ -73,7 +75,7 @@ export default function BlessingPage() {
         </button>
 
         <div className="mt-flame-xl">
-          <a href="/" className="text-white/40 text-sm hover:text-white/70 transition-colors">← Back home</a>
+          <Link href="/" className="text-white/40 text-sm hover:text-white/70 transition-colors">← Back home</Link>
         </div>
       </div>
     </main>

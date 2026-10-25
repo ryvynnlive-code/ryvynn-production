@@ -25,9 +25,9 @@ const LINKS_DATA = [
     ],
   },
   {
-    category: 'Premium',
+    category: 'Free access',
     items: [
-      { label: 'Pricing', href: '/pricing', desc: 'Soul Tokens start at $12.12/mo. Crisis always free.', accent: '#00D9FF' },
+      { label: 'Free access', href: '/pricing', desc: 'Every available feature is free for everyone.', accent: '#00D9FF' },
     ],
   },
   {

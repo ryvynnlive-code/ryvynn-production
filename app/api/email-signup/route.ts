@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
     const { email, source = 'promo' } = await req.json();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return NextResponse.json({ error: 'Signup unavailable' }, { status: 503 });
+    const supabase = createClient(url, key);
 
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
@@ -28,7 +25,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to save email' }, { status: 500 });
     }
 
-    if (!alreadySignedUp) {
+    if (!alreadySignedUp && process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#07080f;font-family:'Inter',system-ui,sans-serif;">
 <div style="max-width:560px;margin:0 auto;padding:48px 24px;">
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
   <div style="background:rgba(0,201,232,.04);border:1px solid rgba(0,201,232,.15);border-radius:16px;padding:32px;margin-bottom:24px;">
     <p style="color:#d8e0ee;font-size:15px;line-height:1.8;margin:0 0 16px;">You are on the founding member list.</p>
     <p style="color:#8b9ab5;font-size:14px;line-height:1.7;margin:0 0 16px;">
-      Founding rate locked: <strong style="color:#eef2fa;">$3.69 your first month</strong>, then $12.12/mo.
+      <strong style="color:#eef2fa;">Full access is free for everyone.</strong> No subscription or payment card required.
       Built by one person. No VC. No surveillance. No ads. Ever.
     </p>
     <p style="color:#8b9ab5;font-size:14px;line-height:1.7;margin:0;">Try the Guardian right now — no account needed.</p>
@@ -52,7 +50,7 @@ export async function POST(req: NextRequest) {
     </a><br>
     <a href="https://ryvynn.live/promo"
        style="display:inline-block;color:#636e84;font-size:13px;text-decoration:none;margin-top:12px;">
-      Claim founding member rate →
+      Explore free access →
     </a>
   </div>
   <div style="text-align:center;border-top:1px solid rgba(255,255,255,.06);padding-top:24px;">

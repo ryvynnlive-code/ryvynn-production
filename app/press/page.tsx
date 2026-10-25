@@ -17,7 +17,7 @@ const facts = [
   'Crisis detection routes users to 988 Suicide & Crisis Lifeline and Crisis Text Line automatically — no delay.',
   'SAM.gov registered (UEI: D3LQANCP1LEG) | CAGE: HY002 | EIN: 93-4340064.',
   'Pursuing $500K seed round at $3.5M SAFE cap with 20% discount.',
-  'Tesla 3-6-9 numerology pricing: Free → $3.69 → $12.12 → $36.90 → $369/yr → $936 therapist license.',
+  'Every available feature is free for individuals, families, and therapists. No paid upgrades.',
   'Soul Token economy funds real-world charitable crisis intervention.',
   'Built on Next.js 15, Supabase + RLS, Stripe, Anthropic Claude API.',
 ]

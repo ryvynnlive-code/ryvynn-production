@@ -570,7 +570,7 @@ function WritingMoment({
               This will be shared anonymously. No name. No device. Someone who needs it may find it tonight.
             </p>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, textAlign: 'left' }}>
-              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>"{text.slice(0, 120)}{text.length > 120 ? '...' : ''}"</p>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>&quot;{text.slice(0, 120)}{text.length > 120 ? '...' : ''}&quot;</p>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setStage('write')} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#64748b', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Volver' : 'Go back'}</button>
@@ -627,7 +627,7 @@ function WritingMoment({
                 <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#475569', marginBottom: 16, textAlign: 'center' }}>{isEs ? 'OTROS QUE HAN ESTADO AQUÍ' : 'OTHERS WHO HAVE BEEN HERE'}</p>
                 {related.map(s => (
                   <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 18px', marginBottom: 10 }}>
-                    <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>"{s.text}"</p>
+                    <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>&quot;{s.text}&quot;</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
                       <span style={{ fontSize: 11, color: CAT_COLOR[s.category] || '#8B5CF6', fontFamily: "'Lora',Georgia,serif" }}>{s.category}</span>
                       <span style={{ fontSize: 11, color: '#1e293b' }}>·</span>
@@ -745,7 +745,7 @@ function StoryCard({
           </button>
         </div>
       </div>
-      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, lineHeight: 1.85, color: '#c0cce0', margin: '0 0 16px', fontStyle: 'italic' }}>"{story.text}"</p>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, lineHeight: 1.85, color: '#c0cce0', margin: '0 0 16px', fontStyle: 'italic' }}>&quot;{story.text}&quot;</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={handleFelt} style={{
           display: 'flex', alignItems: 'center', gap: 5,
@@ -1090,7 +1090,7 @@ function Mission() {
       </div>
       <div style={{ borderTop: '1px solid rgba(139,92,246,0.1)', paddingTop: 40, marginTop: 48 }}>
         <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#475569', fontSize: 14, lineHeight: 1.9, maxWidth: 540, margin: '0 auto' }}>
-          Built by NEXXT GEN INNOVATIONS LLC — operating as RYVYNN and AONIXX. Free at the core. Always. Crisis access is never paywalled.
+          Built by NEXXT GEN INNOVATIONS LLC — operating as RYVYNN and AONIXX. Full access is free. Always. No paid upgrades.
         </p>
       </div>
     </section>
@@ -1104,9 +1104,9 @@ function Privacy() {
   const promises = [
     'Private sessions disappear when you leave unless you choose to publish.',
     'Published stories are anonymized and saved only because you chose to share them.',
-    'No personally identifying data is intentionally collected or stored.',
-    'Identity details are automatically flagged before posting — you stay protected.',
-    'No ads. No analytics. No tracking. The trust is the product.',
+    'Guardian text is processed by Groq. Avoid names and identifying details.',
+    'Published posts are public. Remove identifying details before sharing.',
+    'Free accounts store account details; saved journals are encrypted in your browser.',
   ];
   return (
     <section id="privacy" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
@@ -1161,7 +1161,7 @@ function Footer() {
       <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#334155', marginBottom: 6 }}>Free at the core.</p>
       <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#1e293b', marginBottom: 32 }}>Anonymous support for the moments people usually face alone.</p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
-        <Link href="/pricing" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Support the mission</Link>
+        <Link href="/support" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Support the mission</Link>
         <Link href="/sign-up" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Anonymous account</Link>
         <Link href="/crisis" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Crisis resources</Link>
       </div>

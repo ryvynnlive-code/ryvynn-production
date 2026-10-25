@@ -1,6 +1,9 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  if (!process.env.RESEND_API_KEY) throw new Error('Email service unavailable');
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 const FROM = 'RYVYNN <noreply@ryvynn.live>';
 
@@ -131,7 +134,7 @@ export async function sendPurchaseReceiptEmail({
         🛡 CRISIS SUPPORT REMAINS FREE FOREVER
       </p>
       <p style="color:#475569;font-size:11px;margin:0;">
-        Your premium subscription funds the mission. Crisis features will always be free for everyone.
+        Every available feature is free for everyone. No subscription is required.
       </p>
     </div>
 
@@ -150,7 +153,7 @@ export async function sendPurchaseReceiptEmail({
 </html>`;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM,
       to,
       subject: `🔥 Receipt: ${tierName} — RYVYNN`,
@@ -213,7 +216,7 @@ export async function sendWelcomeEmail({ to }: { to: string }) {
 </html>`;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM,
       to,
       subject: '🔥 Your Flame is Lit — Welcome to RYVYNN',

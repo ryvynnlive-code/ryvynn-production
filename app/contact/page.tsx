@@ -28,7 +28,7 @@ export default function ContactPage() {
         <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-5 mb-8">
           <p className="text-red-300 font-semibold text-sm mb-1">⚠ In crisis right now?</p>
           <p className="text-gray-400 text-sm mb-3">
-            Don't email. Go to our crisis support — it's instant and free.
+            Don&apos;t email. Go to our crisis support — it&apos;s instant and free.
           </p>
           <Link
             href="/crisis"
@@ -74,7 +74,7 @@ export default function ContactPage() {
         <div className="mt-8 bg-ryvynn-cyan/5 border border-ryvynn-cyan/20 rounded-xl p-4">
           <p className="text-gray-400 text-sm">
             <span className="text-ryvynn-cyan font-medium">Note:</span> You never need to give your real name.
-            Anonymous feedback is welcome — we'll still read it and it still matters.
+            Anonymous feedback is welcome — we&apos;ll still read it and it still matters.
           </p>
         </div>
 
