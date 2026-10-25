@@ -22,7 +22,7 @@ export function CrisisBanner() {
       textAlign: 'center',
     }}>
       <p style={{ color: '#fca5a5', fontSize: 13, margin: 0 }}>
-        If you're in immediate danger:{' '}
+        If you&apos;re in immediate danger:{' '}
         <a href="tel:988" style={{ color: '#fff', fontWeight: 700 }}>call or text 988</a>
         {' '}— free, 24/7
       </p>

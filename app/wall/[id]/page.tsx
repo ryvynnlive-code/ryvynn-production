@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
 function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

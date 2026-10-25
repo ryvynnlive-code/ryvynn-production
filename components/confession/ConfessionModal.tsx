@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { usePersona } from '@/contexts/PersonaContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 
 interface ConfessionModalProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
     setSharing(true);
 
     try {
-      const response = await fetch('/api/wall', {
+      const response = await authenticatedFetch('/api/wall', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,6 +82,11 @@ export function ConfessionModal({ isOpen, onClose }: ConfessionModalProps) {
       if (!response.ok) throw new Error('Failed to share to wall');
 
       const data = await response.json();
+      if (data.blocked) {
+        alert(data.message || 'This message was not published or saved.');
+        setSharing(false);
+        return;
+      }
 
       if (data.tokensEarned && data.tokensEarned > 0) {
         alert(`✨ ${tp('confessionSharedAnon')} (+${data.tokensEarned} 🔥)`);

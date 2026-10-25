@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireApiUser } from '@/lib/api-auth';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
 function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,19 +25,29 @@ export async function POST(req: NextRequest) {
   try {
     const { userId, confession, transformation, isAnonymous = true } = await req.json();
 
-    if (!confession) {
+    if (typeof confession !== 'string' || !confession.trim()) {
       return NextResponse.json({ error: 'content required' }, { status: 400 });
+    }
+    if (confession.length > 10000 || (transformation != null &&
+        (typeof transformation !== 'string' || transformation.length > 10000))) {
+      return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
+    }
+    // Account attribution and rewards must never trust a browser-supplied ID.
+    // Visitors without an account can still publish anonymously for free.
+    if (userId != null) {
+      const denied = await requireApiUser(req, userId);
+      if (denied) return denied;
     }
 
     const text = transformation || confession;
     const risk = detectRisk(text);
 
-    // Block high-risk content silently — tell user it was saved privately
+    // Do not claim a blocked post was saved or published.
     if (!risk.allowWall) {
       return NextResponse.json({
         success: true,
         blocked: true,
-        message: 'Saved privately. This one stays just with you.',
+        message: 'This message was not published or saved.',
       });
     }
 
@@ -81,8 +92,8 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const limit    = parseInt(searchParams.get('limit')  || '12');
-    const offset   = parseInt(searchParams.get('offset') || '0');
+    const limit    = Math.min(100, Math.max(1, Number(searchParams.get('limit')) || 12));
+    const offset   = Math.min(10000, Math.max(0, Number(searchParams.get('offset')) || 0));
     const sortBy   = searchParams.get('sortBy') || 'recent';
     const featured = searchParams.get('featured') === 'true';
 
@@ -90,7 +101,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('wall_entries')
-      .select('*', { count: 'exact' });
+      .select('id, confession, transformation, votes, created_at, is_anonymous', { count: 'exact' });
 
     if (featured) {
       // Featured = most felt_heard in last 7 days

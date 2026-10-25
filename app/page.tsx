@@ -126,15 +126,8 @@ function safeSet(key: string, val: string) {
 
 /* ---------- LIVE PRESENCE ---------- */
 function useLivePresence() {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    setCount(180 + Math.floor(Math.random() * 100));
-    const id = setInterval(() => {
-      setCount(c => Math.max(150, Math.min(420, c + Math.floor(Math.random() * 5) - 2)));
-    }, 4500);
-    return () => clearInterval(id);
-  }, []);
-  return count;
+  // No presence source is connected. Hide counts until they are measured.
+  return 0;
 }
 
 /* ---------- API HELPERS ---------- */
@@ -156,11 +149,14 @@ async function fetchWallAPI(): Promise<Story[]> {
 
 async function postWallAPI(text: string, category: string, feed: string) {
   try {
-    await fetch('/api/wall', {
+    const response = await fetch('/api/wall', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confession: text, category, feed, isAnonymous: true }),
     });
-  } catch {}
+    const result = await response.json();
+    if (!response.ok || result.blocked || !result.success || !result.entryId) return null;
+    return result.entryId as string;
+  } catch { return null; }
 }
 
 async function voteWallAPI(id: string) {
@@ -358,7 +354,7 @@ function WritingMoment({
   allStories: Story[];
   onPublished: (s: Story) => void;
 }) {
-  const [text, setText] = useState(() => safeGet('ryvynn_draft_v1') || '');
+  const [text, setText] = useState('');
   const [stage, setStage] = useState<WriteStage>('write');
   const [category, setCategory] = useState('Other');
   const [feed, setFeed] = useState<'heard'|'through'>('heard');
@@ -366,6 +362,7 @@ function WritingMoment({
   const [piiWarning, setPiiWarning] = useState(false);
   const [related, setRelated] = useState<Story[]>([]);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(false);
   const { language } = useI18n();
   const isEs = language === 'es';
   const textRef = useRef<HTMLTextAreaElement>(null);
@@ -385,7 +382,10 @@ function WritingMoment({
   }, [isEs]);
 
   useEffect(() => { setTimeout(() => textRef.current?.focus(), 100); }, []);
-  useEffect(() => { safeSet('ryvynn_draft_v1', text); }, [text]);
+  useEffect(() => {
+    // Clear legacy autosaved sensitive drafts; new drafts stay in memory only.
+    try { localStorage.removeItem('ryvynn_draft_v1'); } catch { /* storage disabled */ }
+  }, []);
 
   const handleTextChange = (val: string) => {
     setText(val);
@@ -394,7 +394,6 @@ function WritingMoment({
   };
 
   const handlePrivate = () => {
-    safeSet('ryvynn_draft_v1', '');
     setStage('private-fade');
     setTimeout(() => setStage('private-done'), 2200);
   };
@@ -407,12 +406,17 @@ function WritingMoment({
   const confirmPublish = async () => {
     if (publishing) return;
     setPublishing(true);
-    safeSet('ryvynn_draft_v1', '');
+    setPublishError(false);
+    const entryId = await postWallAPI(text, category, feed);
+    if (!entryId) {
+      setPublishError(true);
+      setPublishing(false);
+      return;
+    }
     const newStory: Story = {
-      id: 'new-' + Date.now(), label: 'Anonymous',
+      id: entryId, label: 'Anonymous',
       category, text, felt: 0, replies: [], feed, tier: ageTier === 'adult' ? 'raw' : 'safe',
     };
-    await postWallAPI(text, category, feed);
     setRelated(getRelated(text, allStories, 3));
     onPublished(newStory);
     setStage('published');
@@ -434,6 +438,9 @@ function WritingMoment({
         borderRadius: 20, padding: 32, position: 'relative',
         boxShadow: '0 0 120px rgba(139,92,246,0.08)',
       }}>
+        {publishError && <p role="alert" style={{ color: '#fca5a5' }}>
+          {isEs ? 'No se publicó. Tu texto sigue aquí para que puedas editarlo o volver a intentarlo.' : 'Not published. Your text is still here so you can edit it or try again.'}
+        </p>}
         {/* Crisis takeover */}
         {crisisLevel === 'explicit' && stage === 'write' && (
           <CrisisTakeover onBack={() => setCrisisLevel('distress')} />
@@ -453,7 +460,7 @@ function WritingMoment({
             {/* Presence */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, padding: '8px 14px', background: 'rgba(139,92,246,0.05)', borderRadius: 20, width: 'fit-content' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00D9FF', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{presence} {isEs ? 'aquí contigo' : 'here with you'}</span>
+              <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Tu espacio para escribir' : 'Your space to write'}</span>
             </div>
 
             {/* Distress nudge */}
@@ -570,7 +577,7 @@ function WritingMoment({
               This will be shared anonymously. No name. No device. Someone who needs it may find it tonight.
             </p>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, textAlign: 'left' }}>
-              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>"{text.slice(0, 120)}{text.length > 120 ? '...' : ''}"</p>
+              <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 14, color: '#94a3b8', lineHeight: 1.8, margin: 0, fontStyle: 'italic' }}>&quot;{text.slice(0, 120)}{text.length > 120 ? '...' : ''}&quot;</p>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setStage('write')} style={{ flex: 1, padding: '13px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#64748b', fontSize: 14, cursor: 'pointer', fontFamily: "'Lora',Georgia,serif" }}>{isEs ? 'Volver' : 'Go back'}</button>
@@ -627,7 +634,7 @@ function WritingMoment({
                 <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 11, letterSpacing: '0.12em', color: '#475569', marginBottom: 16, textAlign: 'center' }}>{isEs ? 'OTROS QUE HAN ESTADO AQUÍ' : 'OTHERS WHO HAVE BEEN HERE'}</p>
                 {related.map(s => (
                   <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 18px', marginBottom: 10 }}>
-                    <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>"{s.text}"</p>
+                    <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13.5, color: '#94a3b8', lineHeight: 1.75, margin: 0, fontStyle: 'italic' }}>&quot;{s.text}&quot;</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
                       <span style={{ fontSize: 11, color: CAT_COLOR[s.category] || '#8B5CF6', fontFamily: "'Lora',Georgia,serif" }}>{s.category}</span>
                       <span style={{ fontSize: 11, color: '#1e293b' }}>·</span>
@@ -745,7 +752,7 @@ function StoryCard({
           </button>
         </div>
       </div>
-      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, lineHeight: 1.85, color: '#c0cce0', margin: '0 0 16px', fontStyle: 'italic' }}>"{story.text}"</p>
+      <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 15, lineHeight: 1.85, color: '#c0cce0', margin: '0 0 16px', fontStyle: 'italic' }}>&quot;{story.text}&quot;</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={handleFelt} style={{
           display: 'flex', alignItems: 'center', gap: 5,
@@ -1090,7 +1097,7 @@ function Mission() {
       </div>
       <div style={{ borderTop: '1px solid rgba(139,92,246,0.1)', paddingTop: 40, marginTop: 48 }}>
         <p style={{ fontFamily: "'Lora',Georgia,serif", color: '#475569', fontSize: 14, lineHeight: 1.9, maxWidth: 540, margin: '0 auto' }}>
-          Built by NEXXT GEN INNOVATIONS LLC — operating as RYVYNN and AONIXX. Free at the core. Always. Crisis access is never paywalled.
+          Built by NEXXT GEN INNOVATIONS LLC — operating as RYVYNN and AONIXX. Full access is free. Always. No paid upgrades.
         </p>
       </div>
     </section>
@@ -1104,9 +1111,9 @@ function Privacy() {
   const promises = [
     'Private sessions disappear when you leave unless you choose to publish.',
     'Published stories are anonymized and saved only because you chose to share them.',
-    'No personally identifying data is intentionally collected or stored.',
-    'Identity details are automatically flagged before posting — you stay protected.',
-    'No ads. No analytics. No tracking. The trust is the product.',
+    'Guardian text is processed by Groq. Avoid names and identifying details.',
+    'Published posts are public. Remove identifying details before sharing.',
+    'Free accounts store account details; saved journals are encrypted in your browser.',
   ];
   return (
     <section id="privacy" style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 80px' }}>
@@ -1161,7 +1168,7 @@ function Footer() {
       <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 13, color: '#334155', marginBottom: 6 }}>Free at the core.</p>
       <p style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#1e293b', marginBottom: 32 }}>Anonymous support for the moments people usually face alone.</p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
-        <Link href="/pricing" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Support the mission</Link>
+        <Link href="/support" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Support the mission</Link>
         <Link href="/sign-up" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Anonymous account</Link>
         <Link href="/crisis" style={{ fontFamily: "'Lora',Georgia,serif", fontSize: 12, color: '#334155', textDecoration: 'none' }}>Crisis resources</Link>
       </div>

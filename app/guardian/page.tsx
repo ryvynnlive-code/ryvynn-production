@@ -320,6 +320,7 @@ function WallShareNudge({ lastMessage, onDismiss }: { lastMessage: string; onDis
         body: JSON.stringify({ confession: lastMessage, transformation: lastMessage, isAnonymous: true }),
       });
       const data = await res.json();
+      if (!res.ok || (!data.success && !data.blocked)) throw new Error('Failed to share');
       setResult(data.blocked ? 'blocked' : 'shared');
     } catch { setSharing(false); }
   };

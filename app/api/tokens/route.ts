@@ -1,7 +1,8 @@
+import { requireApiUser } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
 function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -14,6 +15,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const supabase = getSupabase();
@@ -62,6 +65,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const supabase = getSupabase();

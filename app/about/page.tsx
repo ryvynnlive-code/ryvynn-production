@@ -40,7 +40,7 @@ export default function AboutPage() {
             real to someone — or something — that will just listen.
           </p>
           <p className="text-gray-300 leading-relaxed">
-            Crisis access is free. Forever. That's not a marketing promise — it's the foundation.
+            Crisis access is free. Forever. That&apos;s not a marketing promise — it&apos;s the foundation.
           </p>
         </section>
 
@@ -76,7 +76,7 @@ export default function AboutPage() {
           </p>
           <p className="text-gray-300 leading-relaxed">
             2,700+ hours of development. Federal registrations. A full production stack. All built
-            because mental health support for underserved populations shouldn't require a credit card
+            because mental health support for underserved populations shouldn&apos;t require a credit card
             or a real name.
           </p>
         </section>

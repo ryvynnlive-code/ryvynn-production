@@ -1,5 +1,7 @@
 'use client';
 
+
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 type Song = {
@@ -152,7 +154,7 @@ export default function SongPage() {
         )}
 
         <div className="mt-flame-2xl text-center">
-          <a href="/" className="text-white/40 text-sm hover:text-white/70 transition-colors">← Back home</a>
+          <Link href="/" className="text-white/40 text-sm hover:text-white/70 transition-colors">← Back home</Link>
         </div>
       </div>
     </main>

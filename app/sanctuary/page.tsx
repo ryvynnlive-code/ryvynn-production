@@ -1,5 +1,7 @@
 'use client';
 
+
+import Link from 'next/link';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 /* ============================================================
@@ -261,19 +263,19 @@ function AgeGate({ onChoose }: { onChoose: (t: string) => void }) {
       </h1>
       <p style={{ color:'#94a3b8', maxWidth:460, lineHeight:1.7, marginBottom:40,
                   fontFamily:"'Lora', Georgia, serif" }}>
-        This is an anonymous space for real, hard things. We need to know roughly who's here so we can keep it safe.
+        This is an anonymous space for real, hard things. We need to know roughly who&apos;s here so we can keep it safe.
       </p>
       <div style={{ display:'flex', flexDirection:'column', gap:12, width:'100%', maxWidth:320 }}>
-        <button onClick={() => onChoose('adult')}   style={{ ...btn('primary'), padding:'14px 24px' }}>I'm 18 or older</button>
-        <button onClick={() => onChoose('teen')}    style={{ ...btn('outline'), padding:'14px 24px' }}>I'm 14 to 17</button>
+        <button onClick={() => onChoose('adult')}   style={{ ...btn('primary'), padding:'14px 24px' }}>I&apos;m 18 or older</button>
+        <button onClick={() => onChoose('teen')}    style={{ ...btn('outline'), padding:'14px 24px' }}>I&apos;m 14 to 17</button>
         <button onClick={() => onChoose('under14')} style={{ ...btn('outline'), padding:'14px 24px',
                                                               borderColor:'rgba(255,255,255,0.08)', color:'#64748b' }}>
-          I'm younger than 14
+          I&apos;m younger than 14
         </button>
       </div>
       <p style={{ marginTop:32, fontSize:12, color:'#475569', maxWidth:380, lineHeight:1.7,
                   fontFamily:"'Lora', Georgia, serif" }}>
-        We don't store your answer with anything that identifies you. This just changes what you see.
+        We don&apos;t store your answer with anything that identifies you. This just changes what you see.
       </p>
     </div>
   );
@@ -286,11 +288,11 @@ function UnderageRedirect({ onBack }: { onBack: () => void }) {
                   padding:24, textAlign:'center' }}>
       <FlameIcon size={48} />
       <h2 style={{ fontFamily:"'Cinzel', serif", fontSize:'1.8rem', color:'#f1f5f9', margin:'24px 0 16px' }}>
-        We're glad you're here. But not yet.
+        We&apos;re glad you&apos;re here. But not yet.
       </h2>
       <p style={{ color:'#cbd5e1', maxWidth:480, lineHeight:1.8, marginBottom:24,
                   fontFamily:"'Lora', Georgia, serif", fontSize:16 }}>
-        Ryvynn was built for people 14 and up. That isn't a rule meant to hurt you — it's because the things people write here can be heavy, and we want to make sure the right kind of help reaches you.
+        Ryvynn was built for people 14 and up. That isn&apos;t a rule meant to hurt you — it&apos;s because the things people write here can be heavy, and we want to make sure the right kind of help reaches you.
       </p>
       <div style={{ background:'rgba(0,217,255,0.06)', border:'1px solid rgba(0,217,255,0.2)',
                     borderRadius:12, padding:'20px 24px', maxWidth:480, textAlign:'left', marginBottom:32 }}>
@@ -338,11 +340,11 @@ function SanctuaryNav({ presence, bookmarkCount, onShowBookmarks }: {
                   borderBottom:scrolled ? '1px solid rgba(139,92,246,0.15)' : 'none',
                   transition:'all 0.4s ease', padding:'14px 24px',
                   display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-      <a href="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
+      <Link href="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
         <FlameIcon size={22} />
         <span style={{ fontFamily:"'Cinzel', serif", fontSize:14, letterSpacing:'0.14em',
                        color:'#e2e8f0', fontWeight:600 }}>RYVYNN</span>
-      </a>
+      </Link>
       <div style={{ display:'flex', alignItems:'center', gap:16 }}>
         {bookmarkCount > 0 && (
           <button onClick={onShowBookmarks}
@@ -379,7 +381,7 @@ function Hero({ onSay }: { onSay: () => void }) {
           Say the thing<br />
           <span style={{ background:'linear-gradient(135deg, #8B5CF6, #00D9FF)',
                          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-            you can't say anywhere else.
+            you can&apos;t say anywhere else.
           </span>
         </h1>
         <p style={{ color:'#94a3b8', maxWidth:540, margin:'0 auto 48px',
@@ -417,7 +419,7 @@ function CrisisTakeover({ onContinueWriting, onClose }: {
       </h2>
       <p style={{ color:'#cbd5e1', maxWidth:480, lineHeight:1.8, marginBottom:12,
                   fontFamily:"'Lora', Georgia, serif", fontSize:16 }}>
-        What you're writing suggests you might be in a really dark place right now. That matters.
+        What you&apos;re writing suggests you might be in a really dark place right now. That matters.
       </p>
       <p style={{ color:'#e2e8f0', maxWidth:480, lineHeight:1.8, marginBottom:40,
                   fontFamily:"'Lora', Georgia, serif", fontSize:16 }}>
@@ -437,7 +439,7 @@ function CrisisTakeover({ onContinueWriting, onClose }: {
               style={{ background:'none', border:'none', color:'#64748b',
                        fontSize:13, cursor:'pointer', textDecoration:'underline',
                        fontFamily:"'Lora', Georgia, serif", padding:8 }}>
-        I'm okay, let me keep writing
+        I&apos;m okay, let me keep writing
       </button>
       <button onClick={onClose}
               style={{ background:'none', border:'none', color:'#475569',
@@ -598,14 +600,14 @@ function WritingMoment({ onClose, presence, ageTier, onPublish, allStories }: {
                           borderRadius:8, padding:'14px 18px', marginTop:16, animation:'fadeIn 0.4s ease' }}>
               <p style={{ color:'#fca5a5', fontSize:13, lineHeight:1.7, margin:0,
                           fontFamily:"'Lora', Georgia, serif" }}>
-                What you're writing sounds heavy. You can keep going — but if you need someone right now, <strong>988</strong> is there. Call or text.
+                What you&apos;re writing sounds heavy. You can keep going — but if you need someone right now, <strong>988</strong> is there. Call or text.
               </p>
             </div>
           )}
           <p style={{ fontSize:11, color:'#334155', textAlign:'center', marginTop:24,
                       fontFamily:"'Lora', Georgia, serif",
                       opacity:text.trim() ? 0 : 0.7, transition:'opacity 0.4s' }}>
-            Tip: don't include names, addresses, schools, or anything that could identify you.
+            Tip: don&apos;t include names, addresses, schools, or anything that could identify you.
           </p>
         </div>
         <div style={{ padding:'20px 24px 32px', flexShrink:0,
@@ -689,11 +691,11 @@ function WritingMoment({ onClose, presence, ageTier, onPublish, allStories }: {
           </h3>
           <p style={{ color:'#cbd5e1', fontSize:15, lineHeight:1.8, marginBottom:16,
                       fontFamily:"'Lora', Georgia, serif" }}>
-            Once published, your story stays on the wall — anonymized — so someone else can see they're not alone.
+            Once published, your story stays on the wall — anonymized — so someone else can see they&apos;re not alone.
           </p>
           <p style={{ color:'#94a3b8', fontSize:14, lineHeight:1.7, marginBottom:20,
                       fontFamily:"'Lora', Georgia, serif" }}>
-            We'll strip obvious identifiers before posting. Even so — don't include names, exact places, or anything that could identify you.
+            We&apos;ll strip obvious identifiers before posting. Even so — don&apos;t include names, exact places, or anything that could identify you.
           </p>
           {showPIIWarning && (
             <div style={{ background:'rgba(251,146,60,0.08)', border:'1px solid rgba(251,146,60,0.25)',
@@ -723,7 +725,7 @@ function WritingMoment({ onClose, presence, ageTier, onPublish, allStories }: {
                   overflowY:'auto' }}>
       <FlameIcon size={56} />
       <h2 style={{ fontFamily:"'Cinzel', serif", fontSize:'clamp(1.6rem, 4vw, 2.2rem)',
-                   color:'#f1f5f9', margin:'32px 0 20px' }}>It's on the wall.</h2>
+                   color:'#f1f5f9', margin:'32px 0 20px' }}>It&apos;s on the wall.</h2>
       <p style={{ color:'#cbd5e1', maxWidth:460, lineHeight:1.8,
                   marginBottom:similar.length > 0 ? 32 : 40,
                   fontFamily:"'Lora', Georgia, serif", fontSize:16 }}>
@@ -733,7 +735,7 @@ function WritingMoment({ onClose, presence, ageTier, onPublish, allStories }: {
         <div style={{ width:'100%', maxWidth:480, marginBottom:40, textAlign:'left' }}>
           <p style={{ fontSize:11, color:'#64748b', letterSpacing:'0.12em', marginBottom:16,
                       fontFamily:"'Lora', Georgia, serif", textTransform:'uppercase' }}>
-            Others who've been there:
+            Others who&apos;ve been there:
           </p>
           {similar.map(s => (
             <div key={s.id}
@@ -834,7 +836,7 @@ function StoryCard({ story, isBookmarked, onToggleBookmark }: {
                          color:pressed ? '#00D9FF' : '#64748b',
                          cursor:pressed ? 'default' : 'pointer', fontSize:13, transition:'all 0.2s',
                          fontFamily:"'Lora', Georgia, serif" }}>
-          I've felt this · {felt.toLocaleString()}
+          I&apos;ve felt this · {felt.toLocaleString()}
         </button>
         <button onClick={() => setShowReplyBox(!showReplyBox)}
                 style={{ background:'none', border:'1px solid rgba(255,255,255,0.1)',

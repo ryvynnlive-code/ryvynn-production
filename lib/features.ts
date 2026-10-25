@@ -27,10 +27,10 @@ export const RYVYNN_FEATURES = {
       crisis: 0, // Crisis tier earns tokens too
     },
     costs: {
-      aiGuardianChat: 2,
-      transformationRequest: 1,
-      eternityMessage: 10,
-      advancedJournal: 1,
+      aiGuardianChat: 0,
+      transformationRequest: 0,
+      eternityMessage: 0,
+      advancedJournal: 0,
     },
   },
   
@@ -39,7 +39,7 @@ export const RYVYNN_FEATURES = {
     encryption: 'user-key-only',
     delivery: 'blockchain-timelock',
     recipients: 'bloodline-descendants',
-    preview: 'blurred-paywall',
+    preview: 'free',
   },
   
   // AI Guardian

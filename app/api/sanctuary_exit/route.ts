@@ -1,7 +1,8 @@
+import { requireApiUser } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // GET — generate the parting reflection (in-memory only, never stored)
@@ -56,7 +57,9 @@ export async function GET(req: NextRequest) {
 // DELETE — the purge ritual
 export async function DELETE(req: NextRequest) {
   try {
-    const { userId, isPlusUser } = await req.json();
+    const { userId } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -70,8 +73,8 @@ export async function DELETE(req: NextRequest) {
     const { error: e2 } = await supabase.from('journal_entries').delete().eq('user_id', userId);
     if (!e2) deleted.push('journal_entries');
 
-    // 3. Free users: purge wall entries too
-    if (!isPlusUser) {
+    // 3. Purge account-linked wall entries for every user
+    {
       const { error: e3 } = await supabase.from('wall_entries').delete().eq('user_id', userId);
       if (!e3) deleted.push('wall_entries');
     }
@@ -80,6 +83,9 @@ export async function DELETE(req: NextRequest) {
     const { error: e4 } = await supabase.from('token_transactions').delete().eq('user_id', userId);
     if (!e4) deleted.push('token_transactions');
 
+    if ([e1, e2, e4].some(Boolean) || !deleted.includes('wall_entries')) {
+      return NextResponse.json({ error: 'Deletion incomplete', purged: deleted }, { status: 503 });
+    }
     return NextResponse.json({ 
       success: true, 
       purged: deleted,

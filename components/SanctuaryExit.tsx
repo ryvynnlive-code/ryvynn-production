@@ -1,4 +1,5 @@
 'use client'
+import { authenticatedFetch } from '@/lib/authenticated-fetch'
 import { useState, useEffect } from 'react'
 
 interface SanctuaryExitProps {
@@ -13,6 +14,7 @@ export default function SanctuaryExit({ userId, isPlusUser = false, onComplete, 
   const [loading, setLoading] = useState(true)
   const [purging, setPurging] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch('/api/sanctuary_exit')
@@ -22,14 +24,20 @@ export default function SanctuaryExit({ userId, isPlusUser = false, onComplete, 
   }, [])
 
   const handleRelease = async () => {
+    setError('')
     setPurging(true)
     try {
-      await fetch('/api/sanctuary_exit', {
+      const response = await authenticatedFetch('/api/sanctuary_exit', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, isPlusUser }),
       })
-    } catch (e) { /* silent */ }
+      if (!response.ok) throw new Error('Deletion incomplete');
+    } catch {
+      setError('We could not complete deletion. Please try again.');
+      setPurging(false);
+      return;
+    }
     
     setDone(true)
     setTimeout(() => {
@@ -77,6 +85,7 @@ export default function SanctuaryExit({ userId, isPlusUser = false, onComplete, 
             This session and all encrypted traces will be permanently erased.
           </p>
 
+          {error && <p role="alert" className="text-red-300">{error}</p>}
           <button
             onClick={handleRelease}
             disabled={purging || loading}

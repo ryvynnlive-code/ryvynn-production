@@ -1,5 +1,7 @@
 'use client';
 
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -51,7 +53,7 @@ export default function JournalPage() {
   const loadEntries = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/journal?userId=${user.id}`);
+      const res = await authenticatedFetch(`/api/journal?userId=${user.id}`);
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setEntries(data.entries || []);
@@ -110,7 +112,7 @@ export default function JournalPage() {
     try {
       const key = `ryvynn-journal-${user.id}`;
       const encrypted = await encrypt(newEntry, key);
-      const res = await fetch('/api/journal', {
+      const res = await authenticatedFetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, encryptedContent: encrypted }),

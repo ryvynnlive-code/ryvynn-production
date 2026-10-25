@@ -1,13 +1,16 @@
+import { requireApiUser } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://iofkxyljwemnnbwzcrke.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // CREATE journal entry
 export async function POST(req: NextRequest) {
   try {
     const { userId, encryptedContent } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
 
     if (!userId || !encryptedContent) {
       return NextResponse.json(
@@ -64,8 +67,10 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     const entryId = searchParams.get('entryId');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get('limit')) || 50));
 
     if (!userId) {
       return NextResponse.json(
@@ -119,6 +124,8 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const { userId, entryId, encryptedContent } = await req.json();
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
 
     if (!userId || !entryId || !encryptedContent) {
       return NextResponse.json(
@@ -160,6 +167,8 @@ export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const denied = await requireApiUser(req, userId);
+    if (denied) return denied;
     const entryId = searchParams.get('entryId');
 
     if (!userId || !entryId) {
